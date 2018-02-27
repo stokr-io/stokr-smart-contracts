@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "ganache-cli": "^6.0.3",
+    "solhint": "^1.1.10",
+    "truffle": "^4.0.7"
+  }
+}

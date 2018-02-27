@@ -1,4 +1,4 @@
-pragma solidity ^0.4.20;
+pragma solidity 0.4.19;
 
 import "../zeppelin-solidity/contracts/ownership/Ownable.sol";
 
@@ -28,6 +28,12 @@ contract Whitelist is Ownable {
     /// @param investor An Ethereum address
     event InvestorRemoved(address admin, address investor);
 
+    /// @dev Only admin
+    modifier onlyAdmin() {
+        require(admins[msg.sender]);
+        _;
+    }
+
     /// @dev Add admin
     /// @param _admin An Ethereum address
     function addAdmin(address _admin) public onlyOwner {
@@ -46,8 +52,8 @@ contract Whitelist is Ownable {
     /// @param _investors A list where each entry is an Ethereum address
     function addToWhitelist(address[] _investors) public onlyAdmin {
         for (uint256 i = 0; i < _investors.length; i++) {
-            whitelist[_investors[i]] = true;
-            InvestorAdded(msg.sender, _investor);
+            whitelisted[_investors[i]] = true;
+            InvestorAdded(msg.sender, _investors[i]);
         }
     }
 
@@ -55,8 +61,8 @@ contract Whitelist is Ownable {
     /// @param _investors A list where each entry is an Ethereum address
     function removeFromWhitelist(address[] _investors) public onlyAdmin {
         for (uint256 i = 0; i < _investors.length; i++) {
-            whitelist[_investors[i]] = false;
-            InvestorRemoved(msg.sender, _investor);
+            whitelisted[_investors[i]] = false;
+            InvestorRemoved(msg.sender, _investors[i]);
         }
     }
 
@@ -64,7 +70,7 @@ contract Whitelist is Ownable {
     /// @param _investor An Ethereum address
     /// @return True or false
     function isWhitelisted(address _investor) public view returns (bool) {
-        return whitelist[_investor];
+        return whitelisted[_investor];
     }
 
 }

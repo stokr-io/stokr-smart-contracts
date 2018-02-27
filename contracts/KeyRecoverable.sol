@@ -1,4 +1,4 @@
-pragma solidity ^0.4.20;
+pragma solidity 0.4.19;
 
 import "../zeppelin-solidity/contracts/ownership/Ownable.sol";
 
@@ -10,9 +10,8 @@ contract KeyRecoverable is Ownable {
     address public keyRecoverer;
 
     /// @dev Log entry on key recoverer changed
-    /// @param oldKeyRecoverer An Ethereum address
     /// @param newKeyRecoverer An Ethereum address
-    event KeyRecovererChanged(address oldKeyRecoverer, address newKeyRecoverer);
+    event KeyRecovererChanged(address newKeyRecoverer);
 
     /// @dev Log entry on key recovered
     /// @param oldAddress An Ethereum address
@@ -42,7 +41,8 @@ contract KeyRecoverable is Ownable {
     }
 
     /// @dev Recover key
-    /// @param _oldInvestor An Ethereum address
+    /// @param _oldAddress An Ethereum address
+    /// @param _newAddress An Ethereum address
     function recoverKey(address _oldAddress, address _newAddress) public;
 
 }

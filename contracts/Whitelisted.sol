@@ -1,4 +1,4 @@
-pragma solidity ^0.4.20;
+pragma solidity 0.4.19;
 
 import "../zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./Whitelist.sol";
