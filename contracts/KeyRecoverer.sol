@@ -2,7 +2,6 @@ pragma solidity 0.4.19;
 
 import "../zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./KeyRecoverable.sol";
-import "./Whitelist.sol";
 
 
 /// @title SicosToken
