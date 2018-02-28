@@ -1,0 +1,1097 @@
+{
+  "contractName": "SampleToken",
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "mintingFinished",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "name",
+      "outputs": [
+        {
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "minter",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_spender",
+          "type": "address"
+        },
+        {
+          "name": "_value",
+          "type": "uint256"
+        }
+      ],
+      "name": "approve",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "totalSupply",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "withdrawProfitShare",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "unclaimedProfits",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_from",
+          "type": "address"
+        },
+        {
+          "name": "_to",
+          "type": "address"
+        },
+        {
+          "name": "_value",
+          "type": "uint256"
+        }
+      ],
+      "name": "transferFrom",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_to",
+          "type": "address"
+        },
+        {
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "mint",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "",
+          "type": "address"
+        },
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "allowances",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "accounts",
+      "outputs": [
+        {
+          "name": "balance",
+          "type": "uint256"
+        },
+        {
+          "name": "lastTotalProfits",
+          "type": "uint256"
+        },
+        {
+          "name": "profitShare",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_oldAddress",
+          "type": "address"
+        },
+        {
+          "name": "_newAddress",
+          "type": "address"
+        }
+      ],
+      "name": "recoverKey",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "_investor",
+          "type": "address"
+        }
+      ],
+      "name": "balanceOf",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "depositProfit",
+      "outputs": [],
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "decimal",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "finishMinting",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_whitelist",
+          "type": "address"
+        }
+      ],
+      "name": "setWhitelist",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "_investor",
+          "type": "address"
+        }
+      ],
+      "name": "profitShareOwing",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "whitelist",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "symbol",
+      "outputs": [
+        {
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_to",
+          "type": "address"
+        },
+        {
+          "name": "_value",
+          "type": "uint256"
+        }
+      ],
+      "name": "transfer",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "totalProfits",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_keyRecoverer",
+          "type": "address"
+        }
+      ],
+      "name": "setKeyRecoverer",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "keyRecoverer",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "_investor",
+          "type": "address"
+        },
+        {
+          "name": "_spender",
+          "type": "address"
+        }
+      ],
+      "name": "allowance",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_investor",
+          "type": "address"
+        }
+      ],
+      "name": "updateProfitShare",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_minter",
+          "type": "address"
+        }
+      ],
+      "name": "setMinter",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "newKeyRecoverer",
+          "type": "address"
+        }
+      ],
+      "name": "KeyRecovererChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "oldAddress",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "newAddress",
+          "type": "address"
+        }
+      ],
+      "name": "KeyRecovered",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "Minted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [],
+      "name": "MintFinished",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "whitelist",
+          "type": "address"
+        }
+      ],
+      "name": "WhitelistChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "_depositor",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "ProfitDeposited",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "_investor",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "ProfitShareUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "_investor",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "ProfitWithdrawal",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "Approval",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "Transfer",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "sourceMap": "",
+  "deployedSourceMap": "",
+  "source": "pragma solidity 0.4.19;\n\nimport \"./SicosToken.sol\";\n\n\n/// @title SicosToken\n/// @author Autogenerated from a Dia UML diagram\ncontract SampleToken is SicosToken {\n\n    string public name = \"Sample Sicos Token\";\n    string public symbol = \"SAM\";\n    uint public decimal = 18;\n\n}\n",
+  "sourcePath": "/usr/home/gerard/Projekte/Solidity/Lukas/TokenPlattform/contracts/SampleToken.sol",
+  "ast": {
+    "absolutePath": "/usr/home/gerard/Projekte/Solidity/Lukas/TokenPlattform/contracts/SampleToken.sol",
+    "exportedSymbols": {
+      "SampleToken": [
+        666
+      ]
+    },
+    "id": 667,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 653,
+        "literals": [
+          "solidity",
+          "0.4",
+          ".19"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:23:5"
+      },
+      {
+        "absolutePath": "/usr/home/gerard/Projekte/Solidity/Lukas/TokenPlattform/contracts/SicosToken.sol",
+        "file": "./SicosToken.sol",
+        "id": 654,
+        "nodeType": "ImportDirective",
+        "scope": 667,
+        "sourceUnit": 1102,
+        "src": "25:26:5",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "baseContracts": [
+          {
+            "arguments": [],
+            "baseName": {
+              "contractScope": null,
+              "id": 655,
+              "name": "SicosToken",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 1101,
+              "src": "149:10:5",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_SicosToken_$1101",
+                "typeString": "contract SicosToken"
+              }
+            },
+            "id": 656,
+            "nodeType": "InheritanceSpecifier",
+            "src": "149:10:5"
+          }
+        ],
+        "contractDependencies": [
+          69,
+          484,
+          651,
+          1101,
+          1332,
+          1903,
+          1946,
+          1978
+        ],
+        "contractKind": "contract",
+        "documentation": "@title SicosToken\n @author Autogenerated from a Dia UML diagram",
+        "fullyImplemented": false,
+        "id": 666,
+        "linearizedBaseContracts": [
+          666,
+          1101,
+          69,
+          484,
+          1332,
+          651,
+          1946,
+          1978,
+          1903
+        ],
+        "name": "SampleToken",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "constant": false,
+            "id": 659,
+            "name": "name",
+            "nodeType": "VariableDeclaration",
+            "scope": 666,
+            "src": "167:41:5",
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_string_storage",
+              "typeString": "string storage ref"
+            },
+            "typeName": {
+              "id": 657,
+              "name": "string",
+              "nodeType": "ElementaryTypeName",
+              "src": "167:6:5",
+              "typeDescriptions": {
+                "typeIdentifier": "t_string_storage_ptr",
+                "typeString": "string storage pointer"
+              }
+            },
+            "value": {
+              "argumentTypes": null,
+              "hexValue": "53616d706c65205369636f7320546f6b656e",
+              "id": 658,
+              "isConstant": false,
+              "isLValue": false,
+              "isPure": true,
+              "kind": "string",
+              "lValueRequested": false,
+              "nodeType": "Literal",
+              "src": "188:20:5",
+              "subdenomination": null,
+              "typeDescriptions": {
+                "typeIdentifier": "t_stringliteral_4991d0ba0d7699a50931992a1bdc58a2b46677fd205c429e51431ff51d71cf98",
+                "typeString": "literal_string \"Sample Sicos Token\""
+              },
+              "value": "Sample Sicos Token"
+            },
+            "visibility": "public"
+          },
+          {
+            "constant": false,
+            "id": 662,
+            "name": "symbol",
+            "nodeType": "VariableDeclaration",
+            "scope": 666,
+            "src": "214:28:5",
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_string_storage",
+              "typeString": "string storage ref"
+            },
+            "typeName": {
+              "id": 660,
+              "name": "string",
+              "nodeType": "ElementaryTypeName",
+              "src": "214:6:5",
+              "typeDescriptions": {
+                "typeIdentifier": "t_string_storage_ptr",
+                "typeString": "string storage pointer"
+              }
+            },
+            "value": {
+              "argumentTypes": null,
+              "hexValue": "53414d",
+              "id": 661,
+              "isConstant": false,
+              "isLValue": false,
+              "isPure": true,
+              "kind": "string",
+              "lValueRequested": false,
+              "nodeType": "Literal",
+              "src": "237:5:5",
+              "subdenomination": null,
+              "typeDescriptions": {
+                "typeIdentifier": "t_stringliteral_d02df424a9f6411f46287b7109fc9e13c6965e0a465009ceb1e677ece48802c7",
+                "typeString": "literal_string \"SAM\""
+              },
+              "value": "SAM"
+            },
+            "visibility": "public"
+          },
+          {
+            "constant": false,
+            "id": 665,
+            "name": "decimal",
+            "nodeType": "VariableDeclaration",
+            "scope": 666,
+            "src": "248:24:5",
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 663,
+              "name": "uint",
+              "nodeType": "ElementaryTypeName",
+              "src": "248:4:5",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": {
+              "argumentTypes": null,
+              "hexValue": "3138",
+              "id": 664,
+              "isConstant": false,
+              "isLValue": false,
+              "isPure": true,
+              "kind": "number",
+              "lValueRequested": false,
+              "nodeType": "Literal",
+              "src": "270:2:5",
+              "subdenomination": null,
+              "typeDescriptions": {
+                "typeIdentifier": "t_rational_18_by_1",
+                "typeString": "int_const 18"
+              },
+              "value": "18"
+            },
+            "visibility": "public"
+          }
+        ],
+        "scope": 667,
+        "src": "125:151:5"
+      }
+    ],
+    "src": "0:277:5"
+  },
+  "legacyAST": {
+    "absolutePath": "/usr/home/gerard/Projekte/Solidity/Lukas/TokenPlattform/contracts/SampleToken.sol",
+    "exportedSymbols": {
+      "SampleToken": [
+        666
+      ]
+    },
+    "id": 667,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 653,
+        "literals": [
+          "solidity",
+          "0.4",
+          ".19"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:23:5"
+      },
+      {
+        "absolutePath": "/usr/home/gerard/Projekte/Solidity/Lukas/TokenPlattform/contracts/SicosToken.sol",
+        "file": "./SicosToken.sol",
+        "id": 654,
+        "nodeType": "ImportDirective",
+        "scope": 667,
+        "sourceUnit": 1102,
+        "src": "25:26:5",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "baseContracts": [
+          {
+            "arguments": [],
+            "baseName": {
+              "contractScope": null,
+              "id": 655,
+              "name": "SicosToken",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 1101,
+              "src": "149:10:5",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_SicosToken_$1101",
+                "typeString": "contract SicosToken"
+              }
+            },
+            "id": 656,
+            "nodeType": "InheritanceSpecifier",
+            "src": "149:10:5"
+          }
+        ],
+        "contractDependencies": [
+          69,
+          484,
+          651,
+          1101,
+          1332,
+          1903,
+          1946,
+          1978
+        ],
+        "contractKind": "contract",
+        "documentation": "@title SicosToken\n @author Autogenerated from a Dia UML diagram",
+        "fullyImplemented": false,
+        "id": 666,
+        "linearizedBaseContracts": [
+          666,
+          1101,
+          69,
+          484,
+          1332,
+          651,
+          1946,
+          1978,
+          1903
+        ],
+        "name": "SampleToken",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "constant": false,
+            "id": 659,
+            "name": "name",
+            "nodeType": "VariableDeclaration",
+            "scope": 666,
+            "src": "167:41:5",
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_string_storage",
+              "typeString": "string storage ref"
+            },
+            "typeName": {
+              "id": 657,
+              "name": "string",
+              "nodeType": "ElementaryTypeName",
+              "src": "167:6:5",
+              "typeDescriptions": {
+                "typeIdentifier": "t_string_storage_ptr",
+                "typeString": "string storage pointer"
+              }
+            },
+            "value": {
+              "argumentTypes": null,
+              "hexValue": "53616d706c65205369636f7320546f6b656e",
+              "id": 658,
+              "isConstant": false,
+              "isLValue": false,
+              "isPure": true,
+              "kind": "string",
+              "lValueRequested": false,
+              "nodeType": "Literal",
+              "src": "188:20:5",
+              "subdenomination": null,
+              "typeDescriptions": {
+                "typeIdentifier": "t_stringliteral_4991d0ba0d7699a50931992a1bdc58a2b46677fd205c429e51431ff51d71cf98",
+                "typeString": "literal_string \"Sample Sicos Token\""
+              },
+              "value": "Sample Sicos Token"
+            },
+            "visibility": "public"
+          },
+          {
+            "constant": false,
+            "id": 662,
+            "name": "symbol",
+            "nodeType": "VariableDeclaration",
+            "scope": 666,
+            "src": "214:28:5",
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_string_storage",
+              "typeString": "string storage ref"
+            },
+            "typeName": {
+              "id": 660,
+              "name": "string",
+              "nodeType": "ElementaryTypeName",
+              "src": "214:6:5",
+              "typeDescriptions": {
+                "typeIdentifier": "t_string_storage_ptr",
+                "typeString": "string storage pointer"
+              }
+            },
+            "value": {
+              "argumentTypes": null,
+              "hexValue": "53414d",
+              "id": 661,
+              "isConstant": false,
+              "isLValue": false,
+              "isPure": true,
+              "kind": "string",
+              "lValueRequested": false,
+              "nodeType": "Literal",
+              "src": "237:5:5",
+              "subdenomination": null,
+              "typeDescriptions": {
+                "typeIdentifier": "t_stringliteral_d02df424a9f6411f46287b7109fc9e13c6965e0a465009ceb1e677ece48802c7",
+                "typeString": "literal_string \"SAM\""
+              },
+              "value": "SAM"
+            },
+            "visibility": "public"
+          },
+          {
+            "constant": false,
+            "id": 665,
+            "name": "decimal",
+            "nodeType": "VariableDeclaration",
+            "scope": 666,
+            "src": "248:24:5",
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 663,
+              "name": "uint",
+              "nodeType": "ElementaryTypeName",
+              "src": "248:4:5",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": {
+              "argumentTypes": null,
+              "hexValue": "3138",
+              "id": 664,
+              "isConstant": false,
+              "isLValue": false,
+              "isPure": true,
+              "kind": "number",
+              "lValueRequested": false,
+              "nodeType": "Literal",
+              "src": "270:2:5",
+              "subdenomination": null,
+              "typeDescriptions": {
+                "typeIdentifier": "t_rational_18_by_1",
+                "typeString": "int_const 18"
+              },
+              "value": "18"
+            },
+            "visibility": "public"
+          }
+        ],
+        "scope": 667,
+        "src": "125:151:5"
+      }
+    ],
+    "src": "0:277:5"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.4.19+commit.c4cbbb05.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "2.0.0",
+  "updatedAt": "2018-02-28T19:26:45.434Z"
+}
