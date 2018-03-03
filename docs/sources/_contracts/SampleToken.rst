@@ -1,0 +1,6 @@
+
+===========
+SampleToken
+===========
+
+.. literalinclude:: ../../../contracts/SampleToken.sol

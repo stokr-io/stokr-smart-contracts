@@ -1,0 +1,6 @@
+
+=============
+ProfitSharing
+=============
+
+.. literalinclude:: ../../../contracts/ProfitSharing.sol

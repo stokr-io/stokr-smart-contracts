@@ -1,0 +1,6 @@
+
+===========
+Whitelisted
+===========
+
+.. literalinclude:: ../../../contracts/Whitelisted.sol

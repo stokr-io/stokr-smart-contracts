@@ -1,0 +1,6 @@
+
+==========
+SicosToken
+==========
+
+.. literalinclude:: ../../../contracts/SicosToken.sol
