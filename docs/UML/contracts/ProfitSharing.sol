@@ -16,7 +16,6 @@ contract ProfitSharing is Ownable, ERC20 {
 
     mapping(address => InvestorAccount) public accounts;
     uint public totalProfits;
-    uint public unclaimedProfits;
     uint public totalSuppy;
 
     /// @dev Log entry on profit deposited

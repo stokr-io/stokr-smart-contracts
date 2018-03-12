@@ -8,7 +8,7 @@ import "Ownable.sol";
 contract Whitelist is Ownable {
 
     mapping(address => bool) public admins;
-    mapping(address => bool) public whitelisted;
+    mapping(address => bool) public isWhitelisted;
 
     /// @dev Log entry on admin added
     /// @param admin An Ethereum address
@@ -55,13 +55,6 @@ contract Whitelist is Ownable {
     /// @dev Remove from whitelist
     /// @param _investors A list where each entry is an Ethereum address
     function removeFromWhitelist(address[] _investors) public onlyAdmin {
-        require(IMPLEMENTATION);
-    }
-
-    /// @dev Is whitelisted
-    /// @param _investor An Ethereum address
-    /// @return True or false
-    function isWhitelisted(address _investor) public view returns (bool) {
         require(IMPLEMENTATION);
     }
 

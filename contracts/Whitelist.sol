@@ -8,7 +8,7 @@ import "../zeppelin-solidity/contracts/ownership/Ownable.sol";
 contract Whitelist is Ownable {
 
     mapping(address => bool) public admins;
-    mapping(address => bool) public whitelisted;
+    mapping(address => bool) public isWhitelisted;
 
     /// @dev Log entry on admin added
     /// @param admin An Ethereum address
@@ -37,14 +37,14 @@ contract Whitelist is Ownable {
     /// @dev Add admin
     /// @param _admin An Ethereum address
     function addAdmin(address _admin) public onlyOwner {
-        admins[_admin] == true;
+        admins[_admin] = true;
         AdminAdded(_admin);
     }
 
     /// @dev Remove admin
     /// @param _admin An Ethereum address
     function removeAdmin(address _admin) public onlyOwner {
-        admins[_admin] == false;
+        admins[_admin] = false;
         AdminRemoved(_admin);
     }
 
@@ -52,7 +52,7 @@ contract Whitelist is Ownable {
     /// @param _investors A list where each entry is an Ethereum address
     function addToWhitelist(address[] _investors) public onlyAdmin {
         for (uint256 i = 0; i < _investors.length; i++) {
-            whitelisted[_investors[i]] = true;
+            isWhitelisted[_investors[i]] = true;
             InvestorAdded(msg.sender, _investors[i]);
         }
     }
@@ -61,16 +61,9 @@ contract Whitelist is Ownable {
     /// @param _investors A list where each entry is an Ethereum address
     function removeFromWhitelist(address[] _investors) public onlyAdmin {
         for (uint256 i = 0; i < _investors.length; i++) {
-            whitelisted[_investors[i]] = false;
+            isWhitelisted[_investors[i]] = false;
             InvestorRemoved(msg.sender, _investors[i]);
         }
-    }
-
-    /// @dev Is whitelisted
-    /// @param _investor An Ethereum address
-    /// @return True or false
-    function isWhitelisted(address _investor) public view returns (bool) {
-        return whitelisted[_investor];
     }
 
 }

@@ -1,5 +1,8 @@
 {
   "dependencies": {
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "chai-bignumber": "^2.0.2",
     "ganache-cli": "^6.0.3",
     "solhint": "^1.1.10",
     "truffle": "^4.0.7"

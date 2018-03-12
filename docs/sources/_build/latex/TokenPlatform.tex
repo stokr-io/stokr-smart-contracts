@@ -58,7 +58,7 @@
 
 
 \title{TokenPlatform Documentation}
-\date{Mar 03, 2018}
+\date{Mar 09, 2018}
 \release{}
 \author{Sicos}
 \newcommand{\sphinxlogo}{\vbox{}}
@@ -74,7 +74,7 @@
 
 
 \chapter{Whitelist}
-\label{\detokenize{_contracts/Whitelist::doc}}\label{\detokenize{_contracts/Whitelist:whitelist}}\label{\detokenize{_contracts/Whitelist:tokenplatform-s-solidity-sources}}
+\label{\detokenize{_contracts/Whitelist:whitelist}}\label{\detokenize{_contracts/Whitelist:tokenplatform-s-solidity-sources}}\label{\detokenize{_contracts/Whitelist::doc}}
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{k+kr}{pragma} \PYG{n+nx}{solidity} \PYG{l+m+mf}{0.4}\PYG{l+m+mf}{.19}\PYG{p}{;}
 
@@ -86,7 +86,7 @@
 \PYG{k+kd}{contract} \PYG{n+nx}{Whitelist} \PYG{k+kr}{is} \PYG{n+nx}{Ownable} \PYG{p}{\PYGZob{}}
 
     \PYG{k+kd}{mapping}\PYG{p}{(}\PYG{k+kt}{address} \PYG{o}{=\PYGZgt{}} \PYG{k+kt}{bool}\PYG{p}{)} \PYG{k+kr}{public} \PYG{n+nx}{admins}\PYG{p}{;}
-    \PYG{k+kd}{mapping}\PYG{p}{(}\PYG{k+kt}{address} \PYG{o}{=\PYGZgt{}} \PYG{k+kt}{bool}\PYG{p}{)} \PYG{k+kr}{public} \PYG{n+nx}{whitelisted}\PYG{p}{;}
+    \PYG{k+kd}{mapping}\PYG{p}{(}\PYG{k+kt}{address} \PYG{o}{=\PYGZgt{}} \PYG{k+kt}{bool}\PYG{p}{)} \PYG{k+kr}{public} \PYG{n+nx}{isWhitelisted}\PYG{p}{;}
 
     \PYG{c+c1}{/// @dev Log entry on admin added}
     \PYG{c+c1}{/// @param admin An Ethereum address}
@@ -130,7 +130,7 @@
     \PYG{c+c1}{/// @param \PYGZus{}investors A list where each entry is an Ethereum address}
     \PYG{k+kd}{function} \PYG{n+nx}{addToWhitelist}\PYG{p}{(}\PYG{k+kt}{address}\PYG{p}{[}\PYG{p}{]} \PYG{n+nx}{\PYGZus{}investors}\PYG{p}{)} \PYG{k+kr}{public} \PYG{n+nx}{onlyAdmin} \PYG{p}{\PYGZob{}}
         \PYG{k}{for} \PYG{p}{(}\PYG{k+kt}{uint256} \PYG{n+nx}{i} \PYG{o}{=} \PYG{l+m+mi}{0}\PYG{p}{;} \PYG{n+nx}{i} \PYG{o}{\PYGZlt{}} \PYG{n+nx}{\PYGZus{}investors}\PYG{p}{.}\PYG{n+nx}{length}\PYG{p}{;} \PYG{n+nx}{i}\PYG{o}{++}\PYG{p}{)} \PYG{p}{\PYGZob{}}
-            \PYG{n+nx}{whitelisted}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}investors}\PYG{p}{[}\PYG{n+nx}{i}\PYG{p}{]}\PYG{p}{]} \PYG{o}{=} \PYG{k+kc}{true}\PYG{p}{;}
+            \PYG{n+nx}{isWhitelisted}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}investors}\PYG{p}{[}\PYG{n+nx}{i}\PYG{p}{]}\PYG{p}{]} \PYG{o}{=} \PYG{k+kc}{true}\PYG{p}{;}
             \PYG{n+nx}{InvestorAdded}\PYG{p}{(}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}investors}\PYG{p}{[}\PYG{n+nx}{i}\PYG{p}{]}\PYG{p}{)}\PYG{p}{;}
         \PYG{p}{\PYGZcb{}}
     \PYG{p}{\PYGZcb{}}
@@ -139,16 +139,9 @@
     \PYG{c+c1}{/// @param \PYGZus{}investors A list where each entry is an Ethereum address}
     \PYG{k+kd}{function} \PYG{n+nx}{removeFromWhitelist}\PYG{p}{(}\PYG{k+kt}{address}\PYG{p}{[}\PYG{p}{]} \PYG{n+nx}{\PYGZus{}investors}\PYG{p}{)} \PYG{k+kr}{public} \PYG{n+nx}{onlyAdmin} \PYG{p}{\PYGZob{}}
         \PYG{k}{for} \PYG{p}{(}\PYG{k+kt}{uint256} \PYG{n+nx}{i} \PYG{o}{=} \PYG{l+m+mi}{0}\PYG{p}{;} \PYG{n+nx}{i} \PYG{o}{\PYGZlt{}} \PYG{n+nx}{\PYGZus{}investors}\PYG{p}{.}\PYG{n+nx}{length}\PYG{p}{;} \PYG{n+nx}{i}\PYG{o}{++}\PYG{p}{)} \PYG{p}{\PYGZob{}}
-            \PYG{n+nx}{whitelisted}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}investors}\PYG{p}{[}\PYG{n+nx}{i}\PYG{p}{]}\PYG{p}{]} \PYG{o}{=} \PYG{k+kc}{false}\PYG{p}{;}
+            \PYG{n+nx}{isWhitelisted}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}investors}\PYG{p}{[}\PYG{n+nx}{i}\PYG{p}{]}\PYG{p}{]} \PYG{o}{=} \PYG{k+kc}{false}\PYG{p}{;}
             \PYG{n+nx}{InvestorRemoved}\PYG{p}{(}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}investors}\PYG{p}{[}\PYG{n+nx}{i}\PYG{p}{]}\PYG{p}{)}\PYG{p}{;}
         \PYG{p}{\PYGZcb{}}
-    \PYG{p}{\PYGZcb{}}
-
-    \PYG{c+c1}{/// @dev Is whitelisted}
-    \PYG{c+c1}{/// @param \PYGZus{}investor An Ethereum address}
-    \PYG{c+c1}{/// @return True or false}
-    \PYG{k+kd}{function} \PYG{n+nx}{isWhitelisted}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}investor}\PYG{p}{)} \PYG{k+kr}{public} \PYG{k+kr}{view} \PYG{k+kr}{returns} \PYG{p}{(}\PYG{k+kt}{bool}\PYG{p}{)} \PYG{p}{\PYGZob{}}
-        \PYG{k}{return} \PYG{n+nx}{whitelisted}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}investor}\PYG{p}{]}\PYG{p}{;}
     \PYG{p}{\PYGZcb{}}
 
 \PYG{p}{\PYGZcb{}}
@@ -156,7 +149,7 @@
 
 
 \chapter{KeyRecoverer}
-\label{\detokenize{_contracts/KeyRecoverer::doc}}\label{\detokenize{_contracts/KeyRecoverer:keyrecoverer}}
+\label{\detokenize{_contracts/KeyRecoverer:keyrecoverer}}\label{\detokenize{_contracts/KeyRecoverer::doc}}
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{k+kr}{pragma} \PYG{n+nx}{solidity} \PYG{l+m+mf}{0.4}\PYG{l+m+mf}{.19}\PYG{p}{;}
 
@@ -238,7 +231,7 @@
 
 
 \chapter{SicosCrowdsale}
-\label{\detokenize{_contracts/SicosCrowdsale::doc}}\label{\detokenize{_contracts/SicosCrowdsale:sicoscrowdsale}}
+\label{\detokenize{_contracts/SicosCrowdsale:sicoscrowdsale}}\label{\detokenize{_contracts/SicosCrowdsale::doc}}
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{k+kr}{pragma} \PYG{n+nx}{solidity} \PYG{l+m+mf}{0.4}\PYG{l+m+mf}{.19}\PYG{p}{;}
 
@@ -299,7 +292,7 @@
 
 
 \chapter{Whitelisted}
-\label{\detokenize{_contracts/Whitelisted::doc}}\label{\detokenize{_contracts/Whitelisted:whitelisted}}
+\label{\detokenize{_contracts/Whitelisted:whitelisted}}\label{\detokenize{_contracts/Whitelisted::doc}}
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{k+kr}{pragma} \PYG{n+nx}{solidity} \PYG{l+m+mf}{0.4}\PYG{l+m+mf}{.19}\PYG{p}{;}
 
@@ -342,7 +335,7 @@
 
 
 \chapter{KeyRecoverable}
-\label{\detokenize{_contracts/KeyRecoverable::doc}}\label{\detokenize{_contracts/KeyRecoverable:keyrecoverable}}
+\label{\detokenize{_contracts/KeyRecoverable:keyrecoverable}}\label{\detokenize{_contracts/KeyRecoverable::doc}}
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{k+kr}{pragma} \PYG{n+nx}{solidity} \PYG{l+m+mf}{0.4}\PYG{l+m+mf}{.19}\PYG{p}{;}
 
@@ -396,7 +389,7 @@
 
 
 \chapter{ProfitSharing}
-\label{\detokenize{_contracts/ProfitSharing::doc}}\label{\detokenize{_contracts/ProfitSharing:profitsharing}}
+\label{\detokenize{_contracts/ProfitSharing:profitsharing}}\label{\detokenize{_contracts/ProfitSharing::doc}}
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{k+kr}{pragma} \PYG{n+nx}{solidity} \PYG{l+m+mf}{0.4}\PYG{l+m+mf}{.19}\PYG{p}{;}
 
@@ -419,7 +412,6 @@
 
     \PYG{k+kd}{mapping}\PYG{p}{(}\PYG{k+kt}{address} \PYG{o}{=\PYGZgt{}} \PYG{n+nx}{InvestorAccount}\PYG{p}{)} \PYG{k+kr}{public} \PYG{n+nx}{accounts}\PYG{p}{;}
     \PYG{k+kt}{uint} \PYG{k+kr}{public} \PYG{n+nx}{totalProfits}\PYG{p}{;}
-    \PYG{k+kt}{uint} \PYG{k+kr}{public} \PYG{n+nx}{unclaimedProfits}\PYG{p}{;}
     \PYG{k+kt}{uint} \PYG{k+kr}{public} \PYG{n+nx}{totalSupply}\PYG{p}{;}
 
     \PYG{c+c1}{/// @dev Log entry on profit deposited}
@@ -473,7 +465,7 @@
 
 
 \chapter{MintableToken}
-\label{\detokenize{_contracts/MintableToken::doc}}\label{\detokenize{_contracts/MintableToken:mintabletoken}}
+\label{\detokenize{_contracts/MintableToken:mintabletoken}}\label{\detokenize{_contracts/MintableToken::doc}}
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{k+kr}{pragma} \PYG{n+nx}{solidity} \PYG{l+m+mf}{0.4}\PYG{l+m+mf}{.19}\PYG{p}{;}
 
@@ -548,7 +540,7 @@
 
 
 \chapter{SicosToken}
-\label{\detokenize{_contracts/SicosToken::doc}}\label{\detokenize{_contracts/SicosToken:sicostoken}}
+\label{\detokenize{_contracts/SicosToken:sicostoken}}\label{\detokenize{_contracts/SicosToken::doc}}
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{k+kr}{pragma} \PYG{n+nx}{solidity} \PYG{l+m+mf}{0.4}\PYG{l+m+mf}{.19}\PYG{p}{;}
 
@@ -685,7 +677,7 @@
 
 
 \chapter{SampleToken}
-\label{\detokenize{_contracts/SampleToken::doc}}\label{\detokenize{_contracts/SampleToken:sampletoken}}
+\label{\detokenize{_contracts/SampleToken:sampletoken}}\label{\detokenize{_contracts/SampleToken::doc}}
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{k+kr}{pragma} \PYG{n+nx}{solidity} \PYG{l+m+mf}{0.4}\PYG{l+m+mf}{.19}\PYG{p}{;}
 
