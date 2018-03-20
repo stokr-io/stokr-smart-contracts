@@ -23,17 +23,6 @@ contract SicosToken is MintableToken, KeyRecoverable {
     /// @dev Recover key
     /// @param _oldAddress An Ethereum address
     /// @param _newAddress An Ethereum address
-    function recoverKey(address _oldAddress, address ess
-    /// @param _keyRecoverer An Ethereum address
-    function SicosToken(address _whitelist, address _keyRecoverer)
-        public
-        Whitelisted(_whitelist)
-        KeyRecoverable(_keyRecoverer)
-    {}
-
-    /// @dev Recover key
-    /// @param _oldAddress An Ethereum address
-    /// @param _newAddress An Ethereum address
     function recoverKey(address _oldAddress, address _newAddress)
         public
         onlyKeyRecoverer

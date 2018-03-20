@@ -19,7 +19,7 @@ contract SicosToken2 is MintableToken, KeyRecoverable {
     /// @dev Constructor
     /// @param _whitelist An Ethereum address
     /// @param _keyRecoverer An Ethereum address
-    function SicosToken(address _whitelist, address _keyRecoverer)
+    function SicosToken2(address _whitelist, address _keyRecoverer)
         public
         Whitelisted(_whitelist)
         KeyRecoverable(_keyRecoverer)
@@ -65,7 +65,7 @@ contract SicosToken2 is MintableToken, KeyRecoverable {
     /// @param _spender An Ethereum address
     /// @return A positive number
     function allowance(address _investor, address _spender) public view returns (uint) {
-        return allowance_[_investor][_spender].residual;
+        return allowances[_investor][_spender].residual;
     }
 
     /// @dev Approve
