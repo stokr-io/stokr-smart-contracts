@@ -56,7 +56,7 @@ contract("SicosToken", ([owner,
 
         it("sets correct keyRecoverer", async () => {
             let _keyRecoverer = await token.keyRecoverer();
-            _keyRecoverer.should.be.bignumber.equal(keyRecoverer);
+            _keyRecoverer.should.be.bignumber.equal(recoverer);
         });
 
     });
