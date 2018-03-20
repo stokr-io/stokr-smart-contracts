@@ -19,7 +19,8 @@ contract ProfitSharing is Ownable, ERC20 {
 
     mapping(address => InvestorAccount) public accounts;
     uint public totalProfits;
-    uint public totalSupply;
+
+    uint internal totalSupply_;
 
     /// @dev Log entry on profit deposited
     /// @param _depositor An Ethereum address
@@ -41,7 +42,7 @@ contract ProfitSharing is Ownable, ERC20 {
     function profitShareOwing(address _investor) public view returns (uint) {
         return totalProfits.sub(accounts[_investor].lastTotalProfits)
                            .mul(accounts[_investor].balance)
-                           .div(totalSupply);  // <- The linter doesn't like this.
+                           .div(totalSupply_);  // <- The linter doesn't like this.
     }
 
     /// @dev Update profit share

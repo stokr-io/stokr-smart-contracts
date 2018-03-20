@@ -11,7 +11,7 @@ const { rejectTx } = require("./helpers/tecneos.js");
 
 
 contract("Whitelist", ([owner, admin1, admin2, investor1, investor2, investor3, anyone]) => {
-    const zeroAddress = "0x0";
+    const ZERO_ADDR = "0x0";
     let whitelist = null;
 
     describe("deployment", () => {
@@ -122,7 +122,7 @@ contract("Whitelist", ([owner, admin1, admin2, investor1, investor2, investor3, 
         let investors = [investor1, investor2, investor3,
                          investor1, investor2, investor3,
                          investor1, investor2, investor3,
-                         zeroAddress];
+                         ZERO_ADDR];
 
         before("owner adds admins", async () => {
             await whitelist.addAdmin(admin1, {from: owner});

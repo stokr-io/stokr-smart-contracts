@@ -1,14 +1,64 @@
 "use strict";
 
+const BigNumber = web3.BigNumber;
+
 // Helper functions
 // Tecneos 2018.
 module.exports = (() => {
+    const now = () => Math.trunc(Date.now() / 1000);
+    const sleep = s => new Promise(resolve => setTimeout(resolve, 1000 * s));
+
+    // Some simple functions to translate durations to seconds.
+    const duration = (() => {
+        const secs  = (n) => n;
+        const mins  = (n) => n * secs(60);
+        const hours = (n) => n * mins(60);
+        const days  = (n) => n * hours(24);
+        const weeks = (n) => n * days(7);
+        const years = (n) => n * days(365);
+
+        return {secs, mins, hours, days, weeks, years};
+    })();
+
+    // Some simple functions to translate currencies to wei.
+    const currency = (() => {
+        const prefices = {a: -18,
+                          f: -15,
+                          p: -12,
+                          n:  -9,
+                          u:  -6,
+                          m:  -3,
+                          k:   3,
+                          M:   6,
+                          G:   9,
+                          T:  12,
+                          P:  15,
+                          E:  18};
+        const BN = n => new BigNumber(n);
+        const toInt = n => n.toIntegerValue(BigNumber.ROUND_DOWN);
+
+        const wei = (n, prefix) => toInt(prefix !== undefined
+                                         ? BN(10).pow(prefices[prefix]).mul(n)
+                                         : BN(n));
+
+        const $ = (n, m, prefix) => toInt(wei(m, prefix).mul(n));
+
+        const ada      = (n, prefix) => $(n,  1e3, prefix);
+        const babbage  = (n, prefix) => $(n,  1e6, prefix);
+        const szabo    = (n, prefix) => $(n, 1e12, prefix);
+        const finney   = (n, prefix) => $(n, 1e15, prefix);
+        const ether    = (n, prefix) => $(n, 1e18, prefix);
+        const einstein = (n, prefix) => $(n, 1e21, prefix);
+
+        return {wei, ada, babbage, szabo, finney, ether, einstein};
+    })();
+
     // Logging colors.
     const COLOR_CYAN = "\u001b[36m";
     const COLOR_GRAY = "\u001b[90m";
     const COLOR_RESET = "\u001b[0m";
 
-    const log = (message) => {
+    const log = message => {
         console.log(" ".repeat(8)
                     + COLOR_CYAN + "→ "
                     + COLOR_GRAY + message
@@ -45,7 +95,7 @@ module.exports = (() => {
 
     // Execute a single transaction (promise) and throw if
     // it succeeds or any not-transaction-related error occurs.
-    const rejectTx = async (promise) => {
+    const rejectTx = async promise => {
         let reason = "unknown"; // Why do we think that the transaction succeeded.
 
         try {
@@ -57,16 +107,18 @@ module.exports = (() => {
                 // Unfortunately, all cases where seen in the wild.
                 if (receipt.status === 0
                  || receipt.status === "0x"
-                 || receipt.status === "0x0")
+                 || receipt.status === "0x0") {
                     return; // post-Byzantium rejection
+                }
 
                 // Weird: Parity doesn't throw and doesn't deliver status.
                 if (tx.receipt.status === null) {
                     tx = await web3.eth.getTransaction(receipt.transactionHash);
 
                     // Heuristic: compare gas provided with gas used.
-                    if (tx.gas === receipt.gasUsed)
+                    if (tx.gas === receipt.gasUsed) {
                         return; // most likely a rejection
+                    }
 
                     reason = "gasUsed < gasSent";
                 }
@@ -87,65 +139,64 @@ module.exports = (() => {
             // Nevertheless, post-Byzantium Ganache throws, too.
             if (message.includes("invalid opcode")
              || message.includes("invalid jump")
-             || message.includes("vm exception while processing transaction: revert"))
+             || message.includes("vm exception while processing transaction: revert")) {
                 return; // pre-Byzantium rejection
+            }
 
             throw error;
         }
 
         throw new Error("Transaction should have failed but didn't (" + reason + ").");
-    }
+    };
 
     // Deploy a contract and throw if it succeeds or any other
     // not-deployment-related error occurs.
     // Note: ensure deployer has enough funds and sends enough gas.
-    const rejectDeploy = async (promise) => {
+    const rejectDeploy = async promise => {
         try {
             await promise;
         }
         catch (error) {
             let message = error.toString().toLowerCase();
 
-            if (message.includes("the contract code couldn't be stored"))
+            if (message.includes("the contract code couldn't be stored")
+             || message.includes("vm exception while processing transaction: revert")) {
                 return;
+            }
 
             throw error;
         }
 
         throw new Error("Contract creation should have failed but didn't.");
-    }
+    };
 
-    const getBalance = (address) =>
+    // Retrieve wei balance of an Ethereum account.
+    const getBalance = address =>
         new Promise((resolve, reject) =>
             web3.eth.getBalance(address, (error, result) => error
                                                             ? reject(error)
                                                             : resolve(result)));
 
-    const wei = (n) => n;
-    const ether = (n) => n * wei(1e18);
-    const now = () => Math.trunc(Date.now() / 1000);
-    const secs = (n) => n;
-    const mins = (n) => n * secs(60);
-    const hours = (n) => n * mins(60);
-    const days = (n) => n * hours(24);
-    const weeks = (n) => n * days(7);
-    const years = (n) => n * days(365);
-    const sleep = (s) => new Promise((resolve) => setTimeout(resolve, 1000 * s));
+    // Create a random address.
+    const randomAddr = () => {
+        let digits = [];
+
+        for (let i = 0; i < 40; ++i) {
+            digits.push(Math.trunc(16 * Math.random()).toString(16));
+        }
+
+        return "0x" + digits.join("");
+    };
 
     return {
-        wei,
-        ether,
         now,
-        secs,
-        mins,
-        hours,
-        days,
-        weeks,
-        years,
         sleep,
+        duration,
+        currency,
         logGas,
         rejectTx,
         rejectDeploy,
         getBalance,
+        randomAddr,
     };
 })();

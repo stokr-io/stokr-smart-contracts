@@ -202,7 +202,7 @@
         "id": 72,
         "nodeType": "ImportDirective",
         "scope": 287,
-        "sourceUnit": 1889,
+        "sourceUnit": 1897,
         "src": "25:62:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -227,10 +227,10 @@
               "id": 74,
               "name": "Ownable",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 1888,
+              "referencedDeclaration": 1896,
               "src": "184:7:1",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_Ownable_$1888",
+                "typeIdentifier": "t_contract$_Ownable_$1896",
                 "typeString": "contract Ownable"
               }
             },
@@ -240,7 +240,7 @@
           }
         ],
         "contractDependencies": [
-          1888
+          1896
         ],
         "contractKind": "contract",
         "documentation": "@title SicosToken\n @author C+B",
@@ -248,7 +248,7 @@
         "id": 286,
         "linearizedBaseContracts": [
           286,
-          1888
+          1896
         ],
         "name": "KeyRecoverer",
         "nodeType": "ContractDefinition",
@@ -846,7 +846,7 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 1978,
+                      "referencedDeclaration": 1986,
                       "src": "1009:7:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$returns$__$",
@@ -1046,7 +1046,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 1862,
+                  "referencedDeclaration": 1870,
                   "src": "989:9:1",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -1283,7 +1283,7 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 1978,
+                      "referencedDeclaration": 1986,
                       "src": "1326:7:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$returns$__$",
@@ -1829,7 +1829,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 1862,
+                  "referencedDeclaration": 1870,
                   "src": "1306:9:1",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -2032,7 +2032,7 @@
                                 "name": "this",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 1990,
+                                "referencedDeclaration": 1998,
                                 "src": "2118:4:1",
                                 "typeDescriptions": {
                                   "typeIdentifier": "t_contract$_KeyRecoverer_$286",
@@ -2413,7 +2413,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 1862,
+                  "referencedDeclaration": 1870,
                   "src": "1989:9:1",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -2642,7 +2642,7 @@
                                 "name": "this",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 1990,
+                                "referencedDeclaration": 1998,
                                 "src": "2533:4:1",
                                 "typeDescriptions": {
                                   "typeIdentifier": "t_contract$_KeyRecoverer_$286",
@@ -2921,7 +2921,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 1862,
+                  "referencedDeclaration": 1870,
                   "src": "2389:9:1",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -3013,7 +3013,7 @@
         "id": 72,
         "nodeType": "ImportDirective",
         "scope": 287,
-        "sourceUnit": 1889,
+        "sourceUnit": 1897,
         "src": "25:62:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -3038,10 +3038,10 @@
               "id": 74,
               "name": "Ownable",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 1888,
+              "referencedDeclaration": 1896,
               "src": "184:7:1",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_Ownable_$1888",
+                "typeIdentifier": "t_contract$_Ownable_$1896",
                 "typeString": "contract Ownable"
               }
             },
@@ -3051,7 +3051,7 @@
           }
         ],
         "contractDependencies": [
-          1888
+          1896
         ],
         "contractKind": "contract",
         "documentation": "@title SicosToken\n @author C+B",
@@ -3059,7 +3059,7 @@
         "id": 286,
         "linearizedBaseContracts": [
           286,
-          1888
+          1896
         ],
         "name": "KeyRecoverer",
         "nodeType": "ContractDefinition",
@@ -3657,7 +3657,7 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 1978,
+                      "referencedDeclaration": 1986,
                       "src": "1009:7:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$returns$__$",
@@ -3857,7 +3857,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 1862,
+                  "referencedDeclaration": 1870,
                   "src": "989:9:1",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -4094,7 +4094,7 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 1978,
+                      "referencedDeclaration": 1986,
                       "src": "1326:7:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$returns$__$",
@@ -4640,7 +4640,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 1862,
+                  "referencedDeclaration": 1870,
                   "src": "1306:9:1",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -4843,7 +4843,7 @@
                                 "name": "this",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 1990,
+                                "referencedDeclaration": 1998,
                                 "src": "2118:4:1",
                                 "typeDescriptions": {
                                   "typeIdentifier": "t_contract$_KeyRecoverer_$286",
@@ -5224,7 +5224,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 1862,
+                  "referencedDeclaration": 1870,
                   "src": "1989:9:1",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -5453,7 +5453,7 @@
                                 "name": "this",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 1990,
+                                "referencedDeclaration": 1998,
                                 "src": "2533:4:1",
                                 "typeDescriptions": {
                                   "typeIdentifier": "t_contract$_KeyRecoverer_$286",
@@ -5732,7 +5732,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 1862,
+                  "referencedDeclaration": 1870,
                   "src": "2389:9:1",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -5804,5 +5804,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.0",
-  "updatedAt": "2018-03-09T14:01:07.379Z"
+  "updatedAt": "2018-03-16T17:43:20.232Z"
 }
