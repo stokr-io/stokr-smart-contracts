@@ -35,13 +35,11 @@ module.exports = (() => {
                           P:  15,
                           E:  18};
         const BN = n => new BigNumber(n);
-        const toInt = n => n.toIntegerValue(BigNumber.ROUND_DOWN);
+        const wei = (n, prefix) => (prefix !== undefined
+                                    ? BN(10).pow(prefices[prefix]).mul(n)
+                                    : BN(n)).trunc();
 
-        const wei = (n, prefix) => toInt(prefix !== undefined
-                                         ? BN(10).pow(prefices[prefix]).mul(n)
-                                         : BN(n));
-
-        const $ = (n, m, prefix) => toInt(wei(m, prefix).mul(n));
+        const $ = (n, m, prefix) => wei(m, prefix).mul(n).trunc();
 
         const ada      = (n, prefix) => $(n,  1e3, prefix);
         const babbage  = (n, prefix) => $(n,  1e6, prefix);

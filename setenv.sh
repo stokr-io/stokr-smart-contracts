@@ -1,4 +1,5 @@
 #!/bin/sh
 
-export PATH="node_modules/.bin:$PATH"
+# USAGE: . ./setenv.sh
 
+export PATH="node_modules/.bin:$PATH"

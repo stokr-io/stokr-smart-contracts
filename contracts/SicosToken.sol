@@ -30,10 +30,9 @@ contract SicosToken is MintableToken, KeyRecoverable {
         onlyWhitelisted(_newAddress)
     {
         // Ensure that new address is *not* an existing account.
-        // Checking for .lastTotalProfits == 0 is sufficient since
-        //   .lastTotalProfits == 0 implies .profitShare == 0,
-        //   .lastTotalProfits == 0 implies .balance == 0.
-        require(accounts[_newAddress].lastTotalProfits == 0);
+        // Check for account.profitShare is not needed because of following implication:
+        //   (account.lastTotalProfits == 0) ==> (account.profitShare == 0)
+        require(accounts[_newAddress].balance == 0 && accounts[_newAddress].lastTotalProfits == 0);
         updateProfitShare(_oldAddress);
 
         accounts[_newAddress] = accounts[_oldAddress];

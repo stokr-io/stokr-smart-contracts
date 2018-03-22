@@ -31,7 +31,7 @@ contract ProfitSharing is Ownable, ERC20 {
 
     /// @dev Deposit profit
     function depositProfit() public payable {
-        totalProfits.add(msg.value);
+        totalProfits = totalProfits.add(msg.value);
 
         ProfitDeposited(msg.sender, msg.value);
     }

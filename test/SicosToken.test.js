@@ -8,21 +8,41 @@ const expect = require("chai").expect;
 const { latestTime, duration, increaseTimeTo } = require("./helpers/timer");
 const BigNumber = web3.BigNumber;
 
-const { rejectDeploy, rejectTx, randomAddr } = require("./helpers/tecneos.js");
+const { rejectDeploy, rejectTx, currency } = require("./helpers/tecneos.js");
+
+
+// Helper function to read an account
+const getTokenAccount = async (token, address) => {
+    let data = await token.accounts(address);
+    return {balance: data[0],
+            profitShare: data[1],
+            lastTotalProfits: data[2]};
+};
+
+// Helper method for testing (partial) equality of an account.
+const expectTokenAccountEquality = (account, expected) => {
+    if (expected.hasOwnProperty("balance"))
+        account.balance.should.be.bignumber.equal(expected.balance);
+    if (expected.hasOwnProperty("profitShare"))
+        account.profitShare.should.be.bignumber.equal(expected.profitShare);
+    if (expected.hasOwnProperty("lastTotalProfits"))
+        account.lastTotalProfits.should.be.bignumber.equal(expected.lastTotalProfits);
+};
 
 
 contract("SicosToken", ([owner,
-                         recoverer,
+                         minter,
+                         keyRecoverer,
                          investor1,
                          investor2,
                          investor3,
-                         disburser,
                          anyone]) => {
     const ZERO_ADDR = "0x0";
-    let whitelist;
-    let token;
 
+    // Trivial tests for correct deployment.
     describe("deployment", () => {
+        let whitelist;
+        let token;
 
         it("requires a deployed Whitelist instance", async () => {
             whitelist = await Whitelist.new({from: owner});
@@ -31,7 +51,7 @@ contract("SicosToken", ([owner,
         });
 
         it("should fail if whitelist is zero address", async () => {
-            await rejectDeploy(SicosToken.new(ZERO_ADDR, recoverer, {from: owner}));
+            await rejectDeploy(SicosToken.new(ZERO_ADDR, keyRecoverer, {from: owner}));
         });
 
         it("should fail if keyRecoverer is zero address", async () => {
@@ -39,7 +59,7 @@ contract("SicosToken", ([owner,
         });
 
         it("should succeed", async () => {
-            token = await SicosToken.new(whitelist.address, recoverer, {from: owner});
+            token = await SicosToken.new(whitelist.address, keyRecoverer, {from: owner});
             let code = await web3.eth.getCode(token.address);
             assert(code !== "0x" && code !== "0x0", "contract code is expected to be non-zero");
         });
@@ -56,48 +76,272 @@ contract("SicosToken", ([owner,
 
         it("sets correct keyRecoverer", async () => {
             let _keyRecoverer = await token.keyRecoverer();
-            _keyRecoverer.should.be.bignumber.equal(recoverer);
+            _keyRecoverer.should.be.bignumber.equal(keyRecoverer);
+        });
+
+        it("sets minter to zero address", async () => {
+            let _minter = await token.minter();
+            _minter.should.be.bignumber.zero;
+        });
+
+        it("sets mintingFinshed to false", async () => {
+            let mintingFinished = await token.mintingFinished();
+            mintingFinished.should.be.false;
+        });
+
+        it("sets totalProfits to zero", async () => {
+            let totalProfits = await token.totalProfits();
+            totalProfits.should.be.bignumber.zero;
+        });
+
+        it("sets totalSupply to zero", async () => {
+            let totalSupply = await token.totalSupply();
+            totalSupply.should.be.bignumber.zero;
         });
 
     });
 
-    describe("as a Whitelisted", () => {
+    // Trivial tests for modifiers: who is allowed to change related addresses.
+    describe("accounts setting", () => {
+        const initialWhitelistAddress = 0x1,
+              initialKeyRecoverer = 0x2;
+        let whitelist;
+        let token;
 
-        it("denies anyone to change whitelist address", async () => {
-            let oldWhitelistAddr = await token.whitelist();
-            await rejectTx(token.setWhitelist(randomAddr(), {from: anyone}));
-            let newWhitelistAddr = await token.whitelist();
-            newWhitelistAddr.should.be.bignumber.equal(oldWhitelistAddr);
+        before("deploy with random addresses", async () => {
+            whitelist = await Whitelist.new({from: owner});
+            token = await SicosToken.new(initialWhitelistAddress,
+                                         initialKeyRecoverer,
+                                         {from: owner});
         });
 
-        it("denies owner to change whitelist address to zero", async () => {
-            let oldWhitelistAddr = await token.whitelist();
-            await rejectTx(token.setWhitelist(ZERO_ADDR, {from: owner}));
-            let newWhitelistAddr = await token.whitelist();
-            newWhitelistAddr.should.be.bignumber.equal(oldWhitelistAddr);
-        });
-
-        it("allows owner to change whitelist address", async () => {
-            await token.setWhitelist(randomAddr(), {from: owner});
+        it("denies anyone to change whitelist", async () => {
+            await rejectTx(token.setWhitelist(whitelist.address, {from: anyone}));
             let whitelistAddress = await token.whitelist();
-            whitelistAddress.should.not.be.bignumber.equal(whitelist.address);
+            whitelistAddress.should.be.bignumber.equal(initialWhitelistAddress);
+        });
+
+        it("denies owner to change whitelist to zero", async () => {
+            await rejectTx(token.setWhitelist(ZERO_ADDR, {from: owner}));
+            let whitelistAddress = await token.whitelist();
+            whitelistAddress.should.be.bignumber.equal(initialWhitelistAddress);
+        });
+
+        it("allows owner to change whitelist", async () => {
             let tx = await token.setWhitelist(whitelist.address, {from: owner});
             let entry = tx.logs.find(entry => entry.event === "WhitelistChanged");
             should.exist(entry);
-            entry.args.whitelist.should.be.equal(whitelist.address);
-            whitelistAddress = await token.whitelist();
+            entry.args.whitelist.should.be.bignumber.equal(whitelist.address);
+            let whitelistAddress = await token.whitelist();
             whitelistAddress.should.be.bignumber.equal(whitelist.address);
+        });
+
+        it("denies anyone to change keyRecoverer", async () => {
+            await rejectTx(token.setKeyRecoverer(keyRecoverer, {from: anyone}));
+            let _keyRecoverer = await token.keyRecoverer();
+            _keyRecoverer.should.be.bignumber.equal(initialKeyRecoverer);
+        });
+
+        it("denies owner to change keyRecoverer to zero", async () => {
+            await rejectTx(token.setKeyRecoverer(ZERO_ADDR, {from: owner}));
+            let _keyRecoverer = await token.keyRecoverer();
+            _keyRecoverer.should.be.bignumber.equal(initialKeyRecoverer);
+        });
+
+        it("allows owner to change keyRecoverer", async () => {
+            let tx = await token.setKeyRecoverer(keyRecoverer, {from: owner});
+            let entry = tx.logs.find(entry => entry.event === "KeyRecovererChanged");
+            should.exist(entry);
+            entry.args.newKeyRecoverer.should.be.bignumber.equal(keyRecoverer);
+            let _keyRecoverer = await token.keyRecoverer();
+            _keyRecoverer.should.be.bignumber.equal(keyRecoverer);
+        });
+
+        it("denies anyone to change minter", async () => {
+            await rejectTx(token.setMinter(minter, {from: anyone}));
+            let _minter = await token.minter();
+            _minter.should.be.bignumber.equal(ZERO_ADDR);
+        });
+
+        it("denies owner to change minter to zero", async () => {
+            await rejectTx(token.setMinter(ZERO_ADDR, {from: owner}));
+            let _minter = await token.minter();
+            _minter.should.be.bignumber.equal(ZERO_ADDR);
+        });
+
+        it("allows owner to change minter once", async () => {
+            await token.setMinter(minter, {from: owner});
+            let _minter = await token.minter();
+            _minter.should.be.bignumber.equal(minter);
+        });
+
+        it("denies owner to change minter twice", async () => {
+            await rejectTx(token.setMinter(anyone, {from: owner}));
+            let _minter = await token.minter();
+            _minter.should.be.bignumber.equal(minter);
         });
 
     });
 
-    describe("as a ProfitShare", () => {
+    describe("minting", () => {
+        let whitelist;
+        let token;
+
+        before("deploy contracts", async () => {
+            // owner becomes whitelist admin and add an investor accounts
+            whitelist = await Whitelist.new({from: owner});
+            await whitelist.addAdmin(owner, {from: owner});
+            await whitelist.addToWhitelist([investor1], {from: owner});
+            // token minter
+            token = await SicosToken.new(whitelist.address, keyRecoverer, {from: owner});
+            await token.setMinter(minter, {from: owner});
+        });
+
+        it("is forbidden to anyone other than minter", async () => {
+            await rejectTx(token.mint(investor1, 252525, {from: anyone}));
+            let totalSupply = await token.totalSupply();
+            totalSupply.should.be.bignumber.zero;
+        });
+
+        it("is forbidden if beneficiary wasn't whitelisted before", async () => {
+            await rejectTx(token.mint(anyone, 252525, {from: minter}));
+            let totalSupply = await token.totalSupply();
+            totalSupply.should.be.bignumber.zero;
+        });
+
+        it("is possible", async () => {
+            const amount = 1000;
+            let tx = await token.mint(investor1, amount, {from: minter});
+            let entry1 = tx.logs.find(entry => entry.event === "Minted");
+            should.exist(entry1);
+            entry1.args.to.should.be.bignumber.equal(investor1);
+            entry1.args.amount.should.be.bignumber.equal(amount);
+            let entry2 = tx.logs.find(entry => entry.event === "Transfer");
+            should.exist(entry2);
+            entry2.args.value.should.be.bignumber.equal(amount);
+            let totalSupply = await token.totalSupply();
+            totalSupply.should.be.bignumber.equal(amount);
+        });
+
+        it("should correctly increase totalSupply", async () => {
+            const amount = 2000;
+            let totalSupplyBefore = await token.totalSupply();
+            await token.mint(investor1, amount, {from: minter});
+            let totalSupplyAfter = await token.totalSupply();
+            totalSupplyAfter.should.be.bignumber.equal(totalSupplyBefore.plus(amount));
+        });
+
+        it("should correctly increase beneficiary's balance", async () => {
+            const amount = 4000;
+            let balanceBefore = await token.balanceOf(investor1);
+            await token.mint(investor1, amount, {from: minter});
+            let balanceAfter = await token.balanceOf(investor1);
+            balanceAfter.should.be.bignumber.equal(balanceBefore.plus(amount));
+        });
+
+        it("finishing is forbidden for anyone other than minter", async () => {
+            await rejectTx(token.finishMinting({from: anyone}));
+            let mintingFinished = await token.mintingFinished();
+            mintingFinished.should.be.false;
+        });
+
+        it("finishing is possible once", async () => {
+            let tx = await token.finishMinting({from: minter});
+            let entry = tx.logs.find(entry => entry.event === "MintFinished");
+            should.exist(entry);
+            let mintingFinished = await token.mintingFinished();
+            mintingFinished.should.be.true;
+        });
+
+        it("finishing again is impossible", async () => {
+            await rejectTx(token.finishMinting({from: minter}));
+        });
+
+        it("is forbidden after finish", async () => {
+            let totalSupplyBefore = await token.totalSupply();
+            await rejectTx(token.mint(investor1, 252525, {from: minter}));
+            let totalSupplyAfter = await token.totalSupply();
+            totalSupplyAfter.should.be.bignumber.equal(totalSupplyBefore);
+        });
+
     });
 
-    describe("as a MintableToken", () => {
+    describe("profit sharing", () => {
+
     });
 
-    describe("as a KeyRecoverable", () => {
+    describe("key recovery", () => {
+        let whitelist;
+        let token;
+        let totalSupply;
+
+        before("deploy contracts and add investors", async () => {
+            // owner becomes whitelist admin and adds three investor accounts
+            whitelist = await Whitelist.new({from: owner});
+            await whitelist.addAdmin(owner, {from: owner});
+            await whitelist.addToWhitelist([investor1, investor2, investor3], {from: owner});
+            // tokens get minted for the benefit of first two investors
+            token = await SicosToken.new(whitelist.address, keyRecoverer, {from: owner});
+            await token.setMinter(minter, {from: owner});
+            await token.mint(investor1, 1000, {from: minter});
+            await token.mint(investor2, 2000, {from: minter});
+            totalSupply = 1000 + 2000;
+            // deposit profits and disburse them to first two investors
+            await token.depositProfit({from: anyone, value: currency.ether(1)});
+            await token.updateProfitShare(investor1);
+            await token.updateProfitShare(investor2);
+        });
+
+        afterEach("invariant: total token supply doesn't change", async () => {
+            let _totalSupply = await token.totalSupply();
+            _totalSupply.should.be.bignumber.equal(totalSupply);
+        });
+
+        it("is forbidden by anyone other than keyRecoverer", async () => {
+            let account2Before = await getTokenAccount(token, investor2);
+            await rejectTx(token.recoverKey(investor2, investor3, {from: anyone}));
+            let account2After = await getTokenAccount(token, investor2);
+            expectTokenAccountEquality(account2Before, account2After);
+            let account3 = await getTokenAccount(token, investor3);
+            expectTokenAccountEquality(account3, {balance: 0, profitShare: 0, lastTotalProfits: 0});
+        });
+
+        it("is forbidden if oldAddress wasn't whitelisted before", async () => {
+            let accountBefore = await getTokenAccount(token, investor3);
+            await rejectTx(token.recoverKey(anyone, investor3, {from: keyRecoverer}));
+            let accountAfter = await getTokenAccount(token, investor3);
+            expectTokenAccountEquality(accountBefore, accountAfter);
+        });
+
+        it("is forbidden if newAddress wasn't whitelisted before", async () => {
+            let accountBefore = await getTokenAccount(token, investor1);
+            await rejectTx(token.recoverKey(investor1, anyone, {from: keyRecoverer}));
+            let accountAfter = await getTokenAccount(token, investor1);
+            expectTokenAccountEquality(accountBefore, accountAfter);
+        });
+
+        it("is forbidden if newAddress is an already used account", async () => {
+            let account1Before = await getTokenAccount(token, investor1);
+            let account2Before = await getTokenAccount(token, investor2);
+            await rejectTx(token.recoverKey(investor1, investor2, {from: keyRecoverer}));
+            let account1After = await getTokenAccount(token, investor1);
+            let account2After = await getTokenAccount(token, investor2);
+            expectTokenAccountEquality(account1Before, account1After);
+            expectTokenAccountEquality(account2Before, account2After);
+        });
+
+        it("is possible", async () => {
+            let oldAccount = await getTokenAccount(token, investor2);
+            let tx = await token.recoverKey(investor2, investor3, {from: keyRecoverer});
+            let entry = tx.logs.find(entry => entry.event === "KeyRecovered");
+            should.exist(entry);
+            entry.args.oldAddress.should.be.equal(investor2);
+            entry.args.newAddress.should.be.equal(investor3);
+            let delAccount = await getTokenAccount(token, investor2);
+            let newAccount = await getTokenAccount(token, investor3);
+            expectTokenAccountEquality(delAccount, {balance: 0, profitShare: 0, lastTotalProfits: 0});
+            expectTokenAccountEquality(newAccount, oldAccount);
+        });
 
     });
 

@@ -137,7 +137,7 @@ contract("Whitelist", ([owner, admin1, admin2, investor1, investor2, investor3, 
             }
         });
 
-        it("can be added at once by an admin1", async () => {
+        it("can be added at once by admin1", async () => {
             let tx = await whitelist.addToWhitelist(investors, {from: admin1});
             for (let i = 0; i < investors.length; ++i) {
                 let isWhitelisted = await whitelist.isWhitelisted(investors[i]);
@@ -153,7 +153,7 @@ contract("Whitelist", ([owner, admin1, admin2, investor1, investor2, investor3, 
             }
         });
 
-        it("can be removed at once by an admin2", async () => {
+        it("can be removed at once by admin2", async () => {
             let tx = await whitelist.removeFromWhitelist(investors, {from: admin2});
             for (let i = 0; i < investors.length; ++i) {
                 let isWhitelisted = await whitelist.isWhitelisted(investors[i]);
