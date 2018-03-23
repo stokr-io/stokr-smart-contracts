@@ -52,6 +52,7 @@ contract MintableToken is ProfitSharing, Whitelisted {
     /// @param _amount A positive number
     function mint(address _to, uint _amount) public onlyMinter canMint onlyWhitelisted(_to) {
         totalSupply_ = totalSupply_.add(_amount);
+        updateProfitShare(_to);
         accounts[_to].balance = accounts[_to].balance.add(_amount);
 
         Minted(_to, _amount);

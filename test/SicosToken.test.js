@@ -8,26 +8,8 @@ const expect = require("chai").expect;
 const { latestTime, duration, increaseTimeTo } = require("./helpers/timer");
 const BigNumber = web3.BigNumber;
 
-const { rejectDeploy, rejectTx, currency } = require("./helpers/tecneos.js");
-
-
-// Helper function to read an account
-const getTokenAccount = async (token, address) => {
-    let data = await token.accounts(address);
-    return {balance: data[0],
-            profitShare: data[1],
-            lastTotalProfits: data[2]};
-};
-
-// Helper method for testing (partial) equality of an account.
-const expectTokenAccountEquality = (account, expected) => {
-    if (expected.hasOwnProperty("balance"))
-        account.balance.should.be.bignumber.equal(expected.balance);
-    if (expected.hasOwnProperty("profitShare"))
-        account.profitShare.should.be.bignumber.equal(expected.profitShare);
-    if (expected.hasOwnProperty("lastTotalProfits"))
-        account.lastTotalProfits.should.be.bignumber.equal(expected.lastTotalProfits);
-};
+const { rejectDeploy, rejectTx, getBalance, logGas, currency } = require("./helpers/tecneos.js");
+const ADDITIONAL_OUTPUTS = true;
 
 
 contract("SicosToken", ([owner,
@@ -39,7 +21,35 @@ contract("SicosToken", ([owner,
                          anyone]) => {
     const ZERO_ADDR = "0x0";
 
-    // Trivial tests for correct deployment.
+    // Helper function to deploy a Whitelist and a SicosToken.
+    const deployWhitelistAndToken = async () => {
+        // deploy whitelist contract where owner becomes whitelist admin and adds three investors
+        let whitelist = await Whitelist.new({from: owner});
+        await whitelist.addAdmin(owner, {from: owner});
+        await whitelist.addToWhitelist([investor1, investor2, investor3], {from: owner});
+        // deploy token contract with keyRecoverer and minter
+        let token = await SicosToken.new(whitelist.address, keyRecoverer, {from: owner});
+        await token.setMinter(minter, {from: owner});
+        return [whitelist, token];
+    }
+
+    // Helper function to read an account.
+    const getTokenAccount = async (token, address) => {
+        let [balance, lastTotalProfits, profitShare] = await token.accounts(address);
+        return {balance, lastTotalProfits, profitShare};
+    };
+
+    // Helper method for testing (partial) equality of an account.
+    const expectTokenAccountEquality = (account, expected) => {
+        if (expected.hasOwnProperty("balance"))
+            account.balance.should.be.bignumber.equal(expected.balance);
+        if (expected.hasOwnProperty("lastTotalProfits"))
+            account.lastTotalProfits.should.be.bignumber.equal(expected.lastTotalProfits);
+        if (expected.hasOwnProperty("profitShare"))
+            account.profitShare.should.be.bignumber.equal(expected.profitShare);
+    };
+
+    // Trivial tests of correct deployment.
     describe("deployment", () => {
         let whitelist;
         let token;
@@ -101,7 +111,7 @@ contract("SicosToken", ([owner,
 
     });
 
-    // Trivial tests for modifiers: who is allowed to change related addresses.
+    // Trivial tests of address changing related functions.
     describe("accounts setting", () => {
         const initialWhitelistAddress = 0x1,
               initialKeyRecoverer = 0x2;
@@ -110,9 +120,7 @@ contract("SicosToken", ([owner,
 
         before("deploy with random addresses", async () => {
             whitelist = await Whitelist.new({from: owner});
-            token = await SicosToken.new(initialWhitelistAddress,
-                                         initialKeyRecoverer,
-                                         {from: owner});
+            token = await SicosToken.new(initialWhitelistAddress, initialKeyRecoverer, {from: owner});
         });
 
         it("denies anyone to change whitelist", async () => {
@@ -183,18 +191,13 @@ contract("SicosToken", ([owner,
 
     });
 
+    // Trivial tests of minting related functions.
     describe("minting", () => {
         let whitelist;
         let token;
 
         before("deploy contracts", async () => {
-            // owner becomes whitelist admin and add an investor accounts
-            whitelist = await Whitelist.new({from: owner});
-            await whitelist.addAdmin(owner, {from: owner});
-            await whitelist.addToWhitelist([investor1], {from: owner});
-            // token minter
-            token = await SicosToken.new(whitelist.address, keyRecoverer, {from: owner});
-            await token.setMinter(minter, {from: owner});
+            [whitelist, token] = await deployWhitelistAndToken();
         });
 
         it("is forbidden to anyone other than minter", async () => {
@@ -266,23 +269,128 @@ contract("SicosToken", ([owner,
 
     });
 
+    // Trivial tests of profit sharing related functions.
     describe("profit sharing", () => {
+        const investors = [investor1, investor2, investor3];
+        let whitelist;
+        let token;
+
+        before("deploy contracts", async () => {
+            [whitelist, token] = await deployWhitelistAndToken();
+            // mint some tokens for the benefit of investors
+            await token.mint(investor1, 1000, {from: minter});
+            await token.mint(investor2, 3000, {from: minter});
+        });
+
+        it("forbids to deposit profit via default function", async () => {
+            let weiBalanceBefore = await getBalance(token.address);
+            await rejectTx(token.send(currency.ether(1), {from: anyone}));
+            let weiBalanceAfter = await getBalance(token.address);
+            weiBalanceAfter.should.be.bignumber.equal(weiBalanceBefore);
+        });
+
+        it("allows anyone to deposit profit", async () => {
+            const weiAmount = currency.ether(2);
+            let weiBalanceBefore = await getBalance(token.address);
+            let totalProfitsBefore = await token.totalProfits();
+            let tx = await token.depositProfit({from: anyone, value: weiAmount});
+            let entry = tx.logs.find(entry => entry.event === "ProfitDeposited");
+            should.exist(entry);
+            entry.args.depositor.should.be.bignumber.equal(anyone);
+            entry.args.amount.should.be.bignumber.equal(weiAmount);
+            let weiBalanceAfter = await getBalance(token.address);
+            let totalProfitsAfter = await token.totalProfits();
+            weiBalanceAfter.should.be.bignumber.equal(weiBalanceBefore.plus(weiAmount));
+            totalProfitsAfter.should.be.bignumber.equal(totalProfitsBefore.plus(weiAmount));
+        });
+
+        it("is correctly calculated as share of investors' token balances", async () => {
+            let totalSupply = await token.totalSupply();
+            let totalProfits = await token.totalProfits();
+            for (let i = 0; i < investors.length; ++i) {
+                let investor = investors[i];
+                let account = await getTokenAccount(token, investor);
+                let profitShareOwing = await token.profitShareOwing(investor);
+                if (ADDITIONAL_OUTPUTS) {
+                    console.log(" ".repeat(8) + "investor " + investor + ":");
+                    console.log(" ".repeat(8) + "  tokens: "
+                                + account.balance.toExponential() + " / "
+                                + totalSupply.toExponential())
+                    console.log(" ".repeat(8) + "  profit: "
+                                + account.profitShare.plus(profitShareOwing).toExponential() + " / "
+                                + totalProfits.toExponential());
+                }
+                // Use equivalence:
+                //      (profitShare + profitShareOwing) / totalProfits == balance / totalSupply
+                // <=>  (profitShare + profitShareOwing) * totalSupply  == balance * totalProfits
+                account.profitShare.plus(profitShareOwing).times(totalSupply)
+                       .should.be.bignumber.equal(account.balance.times(totalProfits));
+            }
+        });
+
+        it("is correctly disbursed to investors", async () => {
+            let totalProfits = await token.totalProfits();
+            for (let i = 0; i < investors.length; ++i) {
+                let investor = investors[i];
+                let accountBefore = await getTokenAccount(token, investor);
+                let profitShareOwing = await token.profitShareOwing(investor);
+                let tx = await logGas(token.updateProfitShare(investor, {from: anyone}));
+                let entry = tx.logs.find(entry => entry.event === "ProfitShareUpdated");
+                should.exist(entry);
+                entry.args.investor.should.be.bignumber.equal(investor);
+                entry.args.amount.should.be.bignumber.equal(profitShareOwing);
+                let accountAfter = await getTokenAccount(token, investor);
+                if (ADDITIONAL_OUTPUTS) {
+                    console.log(" ".repeat(8) + "investor " + investor);
+                    console.log(" ".repeat(8) + "  profit before: "
+                                + accountBefore.profitShare.toExponential());
+                    console.log(" ".repeat(8) + "  profit owing: "
+                                + profitShareOwing.toExponential());
+                    console.log(" ".repeat(8) + "  profit after: "
+                                + accountAfter.profitShare.toExponential());
+                }
+                accountAfter.lastTotalProfits.should.be.bignumber.equal(totalProfits);
+                accountAfter.profitShare.should.be.bignumber.equal(
+                    accountBefore.profitShare.plus(profitShareOwing));
+            }
+        });
+
+        it("is correctly calculated a second time", async () => {
+            await token.depositProfit({from: anyone, value: currency.ether(8)});
+            let totalSupply = await token.totalSupply();
+            let totalProfits = await token.totalProfits();
+            for (let i = 0; i < investors.length; ++i) {
+                let investor = investors[i];
+                let account = await getTokenAccount(token, investor);
+                let profitShareOwing = await token.profitShareOwing(investor);
+                if (ADDITIONAL_OUTPUTS) {
+                    console.log(" ".repeat(8) + "investor " + investor + ":");
+                    console.log(" ".repeat(8) + "  tokens: "
+                                + account.balance.toExponential() + " / "
+                                + totalSupply.toExponential())
+                    console.log(" ".repeat(8) + "  profit: "
+                                + account.profitShare.plus(profitShareOwing).toExponential() + " / "
+                                + totalProfits.toExponential());
+                }
+                // Use equivalence:
+                //      (profitShare + profitShareOwing) / totalProfits == balance / totalSupply
+                // <=>  (profitShare + profitShareOwing) * totalSupply  == balance * totalProfits
+                account.profitShare.plus(profitShareOwing).times(totalSupply)
+                       .should.be.bignumber.equal(account.balance.times(totalProfits));
+            }
+        });
 
     });
 
+    // Trivial tests of key recovery related functions.
     describe("key recovery", () => {
         let whitelist;
         let token;
         let totalSupply;
 
         before("deploy contracts and add investors", async () => {
-            // owner becomes whitelist admin and adds three investor accounts
-            whitelist = await Whitelist.new({from: owner});
-            await whitelist.addAdmin(owner, {from: owner});
-            await whitelist.addToWhitelist([investor1, investor2, investor3], {from: owner});
-            // tokens get minted for the benefit of first two investors
-            token = await SicosToken.new(whitelist.address, keyRecoverer, {from: owner});
-            await token.setMinter(minter, {from: owner});
+            [whitelist, token] = await deployWhitelistAndToken();
+            // mint some tokens for the benefit of first two investors
             await token.mint(investor1, 1000, {from: minter});
             await token.mint(investor2, 2000, {from: minter});
             totalSupply = 1000 + 2000;

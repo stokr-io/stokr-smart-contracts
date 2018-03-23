@@ -23,11 +23,19 @@ contract ProfitSharing is Ownable, ERC20 {
     uint internal totalSupply_;
 
     /// @dev Log entry on profit deposited
-    /// @param _depositor An Ethereum address
-    /// @param _amount A positive number
-    event ProfitDeposited(address _depositor, uint _amount);
-    event ProfitShareUpdated(address _investor, uint _amount);
-    event ProfitWithdrawal(address _investor, uint _amount);
+    /// @param depositor An Ethereum address
+    /// @param amount A positive number
+    event ProfitDeposited(address depositor, uint amount);
+
+    /// @dev Log entry on profit share updated
+    /// @param investor An Ethereum address
+    /// @param amount A positive number
+    event ProfitShareUpdated(address investor, uint amount);
+
+    /// @dev Log entry on profit withdrawal
+    /// @param investor An Ethereum address
+    /// @param amount A positive number
+    event ProfitWithdrawal(address investor, uint amount);
 
     /// @dev Deposit profit
     function depositProfit() public payable {
@@ -40,9 +48,11 @@ contract ProfitSharing is Ownable, ERC20 {
     /// @param _investor An Ethereum address
     /// @return A positive number
     function profitShareOwing(address _investor) public view returns (uint) {
-        return totalProfits.sub(accounts[_investor].lastTotalProfits)
+        return totalSupply_ > 0
+             ? totalProfits.sub(accounts[_investor].lastTotalProfits)
                            .mul(accounts[_investor].balance)
-                           .div(totalSupply_);  // <- The linter doesn't like this.
+                           .div(totalSupply_)  // <- The linter doesn't like this.
+             : 0;
     }
 
     /// @dev Update profit share
@@ -54,9 +64,9 @@ contract ProfitSharing is Ownable, ERC20 {
         accounts[_investor].profitShare = accounts[_investor].profitShare.add(additionalProfitShare);
 
         ProfitShareUpdated(_investor, additionalProfitShare);
-
     }
 
+    /// @dev Withdraw profit share
     function withdrawProfitShare() public {
         updateProfitShare(msg.sender);
 
