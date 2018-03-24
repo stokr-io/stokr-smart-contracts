@@ -62,7 +62,7 @@ contract SicosToken2 is MintableToken, KeyRecoverable {
     /// @param _to An Ethereum address
     /// @param _value A positive number
     /// @return True or false
-    function transfer(address _to, uint _value) public onlyWhitelisted(msg.sender) onlyWhitelisted(_to) notMinting returns (bool) {
+    function transfer(address _to, uint _value) public returns (bool) {
         require(IMPLEMENTATION);
     }
 
@@ -71,7 +71,16 @@ contract SicosToken2 is MintableToken, KeyRecoverable {
     /// @param _to An Ethereum address
     /// @param _value A positive number
     /// @return True or false
-    function transferFrom(address _from, address _to, uint _value) public onlyWhitelisted(_from) onlyWhitelisted(_to) notMinting returns (bool) {
+    function transferFrom(address _from, address _to, uint _value) public returns (bool) {
+        require(IMPLEMENTATION);
+    }
+
+    /// @dev Transfer
+    /// @param _from An Ethereum address
+    /// @param _to An Ethereum address
+    /// @param _value A positive number
+    /// @return True or false
+    function _transfer(address _from, address _to, uint _value) internal onlyWhitelisted(_from) onlyWhitelisted(_to) notMinting returns (bool) {
         require(IMPLEMENTATION);
     }
 
