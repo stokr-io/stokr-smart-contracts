@@ -9,7 +9,7 @@ const { latestTime, duration, increaseTimeTo } = require("./helpers/timer");
 const BigNumber = web3.BigNumber;
 
 const { rejectDeploy, rejectTx, getBalance, logGas, currency } = require("./helpers/tecneos.js");
-const ADDITIONAL_OUTPUTS = true;
+const ADDITIONAL_OUTPUTS = false;
 
 
 contract("SicosToken", ([owner,
@@ -94,14 +94,14 @@ contract("SicosToken", ([owner,
             _minter.should.be.bignumber.zero;
         });
 
-        it("sets mintingFinshed to false", async () => {
-            let mintingFinished = await token.mintingFinished();
-            mintingFinished.should.be.false;
-        });
-
         it("sets totalProfits to zero", async () => {
             let totalProfits = await token.totalProfits();
             totalProfits.should.be.bignumber.zero;
+        });
+
+        it("sets totalSupplyIsFixed to false", async () => {
+            let totalSupplyIsFixed = await token.totalSupplyIsFixed();
+            totalSupplyIsFixed.should.be.false;
         });
 
         it("sets totalSupply to zero", async () => {
@@ -304,7 +304,26 @@ contract("SicosToken", ([owner,
             totalProfitsAfter.should.be.bignumber.equal(totalProfitsBefore.plus(weiAmount));
         });
 
+        it("is not calculated while total supply wasn't fixed", async () => {
+            for (let i = 0; i < investors.length; ++i) {
+                let investor = investors[i];
+                let profitShareOwing = await token.profitShareOwing(investor);
+                profitShareOwing.should.be.bignumber.zero;
+            }
+        });
+
+        it("is forbidden while total supply wasn't fixed", async () => {
+            for (let i = 0; i < investors.length; ++i) {
+                let investor = investors[i];
+                await rejectTx(token.updateProfitShare(investor));
+                let account = await getTokenAccount(token, investor);
+                account.lastTotalProfits.should.be.bignumber.zero;
+                account.profitShare.should.be.bignumber.zero;
+            }
+        });
+
         it("is correctly calculated as share of investors' token balances", async () => {
+            await token.finishMinting({from: minter});
             let totalSupply = await token.totalSupply();
             let totalProfits = await token.totalProfits();
             for (let i = 0; i < investors.length; ++i) {
@@ -334,7 +353,7 @@ contract("SicosToken", ([owner,
                 let investor = investors[i];
                 let accountBefore = await getTokenAccount(token, investor);
                 let profitShareOwing = await token.profitShareOwing(investor);
-                let tx = await logGas(token.updateProfitShare(investor, {from: anyone}));
+                let tx = await token.updateProfitShare(investor, {from: anyone});
                 let entry = tx.logs.find(entry => entry.event === "ProfitShareUpdated");
                 should.exist(entry);
                 entry.args.investor.should.be.bignumber.equal(investor);
@@ -355,7 +374,7 @@ contract("SicosToken", ([owner,
             }
         });
 
-        it("is correctly calculated a second time", async () => {
+        it("is correctly calculated after some more profit was deposited", async () => {
             await token.depositProfit({from: anyone, value: currency.ether(8)});
             let totalSupply = await token.totalSupply();
             let totalProfits = await token.totalProfits();
@@ -394,6 +413,7 @@ contract("SicosToken", ([owner,
             await token.mint(investor1, 1000, {from: minter});
             await token.mint(investor2, 2000, {from: minter});
             totalSupply = 1000 + 2000;
+            await token.finishMinting({from: minter});
             // deposit profits and disburse them to first two investors
             await token.depositProfit({from: anyone, value: currency.ether(1)});
             await token.updateProfitShare(investor1);
