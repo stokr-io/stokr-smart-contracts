@@ -2,16 +2,18 @@
 
 const Whitelist = artifacts.require("./Whitelist.sol");
 
-const { should, ensuresException } = require("./helpers/utils");
-const expect = require("chai").expect;
-const { latestTime, duration, increaseTimeTo } = require("./helpers/timer");
-const BigNumber = web3.BigNumber;
-
-const { rejectTx } = require("./helpers/tecneos.js");
+const { expect } = require("chai");
+const { should } = require("./helpers/utils");
+const { rejectTx } = require("./helpers/tecneos");
 
 
-contract("Whitelist", ([owner, admin1, admin2, investor1, investor2, investor3, anyone]) => {
-    const ZERO_ADDR = "0x0";
+contract("Whitelist", ([owner,
+                        admin1,
+                        admin2,
+                        investor1,
+                        investor2,
+                        investor3,
+                        anyone]) => {
     let whitelist = null;
 
     describe("deployment", () => {
@@ -22,9 +24,9 @@ contract("Whitelist", ([owner, admin1, admin2, investor1, investor2, investor3, 
             assert(code !== "0x" && code !== "0x0", "contract code is expected to be non-zero");
         });
 
-        it("sets owner", async () => {
-            let owner = await whitelist.owner();
-            owner.should.be.bignumber.equal(owner);
+        it("sets correct owner", async () => {
+            let _owner = await whitelist.owner();
+            _owner.should.be.bignumber.equal(owner);
         });
 
     });
@@ -38,12 +40,13 @@ contract("Whitelist", ([owner, admin1, admin2, investor1, investor2, investor3, 
         it("can be added by owner", async () => {
             let tx = await whitelist.addAdmin(admin1, {from: owner});
             let entry = tx.logs.find(entry => entry.event === "AdminAdded");
-            assert.strictEqual(entry.args.admin, admin1);
+            should.exist(entry);
+            entry.args.admin.should.be.bignumber.equal(admin1);
         });
 
         it("is an admin after add", async () => {
             let isAdmin = await whitelist.admins(admin1);
-            assert.isTrue(isAdmin);
+            isAdmin.should.be.true;
         });
 
         it("cannot be removed by anyone", async () => {
@@ -53,12 +56,13 @@ contract("Whitelist", ([owner, admin1, admin2, investor1, investor2, investor3, 
         it("can be removed by owner", async () => {
             let tx = await whitelist.removeAdmin(admin1, {from: owner});
             let entry = tx.logs.find(entry => entry.event === "AdminRemoved");
-            assert.strictEqual(entry.args.admin, admin1);
+            should.exist(entry);
+            entry.args.admin.should.be.bignumber.equal(admin1);
         });
 
         it("is not an admin after remove", async () => {
             let isAdmin = await whitelist.admins(admin1);
-            assert.isFalse(isAdmin);
+            isAdmin.should.be.false;
         });
 
     });
@@ -77,20 +81,22 @@ contract("Whitelist", ([owner, admin1, admin2, investor1, investor2, investor3, 
         it("can be added by admin1", async () => {
             let tx = await whitelist.addToWhitelist([investor1], {from: admin1});
             let entry = tx.logs.find(entry => entry.event === "InvestorAdded");
-            assert.strictEqual(entry.args.admin, admin1);
-            assert.strictEqual(entry.args.investor, investor1);
+            should.exist(entry);
+            entry.args.admin.should.be.bignumber.equal(admin1);
+            entry.args.investor.should.be.bignumber.equal(investor1);
         });
 
         it("can be added again by admin2", async () => {
             let tx = await whitelist.addToWhitelist([investor1], {from: admin2});
             let entry = tx.logs.find(entry => entry.event === "InvestorAdded");
-            assert.strictEqual(entry.args.admin, admin2);
-            assert.strictEqual(entry.args.investor, investor1);
+            should.exist(entry);
+            entry.args.admin.should.be.bignumber.equal(admin2);
+            entry.args.investor.should.be.bignumber.equal(investor1);
         });
 
         it("is whitelisted after add", async () => {
             let isWhitelisted = await whitelist.isWhitelisted(investor1);
-            assert.isTrue(isWhitelisted);
+            isWhitelisted.should.be.true;
         });
 
         it("cannot be removed by anyone", async () => {
@@ -100,20 +106,22 @@ contract("Whitelist", ([owner, admin1, admin2, investor1, investor2, investor3, 
         it("can be removed by admin1", async () => {
             let tx = await whitelist.removeFromWhitelist([investor1], {from: admin1});
             let entry = tx.logs.find(entry => entry.event === "InvestorRemoved");
-            assert.strictEqual(entry.args.admin, admin1);
-            assert.strictEqual(entry.args.investor, investor1);
+            should.exist(entry);
+            entry.args.admin.should.be.bignumber.equal(admin1);
+            entry.args.investor.should.be.bignumber.equal(investor1);
         });
 
         it("can be removed again by admin2", async () => {
             let tx = await whitelist.removeFromWhitelist([investor1], {from: admin2});
             let entry = tx.logs.find(entry => entry.event === "InvestorRemoved");
-            assert.strictEqual(entry.args.admin, admin2);
-            assert.strictEqual(entry.args.investor, investor1);
+            should.exist(entry);
+            entry.args.admin.should.be.bignumber.equal(admin2);
+            entry.args.investor.should.be.bignumber.equal(investor1);
         });
 
         it("is not whitelisted after remove", async () => {
             let isWhitelisted = await whitelist.isWhitelisted([investor1]);
-            assert.isFalse(isWhitelisted);
+            isWhitelisted.should.be.false;
         });
 
     });
@@ -122,7 +130,7 @@ contract("Whitelist", ([owner, admin1, admin2, investor1, investor2, investor3, 
         let investors = [investor1, investor2, investor3,
                          investor1, investor2, investor3,
                          investor1, investor2, investor3,
-                         ZERO_ADDR];
+                         0x0, 0x1, 0x2, 0x3, 0x4, 0x5];
 
         before("owner adds admins", async () => {
             await whitelist.addAdmin(admin1, {from: owner});
@@ -133,7 +141,7 @@ contract("Whitelist", ([owner, admin1, admin2, investor1, investor2, investor3, 
             await rejectTx(whitelist.addToWhitelist(investors, {from: anyone}));
             for (let i = 0; i < investors.length; ++i) {
                 let isWhitelisted = await whitelist.isWhitelisted(investors[i]);
-                assert.isFalse(isWhitelisted);
+                isWhitelisted.should.be.false;
             }
         });
 
@@ -141,7 +149,7 @@ contract("Whitelist", ([owner, admin1, admin2, investor1, investor2, investor3, 
             let tx = await whitelist.addToWhitelist(investors, {from: admin1});
             for (let i = 0; i < investors.length; ++i) {
                 let isWhitelisted = await whitelist.isWhitelisted(investors[i]);
-                assert.isTrue(isWhitelisted);
+                isWhitelisted.should.be.true;
             }
         });
 
@@ -149,7 +157,7 @@ contract("Whitelist", ([owner, admin1, admin2, investor1, investor2, investor3, 
             await rejectTx(whitelist.removeFromWhitelist(investors, {from: anyone}));
             for (let i = 0; i < investors.length; ++i) {
                 let isWhitelisted = await whitelist.isWhitelisted(investors[i]);
-                assert.isTrue(isWhitelisted);
+                isWhitelisted.should.be.true;
             }
         });
 
@@ -157,10 +165,11 @@ contract("Whitelist", ([owner, admin1, admin2, investor1, investor2, investor3, 
             let tx = await whitelist.removeFromWhitelist(investors, {from: admin2});
             for (let i = 0; i < investors.length; ++i) {
                 let isWhitelisted = await whitelist.isWhitelisted(investors[i]);
-                assert.isFalse(isWhitelisted);
+                isWhitelisted.should.be.false;
             }
         });
 
     });
 
 });
+

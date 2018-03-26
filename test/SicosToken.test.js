@@ -3,13 +3,9 @@
 const Whitelist = artifacts.require("./Whitelist.sol");
 const SicosToken = artifacts.require("./SicosToken.sol");
 
-const { should, ensuresException } = require("./helpers/utils");
-const expect = require("chai").expect;
-const { latestTime, duration, increaseTimeTo } = require("./helpers/timer");
-const BigNumber = web3.BigNumber;
-
-const { rejectDeploy, rejectTx, getBalance, logGas, currency } = require("./helpers/tecneos.js");
-const ADDITIONAL_OUTPUTS = false;
+const { expect } = require("chai");
+const { should } = require("./helpers/utils");
+const { rejectDeploy, rejectTx, currency } = require("./helpers/tecneos");
 
 
 contract("SicosToken", ([owner,
@@ -18,38 +14,39 @@ contract("SicosToken", ([owner,
                          investor1,
                          investor2,
                          investor3,
+                         trustee,
                          anyone]) => {
-    const ZERO_ADDR = "0x0";
+    const investors = [investor1, investor2, investor3];
 
     // Helper function to deploy a Whitelist and a SicosToken.
     const deployWhitelistAndToken = async () => {
         // deploy whitelist contract where owner becomes whitelist admin and adds three investors
         let whitelist = await Whitelist.new({from: owner});
         await whitelist.addAdmin(owner, {from: owner});
-        await whitelist.addToWhitelist([investor1, investor2, investor3], {from: owner});
+        await whitelist.addToWhitelist(investors, {from: owner});
         // deploy token contract with keyRecoverer and minter
         let token = await SicosToken.new(whitelist.address, keyRecoverer, {from: owner});
         await token.setMinter(minter, {from: owner});
         return [whitelist, token];
     }
 
-    // Trivial tests of correct deployment.
+    // Tests of correct deployment.
     describe("deployment", () => {
         let whitelist;
         let token;
 
-        it("requires a deployed Whitelist instance", async () => {
+        before("requires a deployed Whitelist instance", async () => {
             whitelist = await Whitelist.new({from: owner});
             let code = await web3.eth.getCode(whitelist.address);
             assert(code !== "0x" && code !== "0x0", "contract code is expected to be non-zero");
         });
 
         it("should fail if whitelist is zero address", async () => {
-            await rejectDeploy(SicosToken.new(ZERO_ADDR, keyRecoverer, {from: owner}));
+            await rejectDeploy(SicosToken.new(0x0, keyRecoverer, {from: owner}));
         });
 
         it("should fail if keyRecoverer is zero address", async () => {
-            await rejectDeploy(SicosToken.new(whitelist.address, ZERO_ADDR, {from: owner}));
+            await rejectDeploy(SicosToken.new(whitelist.address, 0x0, {from: owner}));
         });
 
         it("should succeed", async () => {
@@ -95,10 +92,10 @@ contract("SicosToken", ([owner,
 
     });
 
-    // Trivial tests of address changing related functions.
+    // Tests of address changing related functions.
     describe("set addresses", () => {
-        const initialWhitelistAddress = 0x1,
-              initialKeyRecoverer = 0x2;
+        const initialWhitelistAddress = 0x1;
+        const initialKeyRecoverer = 0x2;
         let whitelist;
         let token;
 
@@ -114,7 +111,7 @@ contract("SicosToken", ([owner,
         });
 
         it("denies owner to change whitelist to zero", async () => {
-            await rejectTx(token.setWhitelist(ZERO_ADDR, {from: owner}));
+            await rejectTx(token.setWhitelist(0x0, {from: owner}));
             let whitelistAddress = await token.whitelist();
             whitelistAddress.should.be.bignumber.equal(initialWhitelistAddress);
         });
@@ -135,7 +132,7 @@ contract("SicosToken", ([owner,
         });
 
         it("denies owner to change keyRecoverer to zero", async () => {
-            await rejectTx(token.setKeyRecoverer(ZERO_ADDR, {from: owner}));
+            await rejectTx(token.setKeyRecoverer(0x0, {from: owner}));
             let _keyRecoverer = await token.keyRecoverer();
             _keyRecoverer.should.be.bignumber.equal(initialKeyRecoverer);
         });
@@ -152,13 +149,13 @@ contract("SicosToken", ([owner,
         it("denies anyone to change minter", async () => {
             await rejectTx(token.setMinter(minter, {from: anyone}));
             let _minter = await token.minter();
-            _minter.should.be.bignumber.equal(ZERO_ADDR);
+            _minter.should.be.bignumber.zero;
         });
 
         it("denies owner to change minter to zero", async () => {
-            await rejectTx(token.setMinter(ZERO_ADDR, {from: owner}));
+            await rejectTx(token.setMinter(0, {from: owner}));
             let _minter = await token.minter();
-            _minter.should.be.bignumber.equal(ZERO_ADDR);
+            _minter.should.be.bignumber.zero;
         });
 
         it("allows owner to change minter once", async () => {
@@ -175,7 +172,7 @@ contract("SicosToken", ([owner,
 
     });
 
-    // Trivial tests of minting related functions.
+    // Tests of minting related functions.
     describe("minting", () => {
         let whitelist;
         let token;
@@ -205,6 +202,8 @@ contract("SicosToken", ([owner,
             entry1.args.amount.should.be.bignumber.equal(amount);
             let entry2 = tx.logs.find(entry => entry.event === "Transfer");
             should.exist(entry2);
+            entry2.args.from.should.be.bignumber.zero;
+            entry2.args.to.should.be.bignumber.equal(investor1);
             entry2.args.value.should.be.bignumber.equal(amount);
             let totalSupply = await token.totalSupply();
             totalSupply.should.be.bignumber.equal(amount);
@@ -253,9 +252,233 @@ contract("SicosToken", ([owner,
 
     });
 
-    // Trivial tests of profit sharing related functions.
+    // Tests of token transfer related functions.
+    describe("transfer", () => {
+        const debited = investor1;
+        const credited = investor2;
+        let whitelist;
+        let token;
+
+        before("deploy contracts", async () => {
+            [whitelist, token] = await deployWhitelistAndToken();
+            await token.mint(debited, 252525, {from: minter});
+        });
+
+        afterEach("invariant: sum of individual token balances equals total supply", async () => {
+            let totalSupply = await token.totalSupply();
+            let sumOfBalances = new web3.BigNumber(0);
+            for (let i = 0; i < investors.length; ++i) {
+                let investor = investors[i];
+                let balance = await token.balanceOf(investor);
+                sumOfBalances = sumOfBalances.add(balance);
+            }
+            sumOfBalances.should.be.bignumber.equal(totalSupply);
+        });
+
+        it("is forbidden while minting", async () => {
+            let debitedBalanceBefore = await token.balanceOf(debited);
+            let creditedBalanceBefore = await token.balanceOf(credited);
+            await rejectTx(token.transfer(credited, 1, {from: debited}));
+            let debitedBalanceAfter = await token.balanceOf(debited);
+            let creditedBalanceAfter = await token.balanceOf(credited);
+            debitedBalanceAfter.should.be.bignumber.equal(debitedBalanceBefore);
+            creditedBalanceAfter.should.be.bignumber.equal(creditedBalanceBefore);
+        });
+
+        it("approval is forbidden while minting", async () => {
+            let allowanceBefore = await token.allowance(debited, trustee);
+            await rejectTx(token.approve(trustee, 1, {from: debited}));
+            let allowanceAfter = await token.allowance(debited, trustee);
+            allowanceAfter.should.be.bignumber.equal(allowanceBefore);
+        });
+
+        it("is possible after minting finished", async () => {
+            await token.finishMinting({from: minter});
+            let debitedBalanceBefore = await token.balanceOf(debited);
+            let creditedBalanceBefore = await token.balanceOf(credited);
+            let amount = debitedBalanceBefore.dividedToIntegerBy(2);
+            let tx = await token.transfer(credited, amount, {from: debited});
+            let entry = tx.logs.find(entry => entry.event === "Transfer");
+            should.exist(entry);
+            entry.args.from.should.be.bignumber.equal(debited);
+            entry.args.to.should.be.bignumber.equal(credited);
+            entry.args.value.should.be.bignumber.equal(amount);
+            let debitedBalanceAfter = await token.balanceOf(debited);
+            let creditedBalanceAfter = await token.balanceOf(credited);
+            debitedBalanceAfter.should.be.bignumber.equal(debitedBalanceBefore.minus(amount));
+            creditedBalanceAfter.should.be.bignumber.equal(creditedBalanceBefore.plus(amount));
+        });
+
+        it("is forbidden if debited account isn't whitelisted", async () => {
+            let debitedBalanceBefore = await token.balanceOf(debited);
+            let creditedBalanceBefore = await token.balanceOf(credited);
+            await whitelist.removeFromWhitelist([debited], {from: owner});
+            await rejectTx(token.transfer(credited, 1, {from: debited}));
+            await whitelist.addToWhitelist([debited], {from: owner});
+            let debitedBalanceAfter = await token.balanceOf(debited);
+            let creditedBalanceAfter = await token.balanceOf(credited);
+            debitedBalanceAfter.should.be.bignumber.equal(debitedBalanceBefore);
+            creditedBalanceAfter.should.be.bignumber.equal(creditedBalanceBefore);
+        });
+
+        it("is forbidden if credited account isn't whitelisted", async () => {
+            let debitedBalanceBefore = await token.balanceOf(debited);
+            let creditedBalanceBefore = await token.balanceOf(credited);
+            await whitelist.removeFromWhitelist([credited], {from: owner});
+            await rejectTx(token.transfer(credited, 1, {from: debited}));
+            await whitelist.addToWhitelist([credited], {from: owner});
+            let debitedBalanceAfter = await token.balanceOf(debited);
+            let creditedBalanceAfter = await token.balanceOf(credited);
+            debitedBalanceAfter.should.be.bignumber.equal(debitedBalanceBefore);
+            creditedBalanceAfter.should.be.bignumber.equal(creditedBalanceBefore);
+        });
+
+        it("is forbidden if amount exceed balance", async () => {
+            let debitedBalanceBefore = await token.balanceOf(debited);
+            let creditedBalanceBefore = await token.balanceOf(credited);
+            let amount = debitedBalanceBefore.plus(1);
+            await rejectTx(token.transfer(credited, amount, {from: debited}));
+            let debitedBalanceAfter = await token.balanceOf(debited);
+            let creditedBalanceAfter = await token.balanceOf(credited);
+            debitedBalanceAfter.should.be.bignumber.equal(debitedBalanceBefore);
+            creditedBalanceAfter.should.be.bignumber.equal(creditedBalanceBefore);
+        });
+
+        it("approval is forbidden if approver isn't whitelisted", async () => {
+            let allowanceBefore = await token.allowance(debited, trustee);
+            await whitelist.removeFromWhitelist([debited], {from: owner});
+            await rejectTx(token.approve(trustee, 1, {from: debited}));
+            await whitelist.addToWhitelist([debited], {from: owner});
+            let allowanceAfter = await token.allowance(debited, trustee);
+            allowanceAfter.should.be.bignumber.equal(allowanceBefore);
+        });
+
+        it("approval is possible", async () => {
+            let allowanceBefore = await token.allowance(debited, trustee);
+            let balance = await token.balanceOf(debited);
+            let amount = balance.plus(1);
+            await token.approve(trustee, 0, {from: debited});
+            let tx = await token.approve(trustee, amount, {from: debited});
+            let entry = tx.logs.find(entry => entry.event === "Approval");
+            should.exist(entry);
+            entry.args.owner.should.be.bignumber.equal(debited);
+            entry.args.spender.should.be.bignumber.equal(trustee);
+            entry.args.value.should.be.bignumber.equal(amount);
+            let allowanceAfter = await token.allowance(debited, trustee);
+            allowanceAfter.should.be.bignumber.equal(allowanceBefore.plus(amount));
+        });
+
+        it("approval change is possible if allowance was set to zero before", async () => {
+            let allowanceBefore = await token.allowance(debited, trustee);
+            let amount = allowanceBefore.plus(1);
+            await token.approve(trustee, 0, {from: debited});
+            await token.approve(trustee, amount, {from: debited});
+            let allowanceAfter = await token.allowance(debited, trustee);
+            allowanceAfter.should.be.bignumber.equal(amount);
+        });
+
+        it("by a trustee is forbidden if debited account isn't whitelisted", async () => {
+            let debitedBalanceBefore = await token.balanceOf(debited);
+            let creditedBalanceBefore = await token.balanceOf(credited);
+            let amount = debitedBalanceBefore.dividedToIntegerBy(2);
+            await token.approve(trustee, 0, {from: debited});
+            await token.approve(trustee, amount, {from: debited});
+            await whitelist.removeFromWhitelist([debited], {from: owner});
+            await rejectTx(token.transferFrom(debited, credited, amount, {from: trustee}));
+            await whitelist.addToWhitelist([debited], {from: owner});
+            let debitedBalanceAfter = await token.balanceOf(debited);
+            let creditedBalanceAfter = await token.balanceOf(credited);
+            debitedBalanceAfter.should.be.bignumber.equal(debitedBalanceBefore);
+            creditedBalanceAfter.should.be.bignumber.equal(creditedBalanceBefore);
+        });
+
+        it("by a trustee is forbidden if credited account isn't whitelisted", async () => {
+            let debitedBalanceBefore = await token.balanceOf(debited);
+            let creditedBalanceBefore = await token.balanceOf(credited);
+            let amount = debitedBalanceBefore.dividedToIntegerBy(2);
+            await token.approve(trustee, 0, {from: debited});
+            await token.approve(trustee, amount, {from: debited});
+            await whitelist.removeFromWhitelist([credited], {from: owner});
+            await rejectTx(token.transferFrom(debited, credited, amount, {from: trustee}));
+            await whitelist.addToWhitelist([credited], {from: owner});
+            let debitedBalanceAfter = await token.balanceOf(debited);
+            let creditedBalanceAfter = await token.balanceOf(credited);
+            debitedBalanceAfter.should.be.bignumber.equal(debitedBalanceBefore);
+            creditedBalanceAfter.should.be.bignumber.equal(creditedBalanceBefore);
+        });
+
+        it("by a trustee is forbidden if amount exceeds allowance", async () => {
+            let debitedBalanceBefore = await token.balanceOf(debited);
+            let creditedBalanceBefore = await token.balanceOf(credited);
+            await token.approve(trustee, 0, {from: debited});
+            await token.approve(trustee, 1, {from: debited});
+            await rejectTx(token.transferFrom(debited, credited, 2, {from: trustee}));
+            let debitedBalanceAfter = await token.balanceOf(debited);
+            let creditedBalanceAfter = await token.balanceOf(credited);
+            debitedBalanceAfter.should.be.bignumber.equal(debitedBalanceBefore);
+            creditedBalanceAfter.should.be.bignumber.equal(creditedBalanceBefore);
+        });
+
+        it("by a trustee is forbidden if amount exceeds balance", async () => {
+            let debitedBalanceBefore = await token.balanceOf(debited);
+            let creditedBalanceBefore = await token.balanceOf(credited);
+            let amount = debitedBalanceBefore.plus(1);
+            await token.approve(trustee, 0, {from: debited});
+            await token.approve(trustee, amount, {from: debited});
+            await rejectTx(token.transferFrom(debited, credited, amount, {from: trustee}));
+            let debitedBalanceAfter = await token.balanceOf(debited);
+            let creditedBalanceAfter = await token.balanceOf(credited);
+            debitedBalanceAfter.should.be.bignumber.equal(debitedBalanceBefore);
+            creditedBalanceAfter.should.be.bignumber.equal(creditedBalanceBefore);
+        });
+
+        it("by a trustee is possible", async () => {
+            let debitedBalanceBefore = await token.balanceOf(debited);
+            let creditedBalanceBefore = await token.balanceOf(credited);
+            let amount = debitedBalanceBefore.dividedToIntegerBy(2);
+            await token.approve(trustee, 0, {from: debited});
+            await token.approve(trustee, amount, {from: debited});
+            let tx = await token.transferFrom(debited, credited, amount, {from: trustee});
+            let entry = tx.logs.find(entry => entry.event === "Transfer");
+            should.exist(entry);
+            entry.args.from.should.be.bignumber.equal(debited);
+            entry.args.to.should.be.bignumber.equal(credited);
+            entry.args.value.should.be.bignumber.equal(amount);
+            let debitedBalanceAfter = await token.balanceOf(debited);
+            let creditedBalanceAfter = await token.balanceOf(credited);
+            debitedBalanceAfter.should.be.bignumber.equal(debitedBalanceBefore.minus(amount));
+            creditedBalanceAfter.should.be.bignumber.equal(creditedBalanceBefore.plus(amount));
+        });
+
+        it("by a trustee should decrease allowance", async () => {
+            let balance = await token.balanceOf(debited);
+            let allowanceBefore = balance.dividedToIntegerBy(2);
+            let amount = allowanceBefore.dividedToIntegerBy(2);
+            await token.approve(trustee, 0, {from: debited});
+            await token.approve(trustee, allowanceBefore, {from: debited});
+            await token.transferFrom(debited, credited, amount, {from: trustee});
+            let allowanceAfter = await token.allowance(debited, trustee);
+            allowanceAfter.should.be.bignumber.equal(allowanceBefore.minus(amount));
+        });
+
+        it("by an attacking trustee should not exceed maximum of two allowances"
+           + " if allowance wasn't set to zero in between", async () => {
+            let balanceBefore = await token.balanceOf(debited);
+            let amount = balanceBefore.dividedToIntegerBy(3);
+            await token.approve(trustee, 0, {from: debited});
+            await token.approve(trustee, amount, {from: debited});
+            await token.transferFrom(debited, credited, amount, {from: trustee});
+            // investor forgot to set allowance to zero first
+            await token.approve(trustee, amount, {from: debited});
+            await rejectTx(token.transferFrom(debited, credited, amount, {from: trustee}));
+            let balanceAfter = await token.balanceOf(debited);
+            balanceAfter.should.be.bignumber.equal(balanceBefore.minus(amount));
+        });
+
+    });
+
+    // Tests of profit sharing related functions.
     describe("profit share", () => {
-        const investors = [investor1, investor2, investor3];
         let whitelist;
         let token;
 
@@ -281,7 +504,7 @@ contract("SicosToken", ([owner,
             let mintingFinished = await token.mintingFinished();
             if (mintingFinished) {
                 let weiBalance = await web3.eth.getBalance(token.address);
-                let sumOfProfitShares = new BigNumber(0);
+                let sumOfProfitShares = new web3.BigNumber(0);
                 for (let i = 0; i < investors.length; ++i) {
                     let investor = investors[i];
                     let account = await getAccount(investor);
@@ -432,7 +655,7 @@ contract("SicosToken", ([owner,
 
     });
 
-    // Trivial tests of key recovery related functions.
+    // Tests of key recovery related functions.
     describe("key recovery", () => {
         let whitelist;
         let token;
@@ -519,3 +742,4 @@ contract("SicosToken", ([owner,
     });
 
 });
+
