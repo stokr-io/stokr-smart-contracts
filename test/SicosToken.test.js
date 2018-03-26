@@ -33,22 +33,6 @@ contract("SicosToken", ([owner,
         return [whitelist, token];
     }
 
-    // Helper function to read an account.
-    const getTokenAccount = async (token, address) => {
-        let [balance, lastTotalProfits, profitShare] = await token.accounts(address);
-        return {balance, lastTotalProfits, profitShare};
-    };
-
-    // Helper method for testing (partial) equality of an account.
-    const expectTokenAccountEquality = (account, expected) => {
-        if (expected.hasOwnProperty("balance"))
-            account.balance.should.be.bignumber.equal(expected.balance);
-        if (expected.hasOwnProperty("lastTotalProfits"))
-            account.lastTotalProfits.should.be.bignumber.equal(expected.lastTotalProfits);
-        if (expected.hasOwnProperty("profitShare"))
-            account.profitShare.should.be.bignumber.equal(expected.profitShare);
-    };
-
     // Trivial tests of correct deployment.
     describe("deployment", () => {
         let whitelist;
@@ -112,7 +96,7 @@ contract("SicosToken", ([owner,
     });
 
     // Trivial tests of address changing related functions.
-    describe("accounts setting", () => {
+    describe("set addresses", () => {
         const initialWhitelistAddress = 0x1,
               initialKeyRecoverer = 0x2;
         let whitelist;
@@ -270,35 +254,61 @@ contract("SicosToken", ([owner,
     });
 
     // Trivial tests of profit sharing related functions.
-    describe("profit sharing", () => {
+    describe("profit share", () => {
         const investors = [investor1, investor2, investor3];
         let whitelist;
         let token;
 
+        // Helper function to read an account.
+        const getAccount = async (address) => {
+            let [balance, lastTotalProfits, profitShare] = await token.accounts(address);
+            return {balance, lastTotalProfits, profitShare};
+        };
+
         before("deploy contracts", async () => {
             [whitelist, token] = await deployWhitelistAndToken();
             // mint some tokens for the benefit of investors
-            await token.mint(investor1, 1000, {from: minter});
-            await token.mint(investor2, 3000, {from: minter});
+            // Note: in order to make the tests working correctly, ensure that in
+            //       all test scenarios the individual tokens share is a finite
+            //       binary fraction of total token supply.
+            await token.mint(investor1, 4000, {from: minter});  // 1/2
+            await token.mint(investor2, 3000, {from: minter});  // 3/8
+            await token.mint(investor3, 1000, {from: minter});  // 1/8
+        });
+
+        afterEach("invariant: sum of individual profits equals token wei balance", async () => {
+            // This invariant doesn't hold while token minting
+            let mintingFinished = await token.mintingFinished();
+            if (mintingFinished) {
+                let weiBalance = await web3.eth.getBalance(token.address);
+                let sumOfProfitShares = new BigNumber(0);
+                for (let i = 0; i < investors.length; ++i) {
+                    let investor = investors[i];
+                    let account = await getAccount(investor);
+                    let profitShareOwing = await token.profitShareOwing(investor);
+                    sumOfProfitShares = sumOfProfitShares.plus(account.profitShare).plus(profitShareOwing);
+                }
+                sumOfProfitShares.should.be.bignumber.equal(weiBalance);
+            }
         });
 
         it("forbids to deposit profit via default function", async () => {
-            let weiBalanceBefore = await getBalance(token.address);
+            let weiBalanceBefore = await web3.eth.getBalance(token.address);
             await rejectTx(token.send(currency.ether(1), {from: anyone}));
-            let weiBalanceAfter = await getBalance(token.address);
+            let weiBalanceAfter = await web3.eth.getBalance(token.address);
             weiBalanceAfter.should.be.bignumber.equal(weiBalanceBefore);
         });
 
         it("allows anyone to deposit profit", async () => {
             const weiAmount = currency.ether(2);
-            let weiBalanceBefore = await getBalance(token.address);
+            let weiBalanceBefore = await web3.eth.getBalance(token.address);
             let totalProfitsBefore = await token.totalProfits();
             let tx = await token.depositProfit({from: anyone, value: weiAmount});
             let entry = tx.logs.find(entry => entry.event === "ProfitDeposited");
             should.exist(entry);
             entry.args.depositor.should.be.bignumber.equal(anyone);
             entry.args.amount.should.be.bignumber.equal(weiAmount);
-            let weiBalanceAfter = await getBalance(token.address);
+            let weiBalanceAfter = await web3.eth.getBalance(token.address);
             let totalProfitsAfter = await token.totalProfits();
             weiBalanceAfter.should.be.bignumber.equal(weiBalanceBefore.plus(weiAmount));
             totalProfitsAfter.should.be.bignumber.equal(totalProfitsBefore.plus(weiAmount));
@@ -316,7 +326,7 @@ contract("SicosToken", ([owner,
             for (let i = 0; i < investors.length; ++i) {
                 let investor = investors[i];
                 await rejectTx(token.updateProfitShare(investor));
-                let account = await getTokenAccount(token, investor);
+                let account = await getAccount(investor);
                 account.lastTotalProfits.should.be.bignumber.zero;
                 account.profitShare.should.be.bignumber.zero;
             }
@@ -328,22 +338,13 @@ contract("SicosToken", ([owner,
             let totalProfits = await token.totalProfits();
             for (let i = 0; i < investors.length; ++i) {
                 let investor = investors[i];
-                let account = await getTokenAccount(token, investor);
+                let balance = await token.balanceOf(investor);
                 let profitShareOwing = await token.profitShareOwing(investor);
-                if (ADDITIONAL_OUTPUTS) {
-                    console.log(" ".repeat(8) + "investor " + investor + ":");
-                    console.log(" ".repeat(8) + "  tokens: "
-                                + account.balance.toExponential() + " / "
-                                + totalSupply.toExponential())
-                    console.log(" ".repeat(8) + "  profit: "
-                                + account.profitShare.plus(profitShareOwing).toExponential() + " / "
-                                + totalProfits.toExponential());
-                }
+                // Prerequisite: no individual profit share was disbursed before
                 // Use equivalence:
-                //      (profitShare + profitShareOwing) / totalProfits == balance / totalSupply
-                // <=>  (profitShare + profitShareOwing) * totalSupply  == balance * totalProfits
-                account.profitShare.plus(profitShareOwing).times(totalSupply)
-                       .should.be.bignumber.equal(account.balance.times(totalProfits));
+                //      profitShareOwing / totalProfits == balance / totalSupply
+                // <=>  profitShareOwing * totalSupply  == balance * totalProfits
+                profitShareOwing.times(totalSupply).should.be.bignumber.equal(balance.times(totalProfits));
             }
         });
 
@@ -351,23 +352,14 @@ contract("SicosToken", ([owner,
             let totalProfits = await token.totalProfits();
             for (let i = 0; i < investors.length; ++i) {
                 let investor = investors[i];
-                let accountBefore = await getTokenAccount(token, investor);
+                let accountBefore = await getAccount(investor);
                 let profitShareOwing = await token.profitShareOwing(investor);
                 let tx = await token.updateProfitShare(investor, {from: anyone});
                 let entry = tx.logs.find(entry => entry.event === "ProfitShareUpdated");
                 should.exist(entry);
                 entry.args.investor.should.be.bignumber.equal(investor);
                 entry.args.amount.should.be.bignumber.equal(profitShareOwing);
-                let accountAfter = await getTokenAccount(token, investor);
-                if (ADDITIONAL_OUTPUTS) {
-                    console.log(" ".repeat(8) + "investor " + investor);
-                    console.log(" ".repeat(8) + "  profit before: "
-                                + accountBefore.profitShare.toExponential());
-                    console.log(" ".repeat(8) + "  profit owing: "
-                                + profitShareOwing.toExponential());
-                    console.log(" ".repeat(8) + "  profit after: "
-                                + accountAfter.profitShare.toExponential());
-                }
+                let accountAfter = await getAccount(investor);
                 accountAfter.lastTotalProfits.should.be.bignumber.equal(totalProfits);
                 accountAfter.profitShare.should.be.bignumber.equal(
                     accountBefore.profitShare.plus(profitShareOwing));
@@ -380,23 +372,62 @@ contract("SicosToken", ([owner,
             let totalProfits = await token.totalProfits();
             for (let i = 0; i < investors.length; ++i) {
                 let investor = investors[i];
-                let account = await getTokenAccount(token, investor);
+                let account = await getAccount(investor);
                 let profitShareOwing = await token.profitShareOwing(investor);
-                if (ADDITIONAL_OUTPUTS) {
-                    console.log(" ".repeat(8) + "investor " + investor + ":");
-                    console.log(" ".repeat(8) + "  tokens: "
-                                + account.balance.toExponential() + " / "
-                                + totalSupply.toExponential())
-                    console.log(" ".repeat(8) + "  profit: "
-                                + account.profitShare.plus(profitShareOwing).toExponential() + " / "
-                                + totalProfits.toExponential());
-                }
+                // Prerequiste: no tokens were transferred before
                 // Use equivalence:
                 //      (profitShare + profitShareOwing) / totalProfits == balance / totalSupply
                 // <=>  (profitShare + profitShareOwing) * totalSupply  == balance * totalProfits
                 account.profitShare.plus(profitShareOwing).times(totalSupply)
                        .should.be.bignumber.equal(account.balance.times(totalProfits));
             }
+        });
+
+        it("is correctly calculated after some tokens transfer and profit deposit", async () => {
+            let totalSupply = await token.totalSupply();
+            let additionalProfit = currency.ether(4);
+            await token.transfer(investor2, 2000, {from: investor1});
+            let balance1 = await token.balanceOf(investor1);
+            let balance2 = await token.balanceOf(investor2);
+            await token.depositProfit({from: anyone, value: additionalProfit});
+            let profitShareOwing1 = await token.profitShareOwing(investor1);
+            let profitShareOwing2 = await token.profitShareOwing(investor2);
+            // Use equivalence:
+            //      profitShareOwing / additionalProfit == balance / totalSupply
+            // <=>  profitShareOwing * totalSupply      == balance * additionalProfits
+            profitShareOwing1.times(totalSupply).should.be.bignumber.equal(balance1.times(additionalProfit));
+            profitShareOwing2.times(totalSupply).should.be.bignumber.equal(balance2.times(additionalProfit));
+        });
+
+        it("can be withdrawn by investors", async () => {
+            for (let i = 0; i < investors.length; ++i) {
+                let investor = investors[i];
+                let accountBefore = await getAccount(investor);
+                let profitShareOwing = await token.profitShareOwing(investor);
+                let weiBalanceBefore = await web3.eth.getBalance(token.address);
+                let tx = await token.withdrawProfitShare({from: investor});
+                let entry = tx.logs.find(entry => entry.event === "ProfitWithdrawal");
+                should.exist(entry);
+                entry.args.investor.should.be.bignumber.equal(investor);
+                entry.args.amount.should.be.bignumber.equal(accountBefore.profitShare.plus(profitShareOwing));
+                let accountAfter = await getAccount(investor);
+                let weiBalanceAfter = await web3.eth.getBalance(token.address);
+                accountAfter.profitShare.should.be.bignumber.zero;
+                weiBalanceAfter.should.be.bignumber.equal(weiBalanceBefore.minus(accountBefore.profitShare)
+                                                                          .minus(profitShareOwing));
+            }
+        });
+
+        it("of zero can be withdrawn by anyone", async () => {
+            await token.depositProfit({from: anyone, value: currency.ether(2)});
+            let weiBalanceBefore = await web3.eth.getBalance(token.address);
+            let tx = await token.withdrawProfitShare({from: anyone});
+            let entry = tx.logs.find(entry => entry.event === "ProfitWithdrawal");
+            should.exist(entry);
+            entry.args.investor.should.be.bignumber.equal(anyone);
+            entry.args.amount.should.be.bignumber.zero;
+            let weiBalanceAfter = await web3.eth.getBalance(token.address);
+            weiBalanceAfter.should.be.bignumber.equal(weiBalanceBefore);
         });
 
     });
@@ -406,6 +437,19 @@ contract("SicosToken", ([owner,
         let whitelist;
         let token;
         let totalSupply;
+
+        // Helper function to read an account.
+        const getAccount = async (address) => {
+            let [balance, lastTotalProfits, profitShare] = await token.accounts(address);
+            return {balance, lastTotalProfits, profitShare};
+        };
+
+        // Helper method for testing (partial) equality of an account.
+        const expectAccountEquality = (account, expected) => {
+            account.balance.should.be.bignumber.equal(expected.balance);
+            account.lastTotalProfits.should.be.bignumber.equal(expected.lastTotalProfits);
+            account.profitShare.should.be.bignumber.equal(expected.profitShare);
+        };
 
         before("deploy contracts and add investors", async () => {
             [whitelist, token] = await deployWhitelistAndToken();
@@ -426,49 +470,50 @@ contract("SicosToken", ([owner,
         });
 
         it("is forbidden by anyone other than keyRecoverer", async () => {
-            let account2Before = await getTokenAccount(token, investor2);
+            let account2Before = await getAccount(investor2);
+            let account3Before = await getAccount(investor3);
             await rejectTx(token.recoverKey(investor2, investor3, {from: anyone}));
-            let account2After = await getTokenAccount(token, investor2);
-            expectTokenAccountEquality(account2Before, account2After);
-            let account3 = await getTokenAccount(token, investor3);
-            expectTokenAccountEquality(account3, {balance: 0, profitShare: 0, lastTotalProfits: 0});
+            let account2After = await getAccount(investor2);
+            let account3After = await getAccount(investor3);
+            expectAccountEquality(account2Before, account2After);
+            expectAccountEquality(account3Before, account3After);
         });
 
         it("is forbidden if oldAddress wasn't whitelisted before", async () => {
-            let accountBefore = await getTokenAccount(token, investor3);
+            let accountBefore = await getAccount(investor3);
             await rejectTx(token.recoverKey(anyone, investor3, {from: keyRecoverer}));
-            let accountAfter = await getTokenAccount(token, investor3);
-            expectTokenAccountEquality(accountBefore, accountAfter);
+            let accountAfter = await getAccount(investor3);
+            expectAccountEquality(accountBefore, accountAfter);
         });
 
         it("is forbidden if newAddress wasn't whitelisted before", async () => {
-            let accountBefore = await getTokenAccount(token, investor1);
+            let accountBefore = await getAccount(investor1);
             await rejectTx(token.recoverKey(investor1, anyone, {from: keyRecoverer}));
-            let accountAfter = await getTokenAccount(token, investor1);
-            expectTokenAccountEquality(accountBefore, accountAfter);
+            let accountAfter = await getAccount(investor1);
+            expectAccountEquality(accountBefore, accountAfter);
         });
 
         it("is forbidden if newAddress is an already used account", async () => {
-            let account1Before = await getTokenAccount(token, investor1);
-            let account2Before = await getTokenAccount(token, investor2);
+            let account1Before = await getAccount(investor1);
+            let account2Before = await getAccount(investor2);
             await rejectTx(token.recoverKey(investor1, investor2, {from: keyRecoverer}));
-            let account1After = await getTokenAccount(token, investor1);
-            let account2After = await getTokenAccount(token, investor2);
-            expectTokenAccountEquality(account1Before, account1After);
-            expectTokenAccountEquality(account2Before, account2After);
+            let account1After = await getAccount(investor1);
+            let account2After = await getAccount(investor2);
+            expectAccountEquality(account1Before, account1After);
+            expectAccountEquality(account2Before, account2After);
         });
 
         it("is possible", async () => {
-            let oldAccount = await getTokenAccount(token, investor2);
+            let oldAccount = await getAccount(investor2);
             let tx = await token.recoverKey(investor2, investor3, {from: keyRecoverer});
             let entry = tx.logs.find(entry => entry.event === "KeyRecovered");
             should.exist(entry);
             entry.args.oldAddress.should.be.equal(investor2);
             entry.args.newAddress.should.be.equal(investor3);
-            let delAccount = await getTokenAccount(token, investor2);
-            let newAccount = await getTokenAccount(token, investor3);
-            expectTokenAccountEquality(delAccount, {balance: 0, profitShare: 0, lastTotalProfits: 0});
-            expectTokenAccountEquality(newAccount, oldAccount);
+            let delAccount = await getAccount(investor2);
+            let newAccount = await getAccount(investor3);
+            expectAccountEquality(delAccount, {balance: 0, profitShare: 0, lastTotalProfits: 0});
+            expectAccountEquality(newAccount, oldAccount);
         });
 
     });

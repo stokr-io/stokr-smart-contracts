@@ -168,13 +168,6 @@ module.exports = (() => {
         throw new Error("Contract creation should have failed but didn't.");
     };
 
-    // Retrieve wei balance of an Ethereum account.
-    const getBalance = address =>
-        new Promise((resolve, reject) =>
-            web3.eth.getBalance(address, (error, result) => error
-                                                            ? reject(error)
-                                                            : resolve(result)));
-
     // Create a random address.
     const randomAddr = () => {
         let digits = [];
@@ -194,7 +187,6 @@ module.exports = (() => {
         logGas,
         rejectTx,
         rejectDeploy,
-        getBalance,
         randomAddr,
     };
 })();

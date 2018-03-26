@@ -52,10 +52,10 @@ contract ProfitSharing is Ownable {
     /// @return A positive number
     function profitShareOwing(address _investor) public view returns (uint) {
         return totalSupplyIsFixed && totalSupply_ > 0
-             ? totalProfits.sub(accounts[_investor].lastTotalProfits)
-                           .mul(accounts[_investor].balance)
-                           .div(totalSupply_)  // <- The linter doesn't like this.
-             : 0;
+               ? totalProfits.sub(accounts[_investor].lastTotalProfits)
+                             .mul(accounts[_investor].balance)
+                             .div(totalSupply_)  // <- The linter doesn't like this.
+               : 0;
     }
 
     /// @dev Update profit share
