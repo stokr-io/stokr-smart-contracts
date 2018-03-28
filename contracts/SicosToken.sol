@@ -83,25 +83,8 @@ contract SicosToken is MintableToken, KeyRecoverable {
     /// @param _to An Ethereum address
     /// @param _value A positive number
     /// @return True or false
-    function transfer(address _to, uint _value)
-        public
-        onlyWhitelisted(msg.sender)
-        onlyWhitelisted(_to)
-        notMinting
-        returns (bool)
-    {
-        require(_to != address(0));
-        require(_value <= accounts[msg.sender].balance);
-
-        updateProfitShare(msg.sender);
-        updateProfitShare(_to);
-
-        accounts[msg.sender].balance = accounts[msg.sender].balance.sub(_value);
-        accounts[_to].balance = accounts[_to].balance.add(_value);
-
-        Transfer(msg.sender, _to, _value);
-
-        return true;
+    function transfer(address _to, uint _value) returns (bool) {
+        return _transfer(msg.sender, _to, _value);
     }
 
     /// @dev Transfer from
@@ -109,18 +92,28 @@ contract SicosToken is MintableToken, KeyRecoverable {
     /// @param _to An Ethereum address
     /// @param _value A positive number
     /// @return True or false
-    function transferFrom(address _from, address _to, uint _value)
-        public
+    function transferFrom(address _from, address _to, uint _value) returns (bool) {
+        require(_value <= allowance_[_from][msg.sender]);
+
+        allowance_[_from][msg.sender] = allowance_[_from][msg.sender].sub(_value);
+
+        return _transfer(_from, _to, _value);
+    }
+
+    /// @dev Transfer
+    /// @param _from An Ethereum address
+    /// @param _to An Ethereum address
+    /// @param _value A positive number
+    /// @return True or false
+    function _transfer(address _from, address _to, uint _value)
+        internal
         onlyWhitelisted(_from)
         onlyWhitelisted(_to)
         notMinting
         returns (bool)
     {
         require(_to != address(0));
-        require(_value <= allowance_[_from][msg.sender]);
         require(_value <= accounts[_from].balance);
-
-        allowance_[_from][msg.sender] = allowance_[_from][msg.sender].sub(_value);
 
         updateProfitShare(_from);
         updateProfitShare(_to);
