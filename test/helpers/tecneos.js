@@ -17,7 +17,7 @@ module.exports = (() => {
         const weeks = (n) => n * days(7);
         const years = (n) => n * days(365);
 
-        return {secs, mins, hours, days, weeks, years};
+        return {secs, seconds: secs, mins, minutes: mins, hours, days, weeks, years};
     })();
 
     // Some simple functions to translate currencies to wei.
@@ -34,10 +34,9 @@ module.exports = (() => {
                           T:  12,
                           P:  15,
                           E:  18};
-        const BN = n => new BigNumber(n);
         const wei = (n, prefix) => (prefix !== undefined
-                                    ? BN(10).pow(prefices[prefix]).mul(n)
-                                    : BN(n)).trunc();
+                                    ? (new BigNumber(10)).pow(prefices[prefix]).mul(n)
+                                    : (new BigNumber(n))).trunc();
 
         const $ = (n, m, prefix) => wei(m, prefix).mul(n).trunc();
 

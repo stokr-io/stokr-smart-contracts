@@ -27,10 +27,18 @@ contract SicosCrowdsale is FinalizableCrowdsale, CappedCrowdsale {
         Crowdsale(_rate, _wallet, _token)
     {}
 
+    /// @dev Log entry on rate changed
+    /// @param oldRate A positive number
+    /// @param newRate A positive number
+    event RateChanged(uint oldRate, uint newRate);
+
     /// @dev Set rate
     /// @param _newRate A positive number
     function setRate(uint _newRate) public onlyOwner {
-        require(_newRate == _newRate);  // Keep the linter happy.
+        require(_newRate > 0);
+
+        RateChanged(rate, _newRate);
+        rate = _newRate;
     }
 
     /// @dev Extend parent behavior requiring beneficiary to be identical to msg.sender
@@ -41,6 +49,9 @@ contract SicosCrowdsale is FinalizableCrowdsale, CappedCrowdsale {
         require(_beneficiary == msg.sender);
     }
 
+    /// @dev Extend parent behavior by minting a tokens for the benefit of beneficiary.
+    /// @param _beneficiary Token recipient
+    /// @param _tokenAmount Token amount
     function _deliverTokens(address _beneficiary, uint256 _tokenAmount) internal {
         MintableToken(token).mint(_beneficiary, _tokenAmount);
     }
