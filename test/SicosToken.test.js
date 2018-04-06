@@ -10,6 +10,7 @@ const { rejectDeploy, rejectTx, currency } = require("./helpers/tecneos");
 
 contract("SicosToken", ([owner,
                          minter,
+                         profitDepositor,
                          keyRecoverer,
                          investor1,
                          investor2,
@@ -25,7 +26,10 @@ contract("SicosToken", ([owner,
         await whitelist.addAdmin(owner, {from: owner});
         await whitelist.addToWhitelist(investors, {from: owner});
         // deploy token contract with keyRecoverer and minter
-        let token = await SicosToken.new(whitelist.address, keyRecoverer, {from: owner});
+        let token = await SicosToken.new(whitelist.address,
+                                         profitDepositor,
+                                         keyRecoverer,
+                                         {from: owner});
         await token.setMinter(minter, {from: owner});
         return [whitelist, token];
     }
@@ -42,15 +46,22 @@ contract("SicosToken", ([owner,
         });
 
         it("should fail if whitelist is zero address", async () => {
-            await rejectDeploy(SicosToken.new(0x0, keyRecoverer, {from: owner}));
+            await rejectDeploy(SicosToken.new(0x0, profitDepositor, keyRecoverer, {from: owner}));
+        });
+
+        it("should fail if profitDepositor is zero address", async () => {
+            await rejectDeploy(SicosToken.new(whitelist.address, 0x0, keyRecoverer, {from: owner}));
         });
 
         it("should fail if keyRecoverer is zero address", async () => {
-            await rejectDeploy(SicosToken.new(whitelist.address, 0x0, {from: owner}));
+            await rejectDeploy(SicosToken.new(whitelist.address, profitDepositor, 0x0, {from: owner}));
         });
 
         it("should succeed", async () => {
-            token = await SicosToken.new(whitelist.address, keyRecoverer, {from: owner});
+            token = await SicosToken.new(whitelist.address,
+                                         profitDepositor,
+                                         keyRecoverer,
+                                         {from: owner});
             let code = await web3.eth.getCode(token.address);
             assert(code !== "0x" && code !== "0x0", "contract code is expected to be non-zero");
         });
@@ -63,6 +74,11 @@ contract("SicosToken", ([owner,
         it("sets correct whitelist", async () => {
             let whitelistAddr = await token.whitelist();
             whitelistAddr.should.be.bignumber.equal(whitelist.address);
+        });
+
+        it("sets correct profitDepositor", async () => {
+            let _profitDepositor = await token.profitDepositor();
+            _profitDepositor.should.be.bignumber.equal(profitDepositor);
         });
 
         it("sets correct keyRecoverer", async () => {
@@ -94,56 +110,78 @@ contract("SicosToken", ([owner,
 
     // Tests of address changing related functions.
     describe("set addresses", () => {
-        const initialWhitelistAddress = 0x1;
-        const initialKeyRecoverer = 0x2;
         let whitelist;
         let token;
 
-        before("deploy with random addresses", async () => {
+        before("deploy contracts", async () => {
             whitelist = await Whitelist.new({from: owner});
-            token = await SicosToken.new(initialWhitelistAddress, initialKeyRecoverer, {from: owner});
+            token = await SicosToken.new(whitelist.address,
+                                         profitDepositor,
+                                         keyRecoverer,
+                                         {from: owner});
         });
 
         it("denies anyone to change whitelist", async () => {
-            await rejectTx(token.setWhitelist(whitelist.address, {from: anyone}));
+            await rejectTx(token.setWhitelist(0xDEADBEEF, {from: anyone}));
             let whitelistAddress = await token.whitelist();
-            whitelistAddress.should.be.bignumber.equal(initialWhitelistAddress);
+            whitelistAddress.should.be.bignumber.equal(whitelist.address);
         });
 
         it("denies owner to change whitelist to zero", async () => {
             await rejectTx(token.setWhitelist(0x0, {from: owner}));
             let whitelistAddress = await token.whitelist();
-            whitelistAddress.should.be.bignumber.equal(initialWhitelistAddress);
-        });
-
-        it("allows owner to change whitelist", async () => {
-            let tx = await token.setWhitelist(whitelist.address, {from: owner});
-            let entry = tx.logs.find(entry => entry.event === "WhitelistChanged");
-            should.exist(entry);
-            entry.args.whitelist.should.be.bignumber.equal(whitelist.address);
-            let whitelistAddress = await token.whitelist();
             whitelistAddress.should.be.bignumber.equal(whitelist.address);
         });
 
+        it("allows owner to change whitelist", async () => {
+            let tx = await token.setWhitelist(0xDEADBEEF, {from: owner});
+            let entry = tx.logs.find(entry => entry.event === "WhitelistChanged");
+            should.exist(entry);
+            entry.args.newWhitelist.should.be.bignumber.equal(0xDEADBEEF);
+            let whitelistAddress = await token.whitelist();
+            whitelistAddress.should.be.bignumber.equal(0xDEADBEEF);
+        });
+
+        it("denies anyone to change profitDepositor", async () => {
+            await rejectTx(token.setProfitDepositor(0xDEADBEEF, {from: anyone}));
+            let _profitDepositor = await token.profitDepositor();
+            _profitDepositor.should.be.bignumber.equal(profitDepositor);
+        });
+
+        it("denies owner to change profitDepositor to zero", async () => {
+            await rejectTx(token.setProfitDepositor(0x0, {from: owner}));
+            let _profitDepositor = await token.profitDepositor();
+            _profitDepositor.should.be.bignumber.equal(profitDepositor);
+        });
+
+        it("allows owner to change profitDepositor", async () => {
+            let tx = await token.setProfitDepositor(0xDEADBEEF, {from: owner});
+            let entry = tx.logs.find(entry => entry.event === "ProfitDepositorChanged");
+            should.exist(entry);
+            entry.args.newProfitDepositor.should.be.bignumber.equal(0xDEADBEEF);
+            let _profitDepositor = await token.profitDepositor();
+            _profitDepositor.should.be.bignumber.equal(0xDEADBEEF);
+        });
+
         it("denies anyone to change keyRecoverer", async () => {
-            await rejectTx(token.setKeyRecoverer(keyRecoverer, {from: anyone}));
+            await rejectTx(token.setKeyRecoverer(0xDEADBEEF, {from: anyone}));
             let _keyRecoverer = await token.keyRecoverer();
-            _keyRecoverer.should.be.bignumber.equal(initialKeyRecoverer);
+            _keyRecoverer.should.be.bignumber.equal(keyRecoverer);
         });
 
         it("denies owner to change keyRecoverer to zero", async () => {
             await rejectTx(token.setKeyRecoverer(0x0, {from: owner}));
             let _keyRecoverer = await token.keyRecoverer();
-            _keyRecoverer.should.be.bignumber.equal(initialKeyRecoverer);
+            _keyRecoverer.should.be.bignumber.equal(keyRecoverer);
         });
 
         it("allows owner to change keyRecoverer", async () => {
-            let tx = await token.setKeyRecoverer(keyRecoverer, {from: owner});
+            let tx = await token.setKeyRecoverer(0xDEADBEEF, {from: owner});
             let entry = tx.logs.find(entry => entry.event === "KeyRecovererChanged");
             should.exist(entry);
-            entry.args.newKeyRecoverer.should.be.bignumber.equal(keyRecoverer);
+            entry.args.newKeyRecoverer.should.be.bignumber.equal(0xDEADBEEF);
             let _keyRecoverer = await token.keyRecoverer();
-            _keyRecoverer.should.be.bignumber.equal(keyRecoverer);
+            _keyRecoverer.should.be.bignumber.equal(0xDEADBEEF);
         });
 
         it("denies anyone to change minter", async () => {
@@ -153,7 +191,7 @@ contract("SicosToken", ([owner,
         });
 
         it("denies owner to change minter to zero", async () => {
-            await rejectTx(token.setMinter(0, {from: owner}));
+            await rejectTx(token.setMinter(0x0, {from: owner}));
             let _minter = await token.minter();
             _minter.should.be.bignumber.zero;
         });
@@ -522,14 +560,21 @@ contract("SicosToken", ([owner,
             weiBalanceAfter.should.be.bignumber.equal(weiBalanceBefore);
         });
 
-        it("allows anyone to deposit profit", async () => {
+        it("denies anyone to deposit profit", async () => {
+            let weiBalanceBefore = await web3.eth.getBalance(token.address);
+            await rejectTx(token.depositProfit({from: anyone, value: currency.ether(1)}));
+            let weiBalanceAfter = await web3.eth.getBalance(token.address);
+            weiBalanceAfter.should.be.bignumber.equal(weiBalanceBefore);
+        });
+
+        it("allows profitDepositor to deposit profit", async () => {
             const weiAmount = currency.ether(2);
             let weiBalanceBefore = await web3.eth.getBalance(token.address);
             let totalProfitsBefore = await token.totalProfits();
-            let tx = await token.depositProfit({from: anyone, value: weiAmount});
+            let tx = await token.depositProfit({from: profitDepositor, value: weiAmount});
             let entry = tx.logs.find(entry => entry.event === "ProfitDeposited");
             should.exist(entry);
-            entry.args.depositor.should.be.bignumber.equal(anyone);
+            entry.args.depositor.should.be.bignumber.equal(profitDepositor);
             entry.args.amount.should.be.bignumber.equal(weiAmount);
             let weiBalanceAfter = await web3.eth.getBalance(token.address);
             let totalProfitsAfter = await token.totalProfits();
@@ -590,7 +635,7 @@ contract("SicosToken", ([owner,
         });
 
         it("is correctly calculated after some more profit was deposited", async () => {
-            await token.depositProfit({from: anyone, value: currency.ether(8)});
+            await token.depositProfit({from: profitDepositor, value: currency.ether(8)});
             let totalSupply = await token.totalSupply();
             let totalProfits = await token.totalProfits();
             for (let i = 0; i < investors.length; ++i) {
@@ -612,7 +657,7 @@ contract("SicosToken", ([owner,
             await token.transfer(investor2, 2000, {from: investor1});
             let balance1 = await token.balanceOf(investor1);
             let balance2 = await token.balanceOf(investor2);
-            await token.depositProfit({from: anyone, value: additionalProfit});
+            await token.depositProfit({from: profitDepositor, value: additionalProfit});
             let profitShareOwing1 = await token.profitShareOwing(investor1);
             let profitShareOwing2 = await token.profitShareOwing(investor2);
             // Use equivalence:
@@ -642,7 +687,7 @@ contract("SicosToken", ([owner,
         });
 
         it("of zero can be withdrawn by anyone", async () => {
-            await token.depositProfit({from: anyone, value: currency.ether(2)});
+            await token.depositProfit({from: profitDepositor, value: currency.ether(2)});
             let weiBalanceBefore = await web3.eth.getBalance(token.address);
             let tx = await token.withdrawProfitShare({from: anyone});
             let entry = tx.logs.find(entry => entry.event === "ProfitWithdrawal");
@@ -682,7 +727,7 @@ contract("SicosToken", ([owner,
             totalSupply = 1000 + 2000;
             await token.finishMinting({from: minter});
             // deposit profits and disburse them to first two investors
-            await token.depositProfit({from: anyone, value: currency.ether(1)});
+            await token.depositProfit({from: profitDepositor, value: currency.ether(1)});
             await token.updateProfitShare(investor1);
             await token.updateProfitShare(investor2);
         });

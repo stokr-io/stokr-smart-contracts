@@ -37,7 +37,9 @@ contract SicosCrowdsale is FinalizableCrowdsale, CappedCrowdsale {
     function setRate(uint _newRate) public onlyOwner {
         require(_newRate > 0);
 
-        RateChanged(rate, _newRate);
+        if (_newRate != rate) {
+            RateChanged(rate, _newRate);
+        }
         rate = _newRate;
     }
 
@@ -46,6 +48,7 @@ contract SicosCrowdsale is FinalizableCrowdsale, CappedCrowdsale {
     /// @param _weiAmount Amount of wei contributed
     function _preValidatePurchase(address _beneficiary, uint256 _weiAmount) internal {
         super._preValidatePurchase(_beneficiary, _weiAmount);
+
         require(_beneficiary == msg.sender);
     }
 

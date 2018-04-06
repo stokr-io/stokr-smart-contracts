@@ -11,8 +11,8 @@ contract Whitelisted is Ownable {
     Whitelist public whitelist;
 
     /// @dev Log entry on whitelist changed
-    /// @param whitelist An Ethereum address
-    event WhitelistChanged(address whitelist);
+    /// @param newWhitelist An Ethereum address
+    event WhitelistChanged(address newWhitelist);
 
     /// @dev Ensure only whitelisted
     modifier onlyWhitelisted(address _address) {
@@ -27,11 +27,15 @@ contract Whitelisted is Ownable {
     }
 
     /// @dev Set whitelist
-    /// @param _whitelist An Ethereum address
-    function setWhitelist(address _whitelist) public onlyOwner {
-        require(_whitelist != address(0));
-        whitelist = Whitelist(_whitelist);
-        WhitelistChanged(_whitelist);
+    /// @param _newWhitelist An Ethereum address
+    function setWhitelist(address _newWhitelist) public onlyOwner {
+        require(_newWhitelist != address(0x0));
+
+        if (whitelist != address(0x0) && _newWhitelist != address(whitelist)) {
+            WhitelistChanged(_newWhitelist);
+        }
+        whitelist = Whitelist(_newWhitelist);
     }
 
 }
+

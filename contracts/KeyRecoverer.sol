@@ -15,7 +15,7 @@ contract KeyRecoverer is Ownable {
 
     /// @dev Constructor
     function KeyRecoverer() public {
-        tokens.push(address(0));  // Placeholder at index 0.
+        tokens.push(address(0x0));  // Placeholder at index 0.
     }
 
     /// @dev Check if a token is registered here
@@ -28,7 +28,7 @@ contract KeyRecoverer is Ownable {
     /// @dev Register a key recoverable token
     /// @param _token Ethereum address of token contract instance
     function addToken(address _token) public onlyOwner {
-        require(_token != address(0) && !containsToken(_token));
+        require(_token != address(0x0) && !containsToken(_token));
 
         indices[_token] = tokens.length;
         tokens.push(_token);
@@ -37,7 +37,7 @@ contract KeyRecoverer is Ownable {
     /// @dev Unregister a key recoverable token
     /// @param _token Ethereum address of token contract instance
     function removeToken(address _token) public onlyOwner {
-        require(_token != address(0) && containsToken(_token));
+        require(_token != address(0x0) && containsToken(_token));
 
         // Array index of token to delete.
         uint index = indices[_token];

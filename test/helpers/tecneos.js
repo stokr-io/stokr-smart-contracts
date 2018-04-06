@@ -6,6 +6,7 @@ const BigNumber = web3.BigNumber;
 // Tecneos 2018.
 module.exports = (() => {
     const now = () => Math.trunc(Date.now() / 1000);
+    //const now = () => web3.eth.getBlock(web3.eth.blockNumber).timestamp;
     const sleep = s => new Promise(resolve => setTimeout(resolve, 1000 * s));
 
     // Some simple functions to translate durations to seconds.

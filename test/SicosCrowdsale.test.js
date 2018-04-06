@@ -22,7 +22,7 @@ contract("SicosCrowdsale", ([owner,
         let whitelist = await Whitelist.new({from: owner});
         await whitelist.addAdmin(owner, {from: owner});
         await whitelist.addToWhitelist([investor1, investor2], {from: owner});
-        let token = await SicosToken.new(whitelist.address, 0x1, {from:owner});
+        let token = await SicosToken.new(whitelist.address, 0xDEADBEEF, 0xCAFEBABE, {from:owner});
         let crowdsale = await SicosCrowdsale.new(token.address, startTime, endTime, rate, cap, wallet,
                                                  {from: owner});
         await token.setMinter(crowdsale.address, {from: owner});
@@ -38,7 +38,7 @@ contract("SicosCrowdsale", ([owner,
 
         before("requires deployed SicosToken and Whitelist instances", async () => {
             let whitelist = await Whitelist.new({from: owner});
-            token = await SicosToken.new(whitelist.address, 0x1);
+            token = await SicosToken.new(whitelist.address, 0xDEADBEEF, 0xCAFEBABE);
         });
 
         it("should fail if token address is zero", async () => {
@@ -158,9 +158,12 @@ contract("SicosCrowdsale", ([owner,
         let whitelist, token, crowdsale;
 
         before("deployment", async () => {
-            const startTime = now();
+            const startTime = now() + duration.secs(1);
             const endTime = startTime + duration.days(1);
             [whitelist, token, crowdsale] = await deployWhitelistAndTokenAndCrowdsale(startTime, endTime);
+            await sleep(duration.secs(2));
+            let rate = await crowdsale.rate();
+            await crowdsale.setRate(rate, {from: owner});  // Trigger a neutral transaction
         });
 
         it("token purchase is forbidden for non-whitelisted", async () => {

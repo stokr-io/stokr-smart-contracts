@@ -37,23 +37,29 @@ contract Whitelist is Ownable {
     /// @dev Add admin
     /// @param _admin An Ethereum address
     function addAdmin(address _admin) public onlyOwner {
-        admins[_admin] = true;
-        AdminAdded(_admin);
+        if (!admins[_admin]) {
+            admins[_admin] = true;
+            AdminAdded(_admin);
+        }
     }
 
     /// @dev Remove admin
     /// @param _admin An Ethereum address
     function removeAdmin(address _admin) public onlyOwner {
-        admins[_admin] = false;
-        AdminRemoved(_admin);
+        if (admins[_admin]) {
+            admins[_admin] = false;
+            AdminRemoved(_admin);
+        }
     }
 
     /// @dev Add to whitelist
     /// @param _investors A list where each entry is an Ethereum address
     function addToWhitelist(address[] _investors) public onlyAdmin {
         for (uint256 i = 0; i < _investors.length; i++) {
-            isWhitelisted[_investors[i]] = true;
-            InvestorAdded(msg.sender, _investors[i]);
+            if (!isWhitelisted[_investors[i]]) {
+                isWhitelisted[_investors[i]] = true;
+                InvestorAdded(msg.sender, _investors[i]);
+            }
         }
     }
 
@@ -61,8 +67,10 @@ contract Whitelist is Ownable {
     /// @param _investors A list where each entry is an Ethereum address
     function removeFromWhitelist(address[] _investors) public onlyAdmin {
         for (uint256 i = 0; i < _investors.length; i++) {
-            isWhitelisted[_investors[i]] = false;
-            InvestorRemoved(msg.sender, _investors[i]);
+            if (isWhitelisted[_investors[i]]) {
+                isWhitelisted[_investors[i]] = false;
+                InvestorRemoved(msg.sender, _investors[i]);
+            }
         }
     }
 

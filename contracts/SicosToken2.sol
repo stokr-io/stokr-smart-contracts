@@ -32,9 +32,10 @@ contract SicosToken2 is MintableToken, KeyRecoverable {
     /// @dev Constructor
     /// @param _whitelist An Ethereum address
     /// @param _keyRecoverer An Ethereum address
-    function SicosToken2(address _whitelist, address _keyRecoverer)
+    function SicosToken2(address _whitelist, address _profitDepositor, address _keyRecoverer)
         public
         Whitelisted(_whitelist)
+        ProfitSharing(_profitDepositor)
         KeyRecoverable(_keyRecoverer)
     {}
 
@@ -51,6 +52,7 @@ contract SicosToken2 is MintableToken, KeyRecoverable {
         // Check for account.profitShare is not needed because of following implication:
         //   (account.lastTotalProfits == 0) ==> (account.profitShare == 0)
         require(accounts[_newAddress].balance == 0 && accounts[_newAddress].lastTotalProfits == 0);
+
         updateProfitShare(_oldAddress);
 
         accounts[_newAddress] = accounts[_oldAddress];

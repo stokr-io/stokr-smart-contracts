@@ -18,12 +18,16 @@ contract ProfitSharing is Ownable {
     }
 
     mapping(address => InvestorAccount) public accounts;
+
+    address public profitDepositor;
     uint public totalProfits;
 
     // As long as the total supply isn't fixed, i.e. new tokens can appear out of thin air,
     // the investors' profit shares aren't determined.
     bool public totalSupplyIsFixed;
     uint internal totalSupply_;
+
+    event ProfitDepositorChanged(address newProfitDepositor);
 
     /// @dev Log entry on profit deposited
     /// @param depositor An Ethereum address
@@ -40,8 +44,31 @@ contract ProfitSharing is Ownable {
     /// @param amount A positive number
     event ProfitWithdrawal(address investor, uint amount);
 
+    /// @dev Ensure only depositor
+    modifier onlyProfitDepositor() {
+        require(msg.sender == profitDepositor);
+        _;
+    }
+
+    /// @dev Constructor
+    /// @param _profitDepositor An Ethereum address
+    function ProfitSharing(address _profitDepositor) {
+        setProfitDepositor(_profitDepositor);
+    }
+
+    /// @dev Change profit depositor
+    /// @param _newProfitDepositor An Ethereum address
+    function setProfitDepositor(address _newProfitDepositor) public onlyOwner {
+        require(_newProfitDepositor != address(0x0));
+
+        if (profitDepositor != address(0x0) && _newProfitDepositor != profitDepositor) {
+            ProfitDepositorChanged(_newProfitDepositor);
+        }
+        profitDepositor = _newProfitDepositor;
+    }
+
     /// @dev Deposit profit
-    function depositProfit() public payable {
+    function depositProfit() public payable onlyProfitDepositor {
         totalProfits = totalProfits.add(msg.value);
 
         ProfitDeposited(msg.sender, msg.value);
@@ -84,3 +111,4 @@ contract ProfitSharing is Ownable {
     }
 
 }
+

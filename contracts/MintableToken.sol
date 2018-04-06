@@ -40,8 +40,7 @@ contract MintableToken is ERC20, ProfitSharing, Whitelisted {
     /// @dev Set minter
     /// @param _minter An Ethereum address
     function setMinter(address _minter) public onlyOwner {
-        require(_minter != address(0));
-        require(minter == address(0));
+        require(_minter != address(0x0) && minter == address(0x0));
 
         minter = _minter;
     }
@@ -54,8 +53,7 @@ contract MintableToken is ERC20, ProfitSharing, Whitelisted {
         accounts[_to].balance = accounts[_to].balance.add(_amount);
 
         Minted(_to, _amount);
-
-        Transfer(address(0), _to, _amount);
+        Transfer(address(0x0), _to, _amount);
     }
 
     /// @dev Finish minting
@@ -72,3 +70,4 @@ contract MintableToken is ERC20, ProfitSharing, Whitelisted {
     }
 
 }
+

@@ -86,12 +86,10 @@ contract("Whitelist", ([owner,
             entry.args.investor.should.be.bignumber.equal(investor1);
         });
 
-        it("can be added again by admin2", async () => {
+        it("can be added again by admin2 but shouldn't get logged", async () => {
             let tx = await whitelist.addToWhitelist([investor1], {from: admin2});
             let entry = tx.logs.find(entry => entry.event === "InvestorAdded");
-            should.exist(entry);
-            entry.args.admin.should.be.bignumber.equal(admin2);
-            entry.args.investor.should.be.bignumber.equal(investor1);
+            should.not.exist(entry);
         });
 
         it("is whitelisted after add", async () => {
@@ -111,12 +109,10 @@ contract("Whitelist", ([owner,
             entry.args.investor.should.be.bignumber.equal(investor1);
         });
 
-        it("can be removed again by admin2", async () => {
+        it("can be removed again by admin2 but shouldn't get logged", async () => {
             let tx = await whitelist.removeFromWhitelist([investor1], {from: admin2});
             let entry = tx.logs.find(entry => entry.event === "InvestorRemoved");
-            should.exist(entry);
-            entry.args.admin.should.be.bignumber.equal(admin2);
-            entry.args.investor.should.be.bignumber.equal(investor1);
+            should.not.exist(entry);
         });
 
         it("is not whitelisted after remove", async () => {
