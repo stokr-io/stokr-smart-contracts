@@ -4,7 +4,7 @@
 \contentsline {chapter}{\numberline {3}SicosCrowdsale}{5}{chapter.3}
 \contentsline {chapter}{\numberline {4}Whitelisted}{7}{chapter.4}
 \contentsline {chapter}{\numberline {5}KeyRecoverable}{8}{chapter.5}
-\contentsline {chapter}{\numberline {6}ProfitSharing}{9}{chapter.6}
-\contentsline {chapter}{\numberline {7}MintableToken}{11}{chapter.7}
-\contentsline {chapter}{\numberline {8}SicosToken}{13}{chapter.8}
-\contentsline {chapter}{\numberline {9}SampleToken}{16}{chapter.9}
+\contentsline {chapter}{\numberline {6}ProfitSharing}{10}{chapter.6}
+\contentsline {chapter}{\numberline {7}MintableToken}{13}{chapter.7}
+\contentsline {chapter}{\numberline {8}SicosToken}{15}{chapter.8}
+\contentsline {chapter}{\numberline {9}SampleToken}{18}{chapter.9}

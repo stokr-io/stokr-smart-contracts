@@ -190,10 +190,20 @@
         <span class="nx">Crowdsale</span><span class="p">(</span><span class="nx">_rate</span><span class="p">,</span> <span class="nx">_wallet</span><span class="p">,</span> <span class="nx">_token</span><span class="p">)</span>
     <span class="p">{}</span>
 
+    <span class="c1">/// @dev Log entry on rate changed</span>
+    <span class="c1">/// @param oldRate A positive number</span>
+    <span class="c1">/// @param newRate A positive number</span>
+    <span class="kd">event</span> <span class="nx">RateChanged</span><span class="p">(</span><span class="kt">uint</span> <span class="nx">oldRate</span><span class="p">,</span> <span class="kt">uint</span> <span class="nx">newRate</span><span class="p">);</span>
+
     <span class="c1">/// @dev Set rate</span>
     <span class="c1">/// @param _newRate A positive number</span>
     <span class="kd">function</span> <span class="nx">setRate</span><span class="p">(</span><span class="kt">uint</span> <span class="nx">_newRate</span><span class="p">)</span> <span class="kr">public</span> <span class="nx">onlyOwner</span> <span class="p">{</span>
-        <span class="nb">require</span><span class="p">(</span><span class="nx">_newRate</span> <span class="o">==</span> <span class="nx">_newRate</span><span class="p">);</span>  <span class="c1">// Keep the linter happy.</span>
+        <span class="nb">require</span><span class="p">(</span><span class="nx">_newRate</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">);</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="nx">_newRate</span> <span class="o">!=</span> <span class="nx">rate</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">RateChanged</span><span class="p">(</span><span class="nx">rate</span><span class="p">,</span> <span class="nx">_newRate</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="nx">rate</span> <span class="o">=</span> <span class="nx">_newRate</span><span class="p">;</span>
     <span class="p">}</span>
 
     <span class="c1">/// @dev Extend parent behavior requiring beneficiary to be identical to msg.sender</span>
@@ -201,9 +211,13 @@
     <span class="c1">/// @param _weiAmount Amount of wei contributed</span>
     <span class="kd">function</span> <span class="nx">_preValidatePurchase</span><span class="p">(</span><span class="kt">address</span> <span class="nx">_beneficiary</span><span class="p">,</span> <span class="kt">uint256</span> <span class="nx">_weiAmount</span><span class="p">)</span> <span class="kr">internal</span> <span class="p">{</span>
         <span class="kr">super</span><span class="p">.</span><span class="nx">_preValidatePurchase</span><span class="p">(</span><span class="nx">_beneficiary</span><span class="p">,</span> <span class="nx">_weiAmount</span><span class="p">);</span>
+
         <span class="nb">require</span><span class="p">(</span><span class="nx">_beneficiary</span> <span class="o">==</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">sender</span><span class="p">);</span>
     <span class="p">}</span>
 
+    <span class="c1">/// @dev Extend parent behavior by minting a tokens for the benefit of beneficiary.</span>
+    <span class="c1">/// @param _beneficiary Token recipient</span>
+    <span class="c1">/// @param _tokenAmount Token amount</span>
     <span class="kd">function</span> <span class="nx">_deliverTokens</span><span class="p">(</span><span class="kt">address</span> <span class="nx">_beneficiary</span><span class="p">,</span> <span class="kt">uint256</span> <span class="nx">_tokenAmount</span><span class="p">)</span> <span class="kr">internal</span> <span class="p">{</span>
         <span class="nx">MintableToken</span><span class="p">(</span><span class="nx">token</span><span class="p">).</span><span class="nx">mint</span><span class="p">(</span><span class="nx">_beneficiary</span><span class="p">,</span> <span class="nx">_tokenAmount</span><span class="p">);</span>
     <span class="p">}</span>

@@ -174,8 +174,8 @@
     <span class="nx">Whitelist</span> <span class="kr">public</span> <span class="nx">whitelist</span><span class="p">;</span>
 
     <span class="c1">/// @dev Log entry on whitelist changed</span>
-    <span class="c1">/// @param whitelist An Ethereum address</span>
-    <span class="kd">event</span> <span class="nx">WhitelistChanged</span><span class="p">(</span><span class="kt">address</span> <span class="nx">whitelist</span><span class="p">);</span>
+    <span class="c1">/// @param newWhitelist An Ethereum address</span>
+    <span class="kd">event</span> <span class="nx">WhitelistChanged</span><span class="p">(</span><span class="kt">address</span> <span class="nx">newWhitelist</span><span class="p">);</span>
 
     <span class="c1">/// @dev Ensure only whitelisted</span>
     <span class="kd">modifier</span> <span class="nx">onlyWhitelisted</span><span class="p">(</span><span class="kt">address</span> <span class="nx">_address</span><span class="p">)</span> <span class="p">{</span>
@@ -190,11 +190,14 @@
     <span class="p">}</span>
 
     <span class="c1">/// @dev Set whitelist</span>
-    <span class="c1">/// @param _whitelist An Ethereum address</span>
-    <span class="kd">function</span> <span class="nx">setWhitelist</span><span class="p">(</span><span class="kt">address</span> <span class="nx">_whitelist</span><span class="p">)</span> <span class="kr">public</span> <span class="nx">onlyOwner</span> <span class="p">{</span>
-        <span class="nb">require</span><span class="p">(</span><span class="nx">_whitelist</span> <span class="o">!=</span> <span class="kt">address</span><span class="p">(</span><span class="mi">0</span><span class="p">));</span>
-        <span class="nx">whitelist</span> <span class="o">=</span> <span class="nx">Whitelist</span><span class="p">(</span><span class="nx">_whitelist</span><span class="p">);</span>
-        <span class="nx">WhitelistChanged</span><span class="p">(</span><span class="nx">_whitelist</span><span class="p">);</span>
+    <span class="c1">/// @param _newWhitelist An Ethereum address</span>
+    <span class="kd">function</span> <span class="nx">setWhitelist</span><span class="p">(</span><span class="kt">address</span> <span class="nx">_newWhitelist</span><span class="p">)</span> <span class="kr">public</span> <span class="nx">onlyOwner</span> <span class="p">{</span>
+        <span class="nb">require</span><span class="p">(</span><span class="nx">_newWhitelist</span> <span class="o">!=</span> <span class="kt">address</span><span class="p">(</span><span class="mh">0x0</span><span class="p">));</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="nx">whitelist</span> <span class="o">!=</span> <span class="kt">address</span><span class="p">(</span><span class="mh">0x0</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">_newWhitelist</span> <span class="o">!=</span> <span class="kt">address</span><span class="p">(</span><span class="nx">whitelist</span><span class="p">))</span> <span class="p">{</span>
+            <span class="nx">WhitelistChanged</span><span class="p">(</span><span class="nx">_newWhitelist</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="nx">whitelist</span> <span class="o">=</span> <span class="nx">Whitelist</span><span class="p">(</span><span class="nx">_newWhitelist</span><span class="p">);</span>
     <span class="p">}</span>
 
 <span class="p">}</span>

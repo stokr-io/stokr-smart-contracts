@@ -191,16 +191,17 @@
     <span class="c1">/// @param _keyRecoverer An Ethereum address</span>
     <span class="kd">function</span> <span class="nx">KeyRecoverable</span><span class="p">(</span><span class="kt">address</span> <span class="nx">_keyRecoverer</span><span class="p">)</span> <span class="kr">public</span> <span class="p">{</span>
         <span class="nx">setKeyRecoverer</span><span class="p">(</span><span class="nx">_keyRecoverer</span><span class="p">);</span>
-
     <span class="p">}</span>
 
     <span class="c1">/// @dev Set key recoverer</span>
-    <span class="c1">/// @param _keyRecoverer An Ethereum address</span>
-    <span class="kd">function</span> <span class="nx">setKeyRecoverer</span><span class="p">(</span><span class="kt">address</span> <span class="nx">_keyRecoverer</span><span class="p">)</span> <span class="kr">public</span> <span class="nx">onlyOwner</span> <span class="p">{</span>
-        <span class="nb">require</span><span class="p">(</span><span class="nx">_keyRecoverer</span> <span class="o">!=</span> <span class="kt">address</span><span class="p">(</span><span class="mi">0</span><span class="p">));</span>
-        <span class="nx">keyRecoverer</span> <span class="o">=</span> <span class="nx">_keyRecoverer</span><span class="p">;</span>
-        <span class="nx">KeyRecovererChanged</span><span class="p">(</span><span class="nx">_keyRecoverer</span><span class="p">);</span>
+    <span class="c1">/// @param _newKeyRecoverer An Ethereum address</span>
+    <span class="kd">function</span> <span class="nx">setKeyRecoverer</span><span class="p">(</span><span class="kt">address</span> <span class="nx">_newKeyRecoverer</span><span class="p">)</span> <span class="kr">public</span> <span class="nx">onlyOwner</span> <span class="p">{</span>
+        <span class="nb">require</span><span class="p">(</span><span class="nx">_newKeyRecoverer</span> <span class="o">!=</span> <span class="kt">address</span><span class="p">(</span><span class="mh">0x0</span><span class="p">));</span>
 
+        <span class="k">if</span> <span class="p">(</span><span class="nx">keyRecoverer</span> <span class="o">!=</span> <span class="kt">address</span><span class="p">(</span><span class="mh">0x0</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">_newKeyRecoverer</span> <span class="o">!=</span> <span class="nx">keyRecoverer</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">KeyRecovererChanged</span><span class="p">(</span><span class="nx">_newKeyRecoverer</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="nx">keyRecoverer</span> <span class="o">=</span> <span class="nx">_newKeyRecoverer</span><span class="p">;</span>
     <span class="p">}</span>
 
     <span class="c1">/// @dev Recover key</span>

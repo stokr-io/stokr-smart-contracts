@@ -11,3 +11,4 @@ Requirements:
 Usage::
 
     ./dia2sol.sh <dia-file> <sol-dir>
+

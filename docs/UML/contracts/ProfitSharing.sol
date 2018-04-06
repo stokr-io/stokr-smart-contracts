@@ -14,9 +14,14 @@ contract ProfitSharing is Ownable {
     }
 
     mapping(address => InvestorAccount) public accounts;
+    address public profitDepositor;
     uint public totalProfits;
     bool public totalSupplyIsFixed;
     uint internal totalSuppy_;
+
+    /// @dev Log entry on profit depositor changed
+    /// @param newProfitDepositor An Ethereum address
+    event ProfitDepositorChanged(address newProfitDepositor);
 
     /// @dev Log entry on profit deposited
     /// @param depositor An Ethereum address
@@ -33,8 +38,26 @@ contract ProfitSharing is Ownable {
     /// @param amount A positive number
     event ProfitWithdrawal(address investor, uint amount);
 
+    /// @dev Ensure only profit depositor
+    modifier onlyProfitDepositor() {
+        require(IMPLEMENTATION);
+        _;
+    }
+
+    /// @dev Constructor
+    /// @param _profitDepositor An Ethereum address
+    function ProfitSharing(address _profitDepositor) public {
+        require(IMPLEMENTATION);
+    }
+
+    /// @dev Set profit depositor
+    /// @param _newProfitDepositor An Ethereum address
+    function _setProfitDepositor(address _newProfitDepositor) public onlyOwner {
+        require(IMPLEMENTATION);
+    }
+
     /// @dev Deposit profit
-    function depositProfit() public payable {
+    function depositProfit() public payable onlyProfitDepositor {
         require(IMPLEMENTATION);
     }
 

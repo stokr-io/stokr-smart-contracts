@@ -15,10 +15,13 @@ contract SicosToken2 is MintableToken, KeyRecoverable {
 
     mapping(address => mapping(address => Allowance)) internal allowances;
 
-    /// @dev Constructor
+    /// @dev Whitelisted(_whitelist)
+    /// @dev ProfitSharing(_profitDepositor)
+    /// @dev KeyRecoverable(_keyRecoverer)
     /// @param _whitelist An Ethereum address
+    /// @param _profitDepositor An Ethereum address
     /// @param _keyRecoverer An Ethereum address
-    function SicosToken2(address _whitelist, address _keyRecoverer) public {
+    function SicosToken2(address _whitelist, address _profitDepositor, address _keyRecoverer) public {
         require(IMPLEMENTATION);
     }
 

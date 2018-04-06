@@ -58,7 +58,7 @@
 
 
 \title{TokenPlatform Documentation}
-\date{Mar 09, 2018}
+\date{Apr 06, 2018}
 \release{}
 \author{Sicos}
 \newcommand{\sphinxlogo}{\vbox{}}
@@ -74,7 +74,7 @@
 
 
 \chapter{Whitelist}
-\label{\detokenize{_contracts/Whitelist:whitelist}}\label{\detokenize{_contracts/Whitelist:tokenplatform-s-solidity-sources}}\label{\detokenize{_contracts/Whitelist::doc}}
+\label{\detokenize{_contracts/Whitelist:tokenplatform-s-solidity-sources}}\label{\detokenize{_contracts/Whitelist:whitelist}}\label{\detokenize{_contracts/Whitelist::doc}}
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{k+kr}{pragma} \PYG{n+nx}{solidity} \PYG{l+m+mf}{0.4}\PYG{l+m+mf}{.19}\PYG{p}{;}
 
@@ -115,23 +115,29 @@
     \PYG{c+c1}{/// @dev Add admin}
     \PYG{c+c1}{/// @param \PYGZus{}admin An Ethereum address}
     \PYG{k+kd}{function} \PYG{n+nx}{addAdmin}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}admin}\PYG{p}{)} \PYG{k+kr}{public} \PYG{n+nx}{onlyOwner} \PYG{p}{\PYGZob{}}
-        \PYG{n+nx}{admins}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}admin}\PYG{p}{]} \PYG{o}{==} \PYG{k+kc}{true}\PYG{p}{;}
-        \PYG{n+nx}{AdminAdded}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}admin}\PYG{p}{)}\PYG{p}{;}
+        \PYG{k}{if} \PYG{p}{(}\PYG{o}{!}\PYG{n+nx}{admins}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}admin}\PYG{p}{]}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+            \PYG{n+nx}{admins}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}admin}\PYG{p}{]} \PYG{o}{=} \PYG{k+kc}{true}\PYG{p}{;}
+            \PYG{n+nx}{AdminAdded}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}admin}\PYG{p}{)}\PYG{p}{;}
+        \PYG{p}{\PYGZcb{}}
     \PYG{p}{\PYGZcb{}}
 
     \PYG{c+c1}{/// @dev Remove admin}
     \PYG{c+c1}{/// @param \PYGZus{}admin An Ethereum address}
     \PYG{k+kd}{function} \PYG{n+nx}{removeAdmin}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}admin}\PYG{p}{)} \PYG{k+kr}{public} \PYG{n+nx}{onlyOwner} \PYG{p}{\PYGZob{}}
-        \PYG{n+nx}{admins}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}admin}\PYG{p}{]} \PYG{o}{==} \PYG{k+kc}{false}\PYG{p}{;}
-        \PYG{n+nx}{AdminRemoved}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}admin}\PYG{p}{)}\PYG{p}{;}
+        \PYG{k}{if} \PYG{p}{(}\PYG{n+nx}{admins}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}admin}\PYG{p}{]}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+            \PYG{n+nx}{admins}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}admin}\PYG{p}{]} \PYG{o}{=} \PYG{k+kc}{false}\PYG{p}{;}
+            \PYG{n+nx}{AdminRemoved}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}admin}\PYG{p}{)}\PYG{p}{;}
+        \PYG{p}{\PYGZcb{}}
     \PYG{p}{\PYGZcb{}}
 
     \PYG{c+c1}{/// @dev Add to whitelist}
     \PYG{c+c1}{/// @param \PYGZus{}investors A list where each entry is an Ethereum address}
     \PYG{k+kd}{function} \PYG{n+nx}{addToWhitelist}\PYG{p}{(}\PYG{k+kt}{address}\PYG{p}{[}\PYG{p}{]} \PYG{n+nx}{\PYGZus{}investors}\PYG{p}{)} \PYG{k+kr}{public} \PYG{n+nx}{onlyAdmin} \PYG{p}{\PYGZob{}}
         \PYG{k}{for} \PYG{p}{(}\PYG{k+kt}{uint256} \PYG{n+nx}{i} \PYG{o}{=} \PYG{l+m+mi}{0}\PYG{p}{;} \PYG{n+nx}{i} \PYG{o}{\PYGZlt{}} \PYG{n+nx}{\PYGZus{}investors}\PYG{p}{.}\PYG{n+nx}{length}\PYG{p}{;} \PYG{n+nx}{i}\PYG{o}{++}\PYG{p}{)} \PYG{p}{\PYGZob{}}
-            \PYG{n+nx}{isWhitelisted}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}investors}\PYG{p}{[}\PYG{n+nx}{i}\PYG{p}{]}\PYG{p}{]} \PYG{o}{=} \PYG{k+kc}{true}\PYG{p}{;}
-            \PYG{n+nx}{InvestorAdded}\PYG{p}{(}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}investors}\PYG{p}{[}\PYG{n+nx}{i}\PYG{p}{]}\PYG{p}{)}\PYG{p}{;}
+            \PYG{k}{if} \PYG{p}{(}\PYG{o}{!}\PYG{n+nx}{isWhitelisted}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}investors}\PYG{p}{[}\PYG{n+nx}{i}\PYG{p}{]}\PYG{p}{]}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+                \PYG{n+nx}{isWhitelisted}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}investors}\PYG{p}{[}\PYG{n+nx}{i}\PYG{p}{]}\PYG{p}{]} \PYG{o}{=} \PYG{k+kc}{true}\PYG{p}{;}
+                \PYG{n+nx}{InvestorAdded}\PYG{p}{(}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}investors}\PYG{p}{[}\PYG{n+nx}{i}\PYG{p}{]}\PYG{p}{)}\PYG{p}{;}
+            \PYG{p}{\PYGZcb{}}
         \PYG{p}{\PYGZcb{}}
     \PYG{p}{\PYGZcb{}}
 
@@ -139,8 +145,10 @@
     \PYG{c+c1}{/// @param \PYGZus{}investors A list where each entry is an Ethereum address}
     \PYG{k+kd}{function} \PYG{n+nx}{removeFromWhitelist}\PYG{p}{(}\PYG{k+kt}{address}\PYG{p}{[}\PYG{p}{]} \PYG{n+nx}{\PYGZus{}investors}\PYG{p}{)} \PYG{k+kr}{public} \PYG{n+nx}{onlyAdmin} \PYG{p}{\PYGZob{}}
         \PYG{k}{for} \PYG{p}{(}\PYG{k+kt}{uint256} \PYG{n+nx}{i} \PYG{o}{=} \PYG{l+m+mi}{0}\PYG{p}{;} \PYG{n+nx}{i} \PYG{o}{\PYGZlt{}} \PYG{n+nx}{\PYGZus{}investors}\PYG{p}{.}\PYG{n+nx}{length}\PYG{p}{;} \PYG{n+nx}{i}\PYG{o}{++}\PYG{p}{)} \PYG{p}{\PYGZob{}}
-            \PYG{n+nx}{isWhitelisted}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}investors}\PYG{p}{[}\PYG{n+nx}{i}\PYG{p}{]}\PYG{p}{]} \PYG{o}{=} \PYG{k+kc}{false}\PYG{p}{;}
-            \PYG{n+nx}{InvestorRemoved}\PYG{p}{(}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}investors}\PYG{p}{[}\PYG{n+nx}{i}\PYG{p}{]}\PYG{p}{)}\PYG{p}{;}
+            \PYG{k}{if} \PYG{p}{(}\PYG{n+nx}{isWhitelisted}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}investors}\PYG{p}{[}\PYG{n+nx}{i}\PYG{p}{]}\PYG{p}{]}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+                \PYG{n+nx}{isWhitelisted}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}investors}\PYG{p}{[}\PYG{n+nx}{i}\PYG{p}{]}\PYG{p}{]} \PYG{o}{=} \PYG{k+kc}{false}\PYG{p}{;}
+                \PYG{n+nx}{InvestorRemoved}\PYG{p}{(}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}investors}\PYG{p}{[}\PYG{n+nx}{i}\PYG{p}{]}\PYG{p}{)}\PYG{p}{;}
+            \PYG{p}{\PYGZcb{}}
         \PYG{p}{\PYGZcb{}}
     \PYG{p}{\PYGZcb{}}
 
@@ -168,7 +176,7 @@
 
     \PYG{c+c1}{/// @dev Constructor}
     \PYG{k+kd}{function} \PYG{n+nx}{KeyRecoverer}\PYG{p}{(}\PYG{p}{)} \PYG{k+kr}{public} \PYG{p}{\PYGZob{}}
-        \PYG{n+nx}{tokens}\PYG{p}{.}\PYG{n+nx}{push}\PYG{p}{(}\PYG{k+kt}{address}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{)}\PYG{p}{;}  \PYG{c+c1}{// Placeholder at index 0.}
+        \PYG{n+nx}{tokens}\PYG{p}{.}\PYG{n+nx}{push}\PYG{p}{(}\PYG{k+kt}{address}\PYG{p}{(}\PYG{l+m+mh}{0x0}\PYG{p}{)}\PYG{p}{)}\PYG{p}{;}  \PYG{c+c1}{// Placeholder at index 0.}
     \PYG{p}{\PYGZcb{}}
 
     \PYG{c+c1}{/// @dev Check if a token is registered here}
@@ -181,7 +189,7 @@
     \PYG{c+c1}{/// @dev Register a key recoverable token}
     \PYG{c+c1}{/// @param \PYGZus{}token Ethereum address of token contract instance}
     \PYG{k+kd}{function} \PYG{n+nx}{addToken}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}token}\PYG{p}{)} \PYG{k+kr}{public} \PYG{n+nx}{onlyOwner} \PYG{p}{\PYGZob{}}
-        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}token} \PYG{o}{!=} \PYG{k+kt}{address}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{)} \PYG{o}{\PYGZam{}\PYGZam{}} \PYG{o}{!}\PYG{n+nx}{containsToken}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}token}\PYG{p}{)}\PYG{p}{)}\PYG{p}{;}
+        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}token} \PYG{o}{!=} \PYG{k+kt}{address}\PYG{p}{(}\PYG{l+m+mh}{0x0}\PYG{p}{)} \PYG{o}{\PYGZam{}\PYGZam{}} \PYG{o}{!}\PYG{n+nx}{containsToken}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}token}\PYG{p}{)}\PYG{p}{)}\PYG{p}{;}
 
         \PYG{n+nx}{indices}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}token}\PYG{p}{]} \PYG{o}{=} \PYG{n+nx}{tokens}\PYG{p}{.}\PYG{n+nx}{length}\PYG{p}{;}
         \PYG{n+nx}{tokens}\PYG{p}{.}\PYG{n+nx}{push}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}token}\PYG{p}{)}\PYG{p}{;}
@@ -190,7 +198,7 @@
     \PYG{c+c1}{/// @dev Unregister a key recoverable token}
     \PYG{c+c1}{/// @param \PYGZus{}token Ethereum address of token contract instance}
     \PYG{k+kd}{function} \PYG{n+nx}{removeToken}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}token}\PYG{p}{)} \PYG{k+kr}{public} \PYG{n+nx}{onlyOwner} \PYG{p}{\PYGZob{}}
-        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}token} \PYG{o}{!=} \PYG{k+kt}{address}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{)} \PYG{o}{\PYGZam{}\PYGZam{}} \PYG{n+nx}{containsToken}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}token}\PYG{p}{)}\PYG{p}{)}\PYG{p}{;}
+        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}token} \PYG{o}{!=} \PYG{k+kt}{address}\PYG{p}{(}\PYG{l+m+mh}{0x0}\PYG{p}{)} \PYG{o}{\PYGZam{}\PYGZam{}} \PYG{n+nx}{containsToken}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}token}\PYG{p}{)}\PYG{p}{)}\PYG{p}{;}
 
         \PYG{c+c1}{// Array index of token to delete.}
         \PYG{k+kt}{uint} \PYG{n+nx}{index} \PYG{o}{=} \PYG{n+nx}{indices}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}token}\PYG{p}{]}\PYG{p}{;}
@@ -262,10 +270,20 @@
         \PYG{n+nx}{Crowdsale}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}rate}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}wallet}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}token}\PYG{p}{)}
     \PYG{p}{\PYGZob{}}\PYG{p}{\PYGZcb{}}
 
+    \PYG{c+c1}{/// @dev Log entry on rate changed}
+    \PYG{c+c1}{/// @param oldRate A positive number}
+    \PYG{c+c1}{/// @param newRate A positive number}
+    \PYG{k+kd}{event} \PYG{n+nx}{RateChanged}\PYG{p}{(}\PYG{k+kt}{uint} \PYG{n+nx}{oldRate}\PYG{p}{,} \PYG{k+kt}{uint} \PYG{n+nx}{newRate}\PYG{p}{)}\PYG{p}{;}
+
     \PYG{c+c1}{/// @dev Set rate}
     \PYG{c+c1}{/// @param \PYGZus{}newRate A positive number}
     \PYG{k+kd}{function} \PYG{n+nx}{setRate}\PYG{p}{(}\PYG{k+kt}{uint} \PYG{n+nx}{\PYGZus{}newRate}\PYG{p}{)} \PYG{k+kr}{public} \PYG{n+nx}{onlyOwner} \PYG{p}{\PYGZob{}}
-        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}newRate} \PYG{o}{==} \PYG{n+nx}{\PYGZus{}newRate}\PYG{p}{)}\PYG{p}{;}  \PYG{c+c1}{// Keep the linter happy.}
+        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}newRate} \PYG{o}{\PYGZgt{}} \PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{;}
+
+        \PYG{k}{if} \PYG{p}{(}\PYG{n+nx}{\PYGZus{}newRate} \PYG{o}{!=} \PYG{n+nx}{rate}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+            \PYG{n+nx}{RateChanged}\PYG{p}{(}\PYG{n+nx}{rate}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}newRate}\PYG{p}{)}\PYG{p}{;}
+        \PYG{p}{\PYGZcb{}}
+        \PYG{n+nx}{rate} \PYG{o}{=} \PYG{n+nx}{\PYGZus{}newRate}\PYG{p}{;}
     \PYG{p}{\PYGZcb{}}
 
     \PYG{c+c1}{/// @dev Extend parent behavior requiring beneficiary to be identical to msg.sender}
@@ -273,9 +291,13 @@
     \PYG{c+c1}{/// @param \PYGZus{}weiAmount Amount of wei contributed}
     \PYG{k+kd}{function} \PYG{n+nx}{\PYGZus{}preValidatePurchase}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}beneficiary}\PYG{p}{,} \PYG{k+kt}{uint256} \PYG{n+nx}{\PYGZus{}weiAmount}\PYG{p}{)} \PYG{k+kr}{internal} \PYG{p}{\PYGZob{}}
         \PYG{k+kr}{super}\PYG{p}{.}\PYG{n+nx}{\PYGZus{}preValidatePurchase}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}beneficiary}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}weiAmount}\PYG{p}{)}\PYG{p}{;}
+
         \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}beneficiary} \PYG{o}{==} \PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{)}\PYG{p}{;}
     \PYG{p}{\PYGZcb{}}
 
+    \PYG{c+c1}{/// @dev Extend parent behavior by minting a tokens for the benefit of beneficiary.}
+    \PYG{c+c1}{/// @param \PYGZus{}beneficiary Token recipient}
+    \PYG{c+c1}{/// @param \PYGZus{}tokenAmount Token amount}
     \PYG{k+kd}{function} \PYG{n+nx}{\PYGZus{}deliverTokens}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}beneficiary}\PYG{p}{,} \PYG{k+kt}{uint256} \PYG{n+nx}{\PYGZus{}tokenAmount}\PYG{p}{)} \PYG{k+kr}{internal} \PYG{p}{\PYGZob{}}
         \PYG{n+nx}{MintableToken}\PYG{p}{(}\PYG{n+nx}{token}\PYG{p}{)}\PYG{p}{.}\PYG{n+nx}{mint}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}beneficiary}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}tokenAmount}\PYG{p}{)}\PYG{p}{;}
     \PYG{p}{\PYGZcb{}}
@@ -307,8 +329,8 @@
     \PYG{n+nx}{Whitelist} \PYG{k+kr}{public} \PYG{n+nx}{whitelist}\PYG{p}{;}
 
     \PYG{c+c1}{/// @dev Log entry on whitelist changed}
-    \PYG{c+c1}{/// @param whitelist An Ethereum address}
-    \PYG{k+kd}{event} \PYG{n+nx}{WhitelistChanged}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{whitelist}\PYG{p}{)}\PYG{p}{;}
+    \PYG{c+c1}{/// @param newWhitelist An Ethereum address}
+    \PYG{k+kd}{event} \PYG{n+nx}{WhitelistChanged}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{newWhitelist}\PYG{p}{)}\PYG{p}{;}
 
     \PYG{c+c1}{/// @dev Ensure only whitelisted}
     \PYG{k+kd}{modifier} \PYG{n+nx}{onlyWhitelisted}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}address}\PYG{p}{)} \PYG{p}{\PYGZob{}}
@@ -323,11 +345,14 @@
     \PYG{p}{\PYGZcb{}}
 
     \PYG{c+c1}{/// @dev Set whitelist}
-    \PYG{c+c1}{/// @param \PYGZus{}whitelist An Ethereum address}
-    \PYG{k+kd}{function} \PYG{n+nx}{setWhitelist}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}whitelist}\PYG{p}{)} \PYG{k+kr}{public} \PYG{n+nx}{onlyOwner} \PYG{p}{\PYGZob{}}
-        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}whitelist} \PYG{o}{!=} \PYG{k+kt}{address}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{)}\PYG{p}{;}
-        \PYG{n+nx}{whitelist} \PYG{o}{=} \PYG{n+nx}{Whitelist}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}whitelist}\PYG{p}{)}\PYG{p}{;}
-        \PYG{n+nx}{WhitelistChanged}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}whitelist}\PYG{p}{)}\PYG{p}{;}
+    \PYG{c+c1}{/// @param \PYGZus{}newWhitelist An Ethereum address}
+    \PYG{k+kd}{function} \PYG{n+nx}{setWhitelist}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}newWhitelist}\PYG{p}{)} \PYG{k+kr}{public} \PYG{n+nx}{onlyOwner} \PYG{p}{\PYGZob{}}
+        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}newWhitelist} \PYG{o}{!=} \PYG{k+kt}{address}\PYG{p}{(}\PYG{l+m+mh}{0x0}\PYG{p}{)}\PYG{p}{)}\PYG{p}{;}
+
+        \PYG{k}{if} \PYG{p}{(}\PYG{n+nx}{whitelist} \PYG{o}{!=} \PYG{k+kt}{address}\PYG{p}{(}\PYG{l+m+mh}{0x0}\PYG{p}{)} \PYG{o}{\PYGZam{}\PYGZam{}} \PYG{n+nx}{\PYGZus{}newWhitelist} \PYG{o}{!=} \PYG{k+kt}{address}\PYG{p}{(}\PYG{n+nx}{whitelist}\PYG{p}{)}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+            \PYG{n+nx}{WhitelistChanged}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}newWhitelist}\PYG{p}{)}\PYG{p}{;}
+        \PYG{p}{\PYGZcb{}}
+        \PYG{n+nx}{whitelist} \PYG{o}{=} \PYG{n+nx}{Whitelist}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}newWhitelist}\PYG{p}{)}\PYG{p}{;}
     \PYG{p}{\PYGZcb{}}
 
 \PYG{p}{\PYGZcb{}}
@@ -335,7 +360,7 @@
 
 
 \chapter{KeyRecoverable}
-\label{\detokenize{_contracts/KeyRecoverable:keyrecoverable}}\label{\detokenize{_contracts/KeyRecoverable::doc}}
+\label{\detokenize{_contracts/KeyRecoverable::doc}}\label{\detokenize{_contracts/KeyRecoverable:keyrecoverable}}
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{k+kr}{pragma} \PYG{n+nx}{solidity} \PYG{l+m+mf}{0.4}\PYG{l+m+mf}{.19}\PYG{p}{;}
 
@@ -367,16 +392,17 @@
     \PYG{c+c1}{/// @param \PYGZus{}keyRecoverer An Ethereum address}
     \PYG{k+kd}{function} \PYG{n+nx}{KeyRecoverable}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}keyRecoverer}\PYG{p}{)} \PYG{k+kr}{public} \PYG{p}{\PYGZob{}}
         \PYG{n+nx}{setKeyRecoverer}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}keyRecoverer}\PYG{p}{)}\PYG{p}{;}
-
     \PYG{p}{\PYGZcb{}}
 
     \PYG{c+c1}{/// @dev Set key recoverer}
-    \PYG{c+c1}{/// @param \PYGZus{}keyRecoverer An Ethereum address}
-    \PYG{k+kd}{function} \PYG{n+nx}{setKeyRecoverer}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}keyRecoverer}\PYG{p}{)} \PYG{k+kr}{public} \PYG{n+nx}{onlyOwner} \PYG{p}{\PYGZob{}}
-        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}keyRecoverer} \PYG{o}{!=} \PYG{k+kt}{address}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{)}\PYG{p}{;}
-        \PYG{n+nx}{keyRecoverer} \PYG{o}{=} \PYG{n+nx}{\PYGZus{}keyRecoverer}\PYG{p}{;}
-        \PYG{n+nx}{KeyRecovererChanged}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}keyRecoverer}\PYG{p}{)}\PYG{p}{;}
+    \PYG{c+c1}{/// @param \PYGZus{}newKeyRecoverer An Ethereum address}
+    \PYG{k+kd}{function} \PYG{n+nx}{setKeyRecoverer}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}newKeyRecoverer}\PYG{p}{)} \PYG{k+kr}{public} \PYG{n+nx}{onlyOwner} \PYG{p}{\PYGZob{}}
+        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}newKeyRecoverer} \PYG{o}{!=} \PYG{k+kt}{address}\PYG{p}{(}\PYG{l+m+mh}{0x0}\PYG{p}{)}\PYG{p}{)}\PYG{p}{;}
 
+        \PYG{k}{if} \PYG{p}{(}\PYG{n+nx}{keyRecoverer} \PYG{o}{!=} \PYG{k+kt}{address}\PYG{p}{(}\PYG{l+m+mh}{0x0}\PYG{p}{)} \PYG{o}{\PYGZam{}\PYGZam{}} \PYG{n+nx}{\PYGZus{}newKeyRecoverer} \PYG{o}{!=} \PYG{n+nx}{keyRecoverer}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+            \PYG{n+nx}{KeyRecovererChanged}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}newKeyRecoverer}\PYG{p}{)}\PYG{p}{;}
+        \PYG{p}{\PYGZcb{}}
+        \PYG{n+nx}{keyRecoverer} \PYG{o}{=} \PYG{n+nx}{\PYGZus{}newKeyRecoverer}\PYG{p}{;}
     \PYG{p}{\PYGZcb{}}
 
     \PYG{c+c1}{/// @dev Recover key}
@@ -400,7 +426,7 @@
 
 \PYG{c+c1}{/// @title ProfitSharing}
 \PYG{c+c1}{/// @author Autogenerated from a Dia UML diagram}
-\PYG{k+kd}{contract} \PYG{n+nx}{ProfitSharing} \PYG{k+kr}{is} \PYG{n+nx}{Ownable}\PYG{p}{,} \PYG{n+nx}{ERC20} \PYG{p}{\PYGZob{}}
+\PYG{k+kd}{contract} \PYG{n+nx}{ProfitSharing} \PYG{k+kr}{is} \PYG{n+nx}{Ownable} \PYG{p}{\PYGZob{}}
 
     \PYG{k+kr}{using} \PYG{n+nx}{SafeMath} \PYG{k}{for} \PYG{k+kt}{uint}\PYG{p}{;}
 
@@ -411,19 +437,58 @@
     \PYG{p}{\PYGZcb{}}
 
     \PYG{k+kd}{mapping}\PYG{p}{(}\PYG{k+kt}{address} \PYG{o}{=\PYGZgt{}} \PYG{n+nx}{InvestorAccount}\PYG{p}{)} \PYG{k+kr}{public} \PYG{n+nx}{accounts}\PYG{p}{;}
+
+    \PYG{k+kt}{address} \PYG{k+kr}{public} \PYG{n+nx}{profitDepositor}\PYG{p}{;}
     \PYG{k+kt}{uint} \PYG{k+kr}{public} \PYG{n+nx}{totalProfits}\PYG{p}{;}
-    \PYG{k+kt}{uint} \PYG{k+kr}{public} \PYG{n+nx}{totalSupply}\PYG{p}{;}
+
+    \PYG{c+c1}{// As long as the total supply isn\PYGZsq{}t fixed, i.e. new tokens can appear out of thin air,}
+    \PYG{c+c1}{// the investors\PYGZsq{} profit shares aren\PYGZsq{}t determined.}
+    \PYG{k+kt}{bool} \PYG{k+kr}{public} \PYG{n+nx}{totalSupplyIsFixed}\PYG{p}{;}
+    \PYG{k+kt}{uint} \PYG{k+kr}{internal} \PYG{n+nx}{totalSupply\PYGZus{}}\PYG{p}{;}
+
+    \PYG{k+kd}{event} \PYG{n+nx}{ProfitDepositorChanged}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{newProfitDepositor}\PYG{p}{)}\PYG{p}{;}
 
     \PYG{c+c1}{/// @dev Log entry on profit deposited}
-    \PYG{c+c1}{/// @param \PYGZus{}depositor An Ethereum address}
-    \PYG{c+c1}{/// @param \PYGZus{}amount A positive number}
-    \PYG{k+kd}{event} \PYG{n+nx}{ProfitDeposited}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}depositor}\PYG{p}{,} \PYG{k+kt}{uint} \PYG{n+nx}{\PYGZus{}amount}\PYG{p}{)}\PYG{p}{;}
-    \PYG{k+kd}{event} \PYG{n+nx}{ProfitShareUpdated}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}investor}\PYG{p}{,} \PYG{k+kt}{uint} \PYG{n+nx}{\PYGZus{}amount}\PYG{p}{)}\PYG{p}{;}
-    \PYG{k+kd}{event} \PYG{n+nx}{ProfitWithdrawal}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}investor}\PYG{p}{,} \PYG{k+kt}{uint} \PYG{n+nx}{\PYGZus{}amount}\PYG{p}{)}\PYG{p}{;}
+    \PYG{c+c1}{/// @param depositor An Ethereum address}
+    \PYG{c+c1}{/// @param amount A positive number}
+    \PYG{k+kd}{event} \PYG{n+nx}{ProfitDeposited}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{depositor}\PYG{p}{,} \PYG{k+kt}{uint} \PYG{n+nx}{amount}\PYG{p}{)}\PYG{p}{;}
+
+    \PYG{c+c1}{/// @dev Log entry on profit share updated}
+    \PYG{c+c1}{/// @param investor An Ethereum address}
+    \PYG{c+c1}{/// @param amount A positive number}
+    \PYG{k+kd}{event} \PYG{n+nx}{ProfitShareUpdated}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{investor}\PYG{p}{,} \PYG{k+kt}{uint} \PYG{n+nx}{amount}\PYG{p}{)}\PYG{p}{;}
+
+    \PYG{c+c1}{/// @dev Log entry on profit withdrawal}
+    \PYG{c+c1}{/// @param investor An Ethereum address}
+    \PYG{c+c1}{/// @param amount A positive number}
+    \PYG{k+kd}{event} \PYG{n+nx}{ProfitWithdrawal}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{investor}\PYG{p}{,} \PYG{k+kt}{uint} \PYG{n+nx}{amount}\PYG{p}{)}\PYG{p}{;}
+
+    \PYG{c+c1}{/// @dev Ensure only depositor}
+    \PYG{k+kd}{modifier} \PYG{n+nx}{onlyProfitDepositor}\PYG{p}{(}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender} \PYG{o}{==} \PYG{n+nx}{profitDepositor}\PYG{p}{)}\PYG{p}{;}
+        \PYG{n+nx}{\PYGZus{}}\PYG{p}{;}
+    \PYG{p}{\PYGZcb{}}
+
+    \PYG{c+c1}{/// @dev Constructor}
+    \PYG{c+c1}{/// @param \PYGZus{}profitDepositor An Ethereum address}
+    \PYG{k+kd}{function} \PYG{n+nx}{ProfitSharing}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}profitDepositor}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+        \PYG{n+nx}{setProfitDepositor}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}profitDepositor}\PYG{p}{)}\PYG{p}{;}
+    \PYG{p}{\PYGZcb{}}
+
+    \PYG{c+c1}{/// @dev Change profit depositor}
+    \PYG{c+c1}{/// @param \PYGZus{}newProfitDepositor An Ethereum address}
+    \PYG{k+kd}{function} \PYG{n+nx}{setProfitDepositor}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}newProfitDepositor}\PYG{p}{)} \PYG{k+kr}{public} \PYG{n+nx}{onlyOwner} \PYG{p}{\PYGZob{}}
+        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}newProfitDepositor} \PYG{o}{!=} \PYG{k+kt}{address}\PYG{p}{(}\PYG{l+m+mh}{0x0}\PYG{p}{)}\PYG{p}{)}\PYG{p}{;}
+
+        \PYG{k}{if} \PYG{p}{(}\PYG{n+nx}{profitDepositor} \PYG{o}{!=} \PYG{k+kt}{address}\PYG{p}{(}\PYG{l+m+mh}{0x0}\PYG{p}{)} \PYG{o}{\PYGZam{}\PYGZam{}} \PYG{n+nx}{\PYGZus{}newProfitDepositor} \PYG{o}{!=} \PYG{n+nx}{profitDepositor}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+            \PYG{n+nx}{ProfitDepositorChanged}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}newProfitDepositor}\PYG{p}{)}\PYG{p}{;}
+        \PYG{p}{\PYGZcb{}}
+        \PYG{n+nx}{profitDepositor} \PYG{o}{=} \PYG{n+nx}{\PYGZus{}newProfitDepositor}\PYG{p}{;}
+    \PYG{p}{\PYGZcb{}}
 
     \PYG{c+c1}{/// @dev Deposit profit}
-    \PYG{k+kd}{function} \PYG{n+nx}{depositProfit}\PYG{p}{(}\PYG{p}{)} \PYG{k+kr}{public} \PYG{k+kr}{payable} \PYG{p}{\PYGZob{}}
-        \PYG{n+nx}{totalProfits}\PYG{p}{.}\PYG{n+nx}{add}\PYG{p}{(}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{value}\PYG{p}{)}\PYG{p}{;}
+    \PYG{k+kd}{function} \PYG{n+nx}{depositProfit}\PYG{p}{(}\PYG{p}{)} \PYG{k+kr}{public} \PYG{k+kr}{payable} \PYG{n+nx}{onlyProfitDepositor} \PYG{p}{\PYGZob{}}
+        \PYG{n+nx}{totalProfits} \PYG{o}{=} \PYG{n+nx}{totalProfits}\PYG{p}{.}\PYG{n+nx}{add}\PYG{p}{(}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{value}\PYG{p}{)}\PYG{p}{;}
 
         \PYG{n+nx}{ProfitDeposited}\PYG{p}{(}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{,} \PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{value}\PYG{p}{)}\PYG{p}{;}
     \PYG{p}{\PYGZcb{}}
@@ -432,23 +497,27 @@
     \PYG{c+c1}{/// @param \PYGZus{}investor An Ethereum address}
     \PYG{c+c1}{/// @return A positive number}
     \PYG{k+kd}{function} \PYG{n+nx}{profitShareOwing}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}investor}\PYG{p}{)} \PYG{k+kr}{public} \PYG{k+kr}{view} \PYG{k+kr}{returns} \PYG{p}{(}\PYG{k+kt}{uint}\PYG{p}{)} \PYG{p}{\PYGZob{}}
-        \PYG{k}{return} \PYG{n+nx}{totalProfits}\PYG{p}{.}\PYG{n+nx}{sub}\PYG{p}{(}\PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}investor}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{lastTotalProfits}\PYG{p}{)}
-                           \PYG{p}{.}\PYG{n+nx}{mul}\PYG{p}{(}\PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}investor}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{balance}\PYG{p}{)}
-                           \PYG{p}{.}\PYG{n+nx}{div}\PYG{p}{(}\PYG{n+nx}{totalSupply}\PYG{p}{)}\PYG{p}{;}  \PYG{c+c1}{// \PYGZlt{}\PYGZhy{} The linter doesn\PYGZsq{}t like this.}
+        \PYG{k}{return} \PYG{n+nx}{totalSupplyIsFixed} \PYG{o}{\PYGZam{}\PYGZam{}} \PYG{n+nx}{totalSupply\PYGZus{}} \PYG{o}{\PYGZgt{}} \PYG{l+m+mi}{0}
+               \PYG{o}{?} \PYG{n+nx}{totalProfits}\PYG{p}{.}\PYG{n+nx}{sub}\PYG{p}{(}\PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}investor}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{lastTotalProfits}\PYG{p}{)}
+                             \PYG{p}{.}\PYG{n+nx}{mul}\PYG{p}{(}\PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}investor}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{balance}\PYG{p}{)}
+                             \PYG{p}{.}\PYG{n+nx}{div}\PYG{p}{(}\PYG{n+nx}{totalSupply\PYGZus{}}\PYG{p}{)}  \PYG{c+c1}{// \PYGZlt{}\PYGZhy{} The linter doesn\PYGZsq{}t like this.}
+               \PYG{o}{:} \PYG{l+m+mi}{0}\PYG{p}{;}
     \PYG{p}{\PYGZcb{}}
 
     \PYG{c+c1}{/// @dev Update profit share}
     \PYG{c+c1}{/// @param \PYGZus{}investor An Ethereum address}
     \PYG{k+kd}{function} \PYG{n+nx}{updateProfitShare}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}investor}\PYG{p}{)} \PYG{k+kr}{public} \PYG{p}{\PYGZob{}}
+        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{totalSupplyIsFixed}\PYG{p}{)}\PYG{p}{;}
+
         \PYG{k+kt}{uint} \PYG{n+nx}{additionalProfitShare} \PYG{o}{=}  \PYG{n+nx}{profitShareOwing}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}investor}\PYG{p}{)}\PYG{p}{;}
 
         \PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}investor}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{lastTotalProfits} \PYG{o}{=} \PYG{n+nx}{totalProfits}\PYG{p}{;}
         \PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}investor}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{profitShare} \PYG{o}{=} \PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}investor}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{profitShare}\PYG{p}{.}\PYG{n+nx}{add}\PYG{p}{(}\PYG{n+nx}{additionalProfitShare}\PYG{p}{)}\PYG{p}{;}
 
         \PYG{n+nx}{ProfitShareUpdated}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}investor}\PYG{p}{,} \PYG{n+nx}{additionalProfitShare}\PYG{p}{)}\PYG{p}{;}
-
     \PYG{p}{\PYGZcb{}}
 
+    \PYG{c+c1}{/// @dev Withdraw profit share}
     \PYG{k+kd}{function} \PYG{n+nx}{withdrawProfitShare}\PYG{p}{(}\PYG{p}{)} \PYG{k+kr}{public} \PYG{p}{\PYGZob{}}
         \PYG{n+nx}{updateProfitShare}\PYG{p}{(}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{)}\PYG{p}{;}
 
@@ -476,10 +545,9 @@
 \PYG{c+c1}{/// @title MintableToken}
 \PYG{c+c1}{/// @author Autogenerated from a Dia UML diagram}
 \PYG{c+c1}{/// @dev A mintable token is a token that can be minted}
-\PYG{k+kd}{contract} \PYG{n+nx}{MintableToken} \PYG{k+kr}{is} \PYG{n+nx}{ProfitSharing}\PYG{p}{,} \PYG{n+nx}{Whitelisted} \PYG{p}{\PYGZob{}}
+\PYG{k+kd}{contract} \PYG{n+nx}{MintableToken} \PYG{k+kr}{is} \PYG{n+nx}{ERC20}\PYG{p}{,} \PYG{n+nx}{ProfitSharing}\PYG{p}{,} \PYG{n+nx}{Whitelisted} \PYG{p}{\PYGZob{}}
 
     \PYG{k+kt}{address} \PYG{k+kr}{public} \PYG{n+nx}{minter}\PYG{p}{;}
-    \PYG{k+kt}{bool} \PYG{k+kr}{public} \PYG{n+nx}{mintingFinished}\PYG{p}{;}
 
     \PYG{c+c1}{/// @dev Log entry on mint}
     \PYG{c+c1}{/// @param to An Ethereum address}
@@ -497,21 +565,20 @@
 
     \PYG{c+c1}{/// @dev Ensure can mint}
     \PYG{k+kd}{modifier} \PYG{n+nx}{canMint}\PYG{p}{(}\PYG{p}{)} \PYG{p}{\PYGZob{}}
-        \PYG{n+nb}{require}\PYG{p}{(}\PYG{o}{!}\PYG{n+nx}{mintingFinished}\PYG{p}{)}\PYG{p}{;}
+        \PYG{n+nb}{require}\PYG{p}{(}\PYG{o}{!}\PYG{n+nx}{totalSupplyIsFixed}\PYG{p}{)}\PYG{p}{;}
         \PYG{n+nx}{\PYGZus{}}\PYG{p}{;}
     \PYG{p}{\PYGZcb{}}
 
     \PYG{c+c1}{/// @dev Ensure not minting}
     \PYG{k+kd}{modifier} \PYG{n+nx}{notMinting}\PYG{p}{(}\PYG{p}{)} \PYG{p}{\PYGZob{}}
-        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{mintingFinished}\PYG{p}{)}\PYG{p}{;}
+        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{totalSupplyIsFixed}\PYG{p}{)}\PYG{p}{;}
         \PYG{n+nx}{\PYGZus{}}\PYG{p}{;}
     \PYG{p}{\PYGZcb{}}
 
     \PYG{c+c1}{/// @dev Set minter}
     \PYG{c+c1}{/// @param \PYGZus{}minter An Ethereum address}
     \PYG{k+kd}{function} \PYG{n+nx}{setMinter}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}minter}\PYG{p}{)} \PYG{k+kr}{public} \PYG{n+nx}{onlyOwner} \PYG{p}{\PYGZob{}}
-        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}minter} \PYG{o}{!=} \PYG{k+kt}{address}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{)}\PYG{p}{;}
-        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{minter} \PYG{o}{==} \PYG{k+kt}{address}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{)}\PYG{p}{;}
+        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}minter} \PYG{o}{!=} \PYG{k+kt}{address}\PYG{p}{(}\PYG{l+m+mh}{0x0}\PYG{p}{)} \PYG{o}{\PYGZam{}\PYGZam{}} \PYG{n+nx}{minter} \PYG{o}{==} \PYG{k+kt}{address}\PYG{p}{(}\PYG{l+m+mh}{0x0}\PYG{p}{)}\PYG{p}{)}\PYG{p}{;}
 
         \PYG{n+nx}{minter} \PYG{o}{=} \PYG{n+nx}{\PYGZus{}minter}\PYG{p}{;}
     \PYG{p}{\PYGZcb{}}
@@ -520,19 +587,24 @@
     \PYG{c+c1}{/// @param \PYGZus{}to An Ethereum address}
     \PYG{c+c1}{/// @param \PYGZus{}amount A positive number}
     \PYG{k+kd}{function} \PYG{n+nx}{mint}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}to}\PYG{p}{,} \PYG{k+kt}{uint} \PYG{n+nx}{\PYGZus{}amount}\PYG{p}{)} \PYG{k+kr}{public} \PYG{n+nx}{onlyMinter} \PYG{n+nx}{canMint} \PYG{n+nx}{onlyWhitelisted}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}to}\PYG{p}{)} \PYG{p}{\PYGZob{}}
-        \PYG{n+nx}{totalSupply} \PYG{o}{=} \PYG{n+nx}{totalSupply}\PYG{p}{.}\PYG{n+nx}{add}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}amount}\PYG{p}{)}\PYG{p}{;}
+        \PYG{n+nx}{totalSupply\PYGZus{}} \PYG{o}{=} \PYG{n+nx}{totalSupply\PYGZus{}}\PYG{p}{.}\PYG{n+nx}{add}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}amount}\PYG{p}{)}\PYG{p}{;}
         \PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}to}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{balance} \PYG{o}{=} \PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}to}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{balance}\PYG{p}{.}\PYG{n+nx}{add}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}amount}\PYG{p}{)}\PYG{p}{;}
 
         \PYG{n+nx}{Minted}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}to}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}amount}\PYG{p}{)}\PYG{p}{;}
-
-        \PYG{n+nx}{Transfer}\PYG{p}{(}\PYG{k+kt}{address}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}to}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}amount}\PYG{p}{)}\PYG{p}{;}
+        \PYG{n+nx}{Transfer}\PYG{p}{(}\PYG{k+kt}{address}\PYG{p}{(}\PYG{l+m+mh}{0x0}\PYG{p}{)}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}to}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}amount}\PYG{p}{)}\PYG{p}{;}
     \PYG{p}{\PYGZcb{}}
 
     \PYG{c+c1}{/// @dev Finish minting}
     \PYG{k+kd}{function} \PYG{n+nx}{finishMinting}\PYG{p}{(}\PYG{p}{)} \PYG{k+kr}{public} \PYG{n+nx}{onlyMinter} \PYG{n+nx}{canMint} \PYG{p}{\PYGZob{}}
-        \PYG{n+nx}{mintingFinished} \PYG{o}{=} \PYG{k+kc}{true}\PYG{p}{;}
+        \PYG{n+nx}{totalSupplyIsFixed} \PYG{o}{=} \PYG{k+kc}{true}\PYG{p}{;}
 
         \PYG{n+nx}{MintFinished}\PYG{p}{(}\PYG{p}{)}\PYG{p}{;}
+    \PYG{p}{\PYGZcb{}}
+
+    \PYG{c+c1}{/// @dev Minting finished}
+    \PYG{c+c1}{/// @return True or false}
+    \PYG{k+kd}{function} \PYG{n+nx}{mintingFinished}\PYG{p}{(}\PYG{p}{)} \PYG{k+kr}{public} \PYG{k+kr}{view} \PYG{k+kr}{returns} \PYG{p}{(}\PYG{k+kt}{bool}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+        \PYG{k}{return} \PYG{n+nx}{totalSupplyIsFixed}\PYG{p}{;}
     \PYG{p}{\PYGZcb{}}
 
 \PYG{p}{\PYGZcb{}}
@@ -553,14 +625,15 @@
 \PYG{c+c1}{/// @author Autogenerated from a Dia UML diagram}
 \PYG{k+kd}{contract} \PYG{n+nx}{SicosToken} \PYG{k+kr}{is} \PYG{n+nx}{MintableToken}\PYG{p}{,} \PYG{n+nx}{KeyRecoverable} \PYG{p}{\PYGZob{}}
 
-    \PYG{k+kd}{mapping}\PYG{p}{(}\PYG{k+kt}{address} \PYG{o}{=\PYGZgt{}} \PYG{k+kd}{mapping}\PYG{p}{(}\PYG{k+kt}{address} \PYG{o}{=\PYGZgt{}} \PYG{k+kt}{uint}\PYG{p}{)}\PYG{p}{)} \PYG{k+kr}{public} \PYG{n+nx}{allowances}\PYG{p}{;}
+    \PYG{k+kd}{mapping}\PYG{p}{(}\PYG{k+kt}{address} \PYG{o}{=\PYGZgt{}} \PYG{k+kd}{mapping}\PYG{p}{(}\PYG{k+kt}{address} \PYG{o}{=\PYGZgt{}} \PYG{k+kt}{uint}\PYG{p}{)}\PYG{p}{)} \PYG{k+kr}{internal} \PYG{n+nx}{allowance\PYGZus{}}\PYG{p}{;}
 
     \PYG{c+c1}{/// @dev Constructor}
     \PYG{c+c1}{/// @param \PYGZus{}whitelist An Ethereum address}
     \PYG{c+c1}{/// @param \PYGZus{}keyRecoverer An Ethereum address}
-    \PYG{k+kd}{function} \PYG{n+nx}{SicosToken}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}whitelist}\PYG{p}{,} \PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}keyRecoverer}\PYG{p}{)}
+    \PYG{k+kd}{function} \PYG{n+nx}{SicosToken}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}whitelist}\PYG{p}{,} \PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}profitDepositor}\PYG{p}{,} \PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}keyRecoverer}\PYG{p}{)}
         \PYG{k+kr}{public}
         \PYG{n+nx}{Whitelisted}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}whitelist}\PYG{p}{)}
+        \PYG{n+nx}{ProfitSharing}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}profitDepositor}\PYG{p}{)}
         \PYG{n+nx}{KeyRecoverable}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}keyRecoverer}\PYG{p}{)}
     \PYG{p}{\PYGZob{}}\PYG{p}{\PYGZcb{}}
 
@@ -574,16 +647,22 @@
         \PYG{n+nx}{onlyWhitelisted}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}newAddress}\PYG{p}{)}
     \PYG{p}{\PYGZob{}}
         \PYG{c+c1}{// Ensure that new address is *not* an existing account.}
-        \PYG{c+c1}{// Checking for .lastTotalProfits == 0 is sufficient since}
-        \PYG{c+c1}{//   .lastTotalProfits == 0 implies .profitShare == 0,}
-        \PYG{c+c1}{//   .lastTotalProfits == 0 implies .balance == 0.}
-        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}newAddress}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{lastTotalProfits} \PYG{o}{==} \PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{;}
+        \PYG{c+c1}{// Check for account.profitShare is not needed because of following implication:}
+        \PYG{c+c1}{//   (account.lastTotalProfits == 0) ==\PYGZgt{} (account.profitShare == 0)}
+        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}newAddress}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{balance} \PYG{o}{==} \PYG{l+m+mi}{0} \PYG{o}{\PYGZam{}\PYGZam{}} \PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}newAddress}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{lastTotalProfits} \PYG{o}{==} \PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{;}
+
         \PYG{n+nx}{updateProfitShare}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}oldAddress}\PYG{p}{)}\PYG{p}{;}
 
         \PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}newAddress}\PYG{p}{]} \PYG{o}{=} \PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}oldAddress}\PYG{p}{]}\PYG{p}{;}
         \PYG{k}{delete} \PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}oldAddress}\PYG{p}{]}\PYG{p}{;}
 
         \PYG{n+nx}{KeyRecovered}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}oldAddress}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}newAddress}\PYG{p}{)}\PYG{p}{;}
+    \PYG{p}{\PYGZcb{}}
+
+    \PYG{c+c1}{/// @dev Total supply}
+    \PYG{c+c1}{/// @return A positive number}
+    \PYG{k+kd}{function} \PYG{n+nx}{totalSupply}\PYG{p}{(}\PYG{p}{)} \PYG{k+kr}{public} \PYG{k+kr}{view} \PYG{k+kr}{returns} \PYG{p}{(}\PYG{k+kt}{uint}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+        \PYG{k}{return} \PYG{n+nx}{totalSupply\PYGZus{}}\PYG{p}{;}
     \PYG{p}{\PYGZcb{}}
 
     \PYG{c+c1}{/// @dev Balance of}
@@ -598,7 +677,7 @@
     \PYG{c+c1}{/// @param \PYGZus{}spender An Ethereum address}
     \PYG{c+c1}{/// @return A positive number}
     \PYG{k+kd}{function} \PYG{n+nx}{allowance}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}investor}\PYG{p}{,} \PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}spender}\PYG{p}{)} \PYG{k+kr}{public} \PYG{k+kr}{view} \PYG{k+kr}{returns} \PYG{p}{(}\PYG{k+kt}{uint}\PYG{p}{)} \PYG{p}{\PYGZob{}}
-        \PYG{k}{return} \PYG{n+nx}{allowances}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}investor}\PYG{p}{]}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}spender}\PYG{p}{]}\PYG{p}{;}
+        \PYG{k}{return} \PYG{n+nx}{allowance\PYGZus{}}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}investor}\PYG{p}{]}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}spender}\PYG{p}{]}\PYG{p}{;}
     \PYG{p}{\PYGZcb{}}
 
     \PYG{c+c1}{/// @dev Approve}
@@ -611,7 +690,7 @@
         \PYG{n+nx}{notMinting}
         \PYG{k+kr}{returns} \PYG{p}{(}\PYG{k+kt}{bool}\PYG{p}{)}
     \PYG{p}{\PYGZob{}}
-        \PYG{n+nx}{allowances}\PYG{p}{[}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{]}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}spender}\PYG{p}{]} \PYG{o}{=} \PYG{n+nx}{\PYGZus{}value}\PYG{p}{;}
+        \PYG{n+nx}{allowance\PYGZus{}}\PYG{p}{[}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{]}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}spender}\PYG{p}{]} \PYG{o}{=} \PYG{n+nx}{\PYGZus{}value}\PYG{p}{;}
 
         \PYG{n+nx}{Approval}\PYG{p}{(}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}spender}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}value}\PYG{p}{)}\PYG{p}{;}
 
@@ -622,25 +701,8 @@
     \PYG{c+c1}{/// @param \PYGZus{}to An Ethereum address}
     \PYG{c+c1}{/// @param \PYGZus{}value A positive number}
     \PYG{c+c1}{/// @return True or false}
-    \PYG{k+kd}{function} \PYG{n+nx}{transfer}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}to}\PYG{p}{,} \PYG{k+kt}{uint} \PYG{n+nx}{\PYGZus{}value}\PYG{p}{)}
-        \PYG{k+kr}{public}
-        \PYG{n+nx}{onlyWhitelisted}\PYG{p}{(}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{)}
-        \PYG{n+nx}{onlyWhitelisted}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}to}\PYG{p}{)}
-        \PYG{n+nx}{notMinting}
-        \PYG{k+kr}{returns} \PYG{p}{(}\PYG{k+kt}{bool}\PYG{p}{)}
-    \PYG{p}{\PYGZob{}}
-        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}to} \PYG{o}{!=} \PYG{k+kt}{address}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{)}\PYG{p}{;}
-        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}value} \PYG{o}{\PYGZlt{}=} \PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{balance}\PYG{p}{)}\PYG{p}{;}
-
-        \PYG{n+nx}{updateProfitShare}\PYG{p}{(}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{)}\PYG{p}{;}
-        \PYG{n+nx}{updateProfitShare}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}to}\PYG{p}{)}\PYG{p}{;}
-
-        \PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{balance} \PYG{o}{=} \PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{balance}\PYG{p}{.}\PYG{n+nx}{sub}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}value}\PYG{p}{)}\PYG{p}{;}
-        \PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}to}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{balance} \PYG{o}{=} \PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}to}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{balance}\PYG{p}{.}\PYG{n+nx}{add}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}value}\PYG{p}{)}\PYG{p}{;}
-
-        \PYG{n+nx}{Transfer}\PYG{p}{(}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}to}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}value}\PYG{p}{)}\PYG{p}{;}
-
-        \PYG{k}{return} \PYG{k+kc}{true}\PYG{p}{;}
+    \PYG{k+kd}{function} \PYG{n+nx}{transfer}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}to}\PYG{p}{,} \PYG{k+kt}{uint} \PYG{n+nx}{\PYGZus{}value}\PYG{p}{)} \PYG{k+kr}{returns} \PYG{p}{(}\PYG{k+kt}{bool}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+        \PYG{k}{return} \PYG{n+nx}{\PYGZus{}transfer}\PYG{p}{(}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}to}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}value}\PYG{p}{)}\PYG{p}{;}
     \PYG{p}{\PYGZcb{}}
 
     \PYG{c+c1}{/// @dev Transfer from}
@@ -648,8 +710,21 @@
     \PYG{c+c1}{/// @param \PYGZus{}to An Ethereum address}
     \PYG{c+c1}{/// @param \PYGZus{}value A positive number}
     \PYG{c+c1}{/// @return True or false}
-    \PYG{k+kd}{function} \PYG{n+nx}{transferFrom}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}from}\PYG{p}{,} \PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}to}\PYG{p}{,} \PYG{k+kt}{uint} \PYG{n+nx}{\PYGZus{}value}\PYG{p}{)}
-        \PYG{k+kr}{public}
+    \PYG{k+kd}{function} \PYG{n+nx}{transferFrom}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}from}\PYG{p}{,} \PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}to}\PYG{p}{,} \PYG{k+kt}{uint} \PYG{n+nx}{\PYGZus{}value}\PYG{p}{)} \PYG{k+kr}{returns} \PYG{p}{(}\PYG{k+kt}{bool}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}value} \PYG{o}{\PYGZlt{}=} \PYG{n+nx}{allowance\PYGZus{}}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}from}\PYG{p}{]}\PYG{p}{[}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{]}\PYG{p}{)}\PYG{p}{;}
+
+        \PYG{n+nx}{allowance\PYGZus{}}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}from}\PYG{p}{]}\PYG{p}{[}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{]} \PYG{o}{=} \PYG{n+nx}{allowance\PYGZus{}}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}from}\PYG{p}{]}\PYG{p}{[}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{sub}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}value}\PYG{p}{)}\PYG{p}{;}
+
+        \PYG{k}{return} \PYG{n+nx}{\PYGZus{}transfer}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}from}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}to}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}value}\PYG{p}{)}\PYG{p}{;}
+    \PYG{p}{\PYGZcb{}}
+
+    \PYG{c+c1}{/// @dev Transfer}
+    \PYG{c+c1}{/// @param \PYGZus{}from An Ethereum address}
+    \PYG{c+c1}{/// @param \PYGZus{}to An Ethereum address}
+    \PYG{c+c1}{/// @param \PYGZus{}value A positive number}
+    \PYG{c+c1}{/// @return True or false}
+    \PYG{k+kd}{function} \PYG{n+nx}{\PYGZus{}transfer}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}from}\PYG{p}{,} \PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}to}\PYG{p}{,} \PYG{k+kt}{uint} \PYG{n+nx}{\PYGZus{}value}\PYG{p}{)}
+        \PYG{k+kr}{internal}
         \PYG{n+nx}{onlyWhitelisted}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}from}\PYG{p}{)}
         \PYG{n+nx}{onlyWhitelisted}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}to}\PYG{p}{)}
         \PYG{n+nx}{notMinting}
@@ -657,15 +732,12 @@
     \PYG{p}{\PYGZob{}}
         \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}to} \PYG{o}{!=} \PYG{k+kt}{address}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{)}\PYG{p}{;}
         \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}value} \PYG{o}{\PYGZlt{}=} \PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}from}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{balance}\PYG{p}{)}\PYG{p}{;}
-        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}value} \PYG{o}{\PYGZlt{}=} \PYG{n+nx}{allowances}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}from}\PYG{p}{]}\PYG{p}{[}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{]}\PYG{p}{)}\PYG{p}{;}
 
         \PYG{n+nx}{updateProfitShare}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}from}\PYG{p}{)}\PYG{p}{;}
         \PYG{n+nx}{updateProfitShare}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}to}\PYG{p}{)}\PYG{p}{;}
 
         \PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}from}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{balance} \PYG{o}{=} \PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}from}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{balance}\PYG{p}{.}\PYG{n+nx}{sub}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}value}\PYG{p}{)}\PYG{p}{;}
         \PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}to}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{balance} \PYG{o}{=} \PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}to}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{balance}\PYG{p}{.}\PYG{n+nx}{add}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}value}\PYG{p}{)}\PYG{p}{;}
-
-        \PYG{n+nx}{allowances}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}from}\PYG{p}{]}\PYG{p}{[}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{]} \PYG{o}{=} \PYG{n+nx}{allowances}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}from}\PYG{p}{]}\PYG{p}{[}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{sub}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}value}\PYG{p}{)}\PYG{p}{;}
 
         \PYG{n+nx}{Transfer}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}from}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}to}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}value}\PYG{p}{)}\PYG{p}{;}
 
@@ -677,7 +749,7 @@
 
 
 \chapter{SampleToken}
-\label{\detokenize{_contracts/SampleToken:sampletoken}}\label{\detokenize{_contracts/SampleToken::doc}}
+\label{\detokenize{_contracts/SampleToken::doc}}\label{\detokenize{_contracts/SampleToken:sampletoken}}
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{k+kr}{pragma} \PYG{n+nx}{solidity} \PYG{l+m+mf}{0.4}\PYG{l+m+mf}{.19}\PYG{p}{;}
 

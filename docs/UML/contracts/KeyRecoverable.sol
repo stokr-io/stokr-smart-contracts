@@ -31,8 +31,8 @@ contract KeyRecoverable is Ownable {
     }
 
     /// @dev Set key recoverer
-    /// @param _keyRecoverer An Ethereum address
-    function setKeyRecoverer(address _keyRecoverer) public onlyOwner {
+    /// @param _newKeyRecoverer An Ethereum address
+    function setKeyRecoverer(address _newKeyRecoverer) public onlyOwner {
         require(IMPLEMENTATION);
     }
 
