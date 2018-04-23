@@ -1,4 +1,4 @@
-pragma solidity 0.4.19;
+pragma solidity 0.4.23;
 
 import "../zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./Whitelist.sol";
@@ -22,7 +22,7 @@ contract Whitelisted is Ownable {
 
     /// @dev Constructor
     /// @param _whitelist An Ethereum address
-    function Whitelisted(address _whitelist) public {
+    constructor(address _whitelist) public {
         setWhitelist(_whitelist);
     }
 

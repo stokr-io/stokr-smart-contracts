@@ -1,6 +1,6 @@
-pragma solidity 0.4.19;
+pragma solidity 0.4.23;
 
-import "../zeppelin-solidity/contracts/crowdsale/distribution/FinalizableCrowdsale.sol";
+import "../zeppelin-solidity/contracts/crowdsale/distribution/RefundableCrowdsale.sol";
 import "../zeppelin-solidity/contracts/crowdsale/validation/CappedCrowdsale.sol";
 import "./MintableToken.sol";
 
@@ -20,14 +20,14 @@ contract SicosCrowdsale is RefundableCrowdsale, CappedCrowdsale {
     /// @param _rate A positive number
     /// @param _cap A positive number
     /// @param _wallet An Ethereum address
-    function SicosCrowdsale(MintableToken _token,
-                            uint _openingTime,
-                            uint _closingTime,
-                            uint _goal,
-                            uint _rate,
-                            uint _cap,
-                            address _wallet,
-                            uint _teamShare)
+    constructor(MintableToken _token,
+                uint _openingTime,
+                uint _closingTime,
+                uint _goal,
+                uint _rate,
+                uint _cap,
+                uint _teamShare,
+                address _wallet)
         public
         RefundableCrowdsale(_goal)
         CappedCrowdsale(_cap)
@@ -53,8 +53,9 @@ contract SicosCrowdsale is RefundableCrowdsale, CappedCrowdsale {
         rate = _newRate;
     }
 
-
-    function setTeamAccount(address _teamAccount) {
+    /// @dev Set team account
+    /// @param _teamAccount An Ethereum address.
+    function setTeamAccount(address _teamAccount) public onlyOwner {
         require(_teamAccount != address(0x0));
 
         teamAccount = _teamAccount;

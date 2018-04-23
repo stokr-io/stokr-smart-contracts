@@ -1,22 +1,40 @@
 var TestRPC = require("ganache-cli");
+var fs = require('fs-extra');
+var glob = require('glob');
 
 var server = null;
 
 module.exports = {
   start: function(done) {
     this.stop(function(err) {
-      server = TestRPC.server({gasLimit: 6721975});
-      server.listen(8545, done);
+      if (!process.env.MAIN_REPO_CI || process.env.GANACHE){
+        server = TestRPC.server({gasLimit: 6721975});
+        server.listen(8545, done);
+      } else {
+        done();
+      }
     });
   },
   stop: function(done) {
+    var self = this;
     if (server) {
       server.close(function(err) {
         server = null;
-        done(err);
+        self.cleanUp().then(done);
       });
     } else {
-      done();
+      self.cleanUp().then(done);
     }
-  }
+  },
+
+  cleanUp: function() {
+    return new Promise((resolve, reject) => {
+      glob('tmp-*', (err, files) => {
+        if(err) reject(err);
+
+        files.forEach(file => fs.removeSync(file));
+        resolve();
+      })
+    })
+  },
 }

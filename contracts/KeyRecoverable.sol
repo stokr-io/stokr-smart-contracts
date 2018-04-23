@@ -1,4 +1,4 @@
-pragma solidity 0.4.19;
+pragma solidity 0.4.23;
 
 import "../zeppelin-solidity/contracts/ownership/Ownable.sol";
 
@@ -26,7 +26,7 @@ contract KeyRecoverable is Ownable {
 
     /// @dev Constructor
     /// @param _keyRecoverer An Ethereum address
-    function KeyRecoverable(address _keyRecoverer) public {
+    constructor(address _keyRecoverer) public {
         setKeyRecoverer(_keyRecoverer);
     }
 

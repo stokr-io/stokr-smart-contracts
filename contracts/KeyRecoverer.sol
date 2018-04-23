@@ -1,4 +1,4 @@
-pragma solidity 0.4.19;
+pragma solidity 0.4.23;
 
 import "../zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./KeyRecoverable.sol";
@@ -14,7 +14,7 @@ contract KeyRecoverer is Ownable {
     address[] public tokens;
 
     /// @dev Constructor
-    function KeyRecoverer() public {
+    constructor() public {
         tokens.push(address(0x0));  // Placeholder at index 0.
     }
 

@@ -1,4 +1,4 @@
-pragma solidity 0.4.19;
+pragma solidity 0.4.23;
 
 import "./MintableToken.sol";
 import "./KeyRecoverable.sol";
@@ -14,7 +14,7 @@ contract SicosToken is MintableToken, KeyRecoverable {
     /// @dev Constructor
     /// @param _whitelist An Ethereum address
     /// @param _keyRecoverer An Ethereum address
-    function SicosToken(address _whitelist, address _profitDepositor, address _keyRecoverer)
+    constructor(address _whitelist, address _profitDepositor, address _keyRecoverer)
         public
         Whitelisted(_whitelist)
         ProfitSharing(_profitDepositor)
@@ -85,7 +85,7 @@ contract SicosToken is MintableToken, KeyRecoverable {
     /// @param _to An Ethereum address
     /// @param _value A positive number
     /// @return True or false
-    function transfer(address _to, uint _value) returns (bool) {
+    function transfer(address _to, uint _value) public returns (bool) {
         return _transfer(msg.sender, _to, _value);
     }
 
@@ -94,7 +94,7 @@ contract SicosToken is MintableToken, KeyRecoverable {
     /// @param _to An Ethereum address
     /// @param _value A positive number
     /// @return True or false
-    function transferFrom(address _from, address _to, uint _value) returns (bool) {
+    function transferFrom(address _from, address _to, uint _value) public returns (bool) {
         require(_value <= allowance_[_from][msg.sender]);
 
         allowance_[_from][msg.sender] = allowance_[_from][msg.sender].sub(_value);

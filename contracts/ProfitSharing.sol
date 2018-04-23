@@ -1,4 +1,4 @@
-pragma solidity 0.4.19;
+pragma solidity 0.4.23;
 
 import "../zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "../zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
@@ -52,7 +52,7 @@ contract ProfitSharing is Ownable {
 
     /// @dev Constructor
     /// @param _profitDepositor An Ethereum address
-    function ProfitSharing(address _profitDepositor) {
+    constructor(address _profitDepositor) public {
         setProfitDepositor(_profitDepositor);
     }
 

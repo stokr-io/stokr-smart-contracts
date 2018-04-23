@@ -1,4 +1,4 @@
-pragma solidity 0.4.19;
+pragma solidity 0.4.23;
 
 import "./MintableToken.sol";
 import "./KeyRecoverable.sol";
@@ -32,7 +32,7 @@ contract SicosToken2 is MintableToken, KeyRecoverable {
     /// @dev Constructor
     /// @param _whitelist An Ethereum address
     /// @param _keyRecoverer An Ethereum address
-    function SicosToken2(address _whitelist, address _profitDepositor, address _keyRecoverer)
+    constructor(address _whitelist, address _profitDepositor, address _keyRecoverer)
         public
         Whitelisted(_whitelist)
         ProfitSharing(_profitDepositor)
