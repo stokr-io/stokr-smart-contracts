@@ -39,7 +39,7 @@ contract Whitelist is Ownable {
     function addAdmin(address _admin) public onlyOwner {
         if (!admins[_admin]) {
             admins[_admin] = true;
-            AdminAdded(_admin);
+            emit AdminAdded(_admin);
         }
     }
 
@@ -48,7 +48,7 @@ contract Whitelist is Ownable {
     function removeAdmin(address _admin) public onlyOwner {
         if (admins[_admin]) {
             admins[_admin] = false;
-            AdminRemoved(_admin);
+            emit AdminRemoved(_admin);
         }
     }
 
@@ -58,7 +58,7 @@ contract Whitelist is Ownable {
         for (uint256 i = 0; i < _investors.length; i++) {
             if (!isWhitelisted[_investors[i]]) {
                 isWhitelisted[_investors[i]] = true;
-                InvestorAdded(msg.sender, _investors[i]);
+                emit InvestorAdded(msg.sender, _investors[i]);
             }
         }
     }
@@ -69,7 +69,7 @@ contract Whitelist is Ownable {
         for (uint256 i = 0; i < _investors.length; i++) {
             if (isWhitelisted[_investors[i]]) {
                 isWhitelisted[_investors[i]] = false;
-                InvestorRemoved(msg.sender, _investors[i]);
+                emit InvestorRemoved(msg.sender, _investors[i]);
             }
         }
     }

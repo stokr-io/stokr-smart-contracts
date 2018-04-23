@@ -62,7 +62,7 @@ contract ProfitSharing is Ownable {
         require(_newProfitDepositor != address(0x0));
 
         if (profitDepositor != address(0x0) && _newProfitDepositor != profitDepositor) {
-            ProfitDepositorChanged(_newProfitDepositor);
+            emit ProfitDepositorChanged(_newProfitDepositor);
         }
         profitDepositor = _newProfitDepositor;
     }
@@ -71,7 +71,7 @@ contract ProfitSharing is Ownable {
     function depositProfit() public payable onlyProfitDepositor {
         totalProfits = totalProfits.add(msg.value);
 
-        ProfitDeposited(msg.sender, msg.value);
+        emit ProfitDeposited(msg.sender, msg.value);
     }
 
     /// @dev Profit share owing
@@ -95,7 +95,7 @@ contract ProfitSharing is Ownable {
         accounts[_investor].lastTotalProfits = totalProfits;
         accounts[_investor].profitShare = accounts[_investor].profitShare.add(additionalProfitShare);
 
-        ProfitShareUpdated(_investor, additionalProfitShare);
+        emit ProfitShareUpdated(_investor, additionalProfitShare);
     }
 
     /// @dev Withdraw profit share
@@ -107,7 +107,7 @@ contract ProfitSharing is Ownable {
         accounts[msg.sender].profitShare = 0;
         msg.sender.transfer(withdrawnProfitShare);
 
-        ProfitWithdrawal(msg.sender, withdrawnProfitShare);
+        emit ProfitWithdrawal(msg.sender, withdrawnProfitShare);
     }
 
 }

@@ -40,7 +40,7 @@ contract SicosToken is MintableToken, KeyRecoverable {
         accounts[_newAddress] = accounts[_oldAddress];
         delete accounts[_oldAddress];
 
-        KeyRecovered(_oldAddress, _newAddress);
+        emit KeyRecovered(_oldAddress, _newAddress);
     }
 
     /// @dev Total supply
@@ -76,7 +76,7 @@ contract SicosToken is MintableToken, KeyRecoverable {
     {
         allowance_[msg.sender][_spender] = _value;
 
-        Approval(msg.sender, _spender, _value);
+        emit Approval(msg.sender, _spender, _value);
 
         return true;
     }
@@ -123,7 +123,7 @@ contract SicosToken is MintableToken, KeyRecoverable {
         accounts[_from].balance = accounts[_from].balance.sub(_value);
         accounts[_to].balance = accounts[_to].balance.add(_value);
 
-        Transfer(_from, _to, _value);
+        emit Transfer(_from, _to, _value);
 
         return true;
     }

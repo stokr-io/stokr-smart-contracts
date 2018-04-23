@@ -32,7 +32,7 @@ contract Whitelisted is Ownable {
         require(_newWhitelist != address(0x0));
 
         if (whitelist != address(0x0) && _newWhitelist != address(whitelist)) {
-            WhitelistChanged(_newWhitelist);
+            emit WhitelistChanged(_newWhitelist);
         }
         whitelist = Whitelist(_newWhitelist);
     }

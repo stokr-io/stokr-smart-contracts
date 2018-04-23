@@ -36,7 +36,7 @@ contract KeyRecoverable is Ownable {
         require(_newKeyRecoverer != address(0x0));
 
         if (keyRecoverer != address(0x0) && _newKeyRecoverer != keyRecoverer) {
-            KeyRecovererChanged(_newKeyRecoverer);
+            emit KeyRecovererChanged(_newKeyRecoverer);
         }
         keyRecoverer = _newKeyRecoverer;
     }

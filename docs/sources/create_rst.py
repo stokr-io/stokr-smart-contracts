@@ -13,7 +13,13 @@ def dedent(text):
                 if line.lstrip())
     return "\n".join(line[index:] for line in lines)
 
-if not os.path.exists(RSTDIR):
+if os.path.exists(RSTDIR):
+    for name in os.listdir(RSTDIR):
+        path = os.path.join(RSTDIR, name)
+        print("delete", path)
+        os.remove(path)
+else:
+    print("create", RSTDIR)
     os.mkdir(RSTDIR)
 
 with open("index.rst") as file:
@@ -24,8 +30,9 @@ with open("index.rst") as file:
         name = chunks[1]
         if not os.path.exists(os.path.join(SOLDIR, name + ".sol")):
             continue
-        print("create {}.rst".format(name))
-        with open(os.path.join("_contracts", name + ".rst"), "w") as file:
+        path = os.path.join(RSTDIR, name + ".rst")
+        print("create", path)
+        with open(path, "w") as file:
             file.write(dedent("""
                 {line}
                 {name}

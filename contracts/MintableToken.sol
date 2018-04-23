@@ -52,15 +52,15 @@ contract MintableToken is ERC20, ProfitSharing, Whitelisted {
         totalSupply_ = totalSupply_.add(_amount);
         accounts[_to].balance = accounts[_to].balance.add(_amount);
 
-        Minted(_to, _amount);
-        Transfer(address(0x0), _to, _amount);
+        emit Minted(_to, _amount);
+        emit Transfer(address(0x0), _to, _amount);
     }
 
     /// @dev Finish minting
     function finishMinting() public onlyMinter canMint {
         totalSupplyIsFixed = true;
 
-        MintFinished();
+        emit MintFinished();
     }
 
     /// @dev Minting finished
