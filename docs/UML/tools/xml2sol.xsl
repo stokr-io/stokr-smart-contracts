@@ -11,7 +11,7 @@
   
   <xsl:param name="directory"/>
   <xsl:param name="version">
-    <xsl:text>0.4.19</xsl:text>
+    <xsl:text>0.4.23</xsl:text>
   </xsl:param>
   
   <xsl:variable name="indent1">
@@ -325,7 +325,9 @@
     <xsl:call-template name="comment"/>
     <!-- function name -->
     <xsl:value-of select="$indent1"/>
-    <xsl:text>function </xsl:text>
+    <xsl:if test="name!='constructor'">
+      <xsl:text>function </xsl:text>
+    </xsl:if>
     <xsl:value-of select="name"/>
     <!-- parameters -->
     <xsl:text>(</xsl:text>
@@ -360,7 +362,8 @@
       </xsl:variable>
       <xsl:if test="
           $name='payable' or 
-          //class/operation[name=$name and stereotype='modifier']">
+          //class/operation[name=$name and stereotype='modifier'] or
+          //class[name=$name]">
         <xsl:text> </xsl:text>
         <xsl:value-of select="text()"/>
       </xsl:if>
@@ -439,7 +442,7 @@
   </xsl:template>
   
   <xsl:template name="comment">
-    <!-- count comment lines that aren't modifiers -->
+    <!-- count comment lines that aren't modifiers or base constructors -->
     <xsl:variable name="line-unary-count">
       <xsl:for-each select="comment">
         <xsl:variable name="name">
@@ -454,7 +457,8 @@
         </xsl:variable>
         <xsl:if test="not(
             $name='payable' or 
-            //class/operation[name=$name and stereotype='modifier'])">
+            //class/operation[name=$name and stereotype='modifier' or
+            //class/name=$name])">
           <xsl:text>*</xsl:text>
         </xsl:if>
       </xsl:for-each>
@@ -485,7 +489,7 @@
         </xsl:for-each>
       </xsl:when>
       <!-- the function name is the same as contract name -->
-      <xsl:when test="name=../name">
+      <xsl:when test="name=../name or name='constructor'">
         <xsl:value-of select="$indent1"/>
         <xsl:text>/// @dev Constructor&#xa;</xsl:text>
       </xsl:when>

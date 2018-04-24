@@ -1,4 +1,4 @@
-pragma solidity 0.4.19;
+pragma solidity 0.4.23;
 
 import "Ownable.sol";
 
@@ -46,7 +46,7 @@ contract ProfitSharing is Ownable {
 
     /// @dev Constructor
     /// @param _profitDepositor An Ethereum address
-    function ProfitSharing(address _profitDepositor) public {
+    constructor(address _profitDepositor) public {
         require(IMPLEMENTATION);
     }
 

@@ -161,7 +161,7 @@
             
   <div class="section" id="sicostoken">
 <h1>SicosToken<a class="headerlink" href="#sicostoken" title="Permalink to this headline">¶</a></h1>
-<div class="highlight-solidity"><div class="highlight"><pre><span></span><span class="kr">pragma</span> <span class="nx">solidity</span> <span class="mf">0.4.19</span><span class="p">;</span>
+<div class="highlight-solidity"><div class="highlight"><pre><span></span><span class="kr">pragma</span> <span class="nx">solidity</span> <span class="mf">0.4.23</span><span class="p">;</span>
 
 <span class="kr">import</span> <span class="s2">&quot;./MintableToken.sol&quot;</span><span class="p">;</span>
 <span class="kr">import</span> <span class="s2">&quot;./KeyRecoverable.sol&quot;</span><span class="p">;</span>
@@ -177,7 +177,7 @@
     <span class="c1">/// @dev Constructor</span>
     <span class="c1">/// @param _whitelist An Ethereum address</span>
     <span class="c1">/// @param _keyRecoverer An Ethereum address</span>
-    <span class="kd">function</span> <span class="nx">SicosToken</span><span class="p">(</span><span class="kt">address</span> <span class="nx">_whitelist</span><span class="p">,</span> <span class="kt">address</span> <span class="nx">_profitDepositor</span><span class="p">,</span> <span class="kt">address</span> <span class="nx">_keyRecoverer</span><span class="p">)</span>
+    <span class="kd">constructor</span><span class="p">(</span><span class="kt">address</span> <span class="nx">_whitelist</span><span class="p">,</span> <span class="kt">address</span> <span class="nx">_profitDepositor</span><span class="p">,</span> <span class="kt">address</span> <span class="nx">_keyRecoverer</span><span class="p">)</span>
         <span class="kr">public</span>
         <span class="nx">Whitelisted</span><span class="p">(</span><span class="nx">_whitelist</span><span class="p">)</span>
         <span class="nx">ProfitSharing</span><span class="p">(</span><span class="nx">_profitDepositor</span><span class="p">)</span>
@@ -203,7 +203,7 @@
         <span class="nx">accounts</span><span class="p">[</span><span class="nx">_newAddress</span><span class="p">]</span> <span class="o">=</span> <span class="nx">accounts</span><span class="p">[</span><span class="nx">_oldAddress</span><span class="p">];</span>
         <span class="k">delete</span> <span class="nx">accounts</span><span class="p">[</span><span class="nx">_oldAddress</span><span class="p">];</span>
 
-        <span class="nx">KeyRecovered</span><span class="p">(</span><span class="nx">_oldAddress</span><span class="p">,</span> <span class="nx">_newAddress</span><span class="p">);</span>
+        <span class="kr">emit</span> <span class="nx">KeyRecovered</span><span class="p">(</span><span class="nx">_oldAddress</span><span class="p">,</span> <span class="nx">_newAddress</span><span class="p">);</span>
     <span class="p">}</span>
 
     <span class="c1">/// @dev Total supply</span>
@@ -239,7 +239,7 @@
     <span class="p">{</span>
         <span class="nx">allowance_</span><span class="p">[</span><span class="nx">msg</span><span class="p">.</span><span class="nx">sender</span><span class="p">][</span><span class="nx">_spender</span><span class="p">]</span> <span class="o">=</span> <span class="nx">_value</span><span class="p">;</span>
 
-        <span class="nx">Approval</span><span class="p">(</span><span class="nx">msg</span><span class="p">.</span><span class="nx">sender</span><span class="p">,</span> <span class="nx">_spender</span><span class="p">,</span> <span class="nx">_value</span><span class="p">);</span>
+        <span class="kr">emit</span> <span class="nx">Approval</span><span class="p">(</span><span class="nx">msg</span><span class="p">.</span><span class="nx">sender</span><span class="p">,</span> <span class="nx">_spender</span><span class="p">,</span> <span class="nx">_value</span><span class="p">);</span>
 
         <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
     <span class="p">}</span>
@@ -248,7 +248,7 @@
     <span class="c1">/// @param _to An Ethereum address</span>
     <span class="c1">/// @param _value A positive number</span>
     <span class="c1">/// @return True or false</span>
-    <span class="kd">function</span> <span class="nx">transfer</span><span class="p">(</span><span class="kt">address</span> <span class="nx">_to</span><span class="p">,</span> <span class="kt">uint</span> <span class="nx">_value</span><span class="p">)</span> <span class="kr">returns</span> <span class="p">(</span><span class="kt">bool</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">function</span> <span class="nx">transfer</span><span class="p">(</span><span class="kt">address</span> <span class="nx">_to</span><span class="p">,</span> <span class="kt">uint</span> <span class="nx">_value</span><span class="p">)</span> <span class="kr">public</span> <span class="kr">returns</span> <span class="p">(</span><span class="kt">bool</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">return</span> <span class="nx">_transfer</span><span class="p">(</span><span class="nx">msg</span><span class="p">.</span><span class="nx">sender</span><span class="p">,</span> <span class="nx">_to</span><span class="p">,</span> <span class="nx">_value</span><span class="p">);</span>
     <span class="p">}</span>
 
@@ -257,7 +257,7 @@
     <span class="c1">/// @param _to An Ethereum address</span>
     <span class="c1">/// @param _value A positive number</span>
     <span class="c1">/// @return True or false</span>
-    <span class="kd">function</span> <span class="nx">transferFrom</span><span class="p">(</span><span class="kt">address</span> <span class="nx">_from</span><span class="p">,</span> <span class="kt">address</span> <span class="nx">_to</span><span class="p">,</span> <span class="kt">uint</span> <span class="nx">_value</span><span class="p">)</span> <span class="kr">returns</span> <span class="p">(</span><span class="kt">bool</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">function</span> <span class="nx">transferFrom</span><span class="p">(</span><span class="kt">address</span> <span class="nx">_from</span><span class="p">,</span> <span class="kt">address</span> <span class="nx">_to</span><span class="p">,</span> <span class="kt">uint</span> <span class="nx">_value</span><span class="p">)</span> <span class="kr">public</span> <span class="kr">returns</span> <span class="p">(</span><span class="kt">bool</span><span class="p">)</span> <span class="p">{</span>
         <span class="nb">require</span><span class="p">(</span><span class="nx">_value</span> <span class="o">&lt;=</span> <span class="nx">allowance_</span><span class="p">[</span><span class="nx">_from</span><span class="p">][</span><span class="nx">msg</span><span class="p">.</span><span class="nx">sender</span><span class="p">]);</span>
 
         <span class="nx">allowance_</span><span class="p">[</span><span class="nx">_from</span><span class="p">][</span><span class="nx">msg</span><span class="p">.</span><span class="nx">sender</span><span class="p">]</span> <span class="o">=</span> <span class="nx">allowance_</span><span class="p">[</span><span class="nx">_from</span><span class="p">][</span><span class="nx">msg</span><span class="p">.</span><span class="nx">sender</span><span class="p">].</span><span class="nx">sub</span><span class="p">(</span><span class="nx">_value</span><span class="p">);</span>
@@ -286,7 +286,7 @@
         <span class="nx">accounts</span><span class="p">[</span><span class="nx">_from</span><span class="p">].</span><span class="nx">balance</span> <span class="o">=</span> <span class="nx">accounts</span><span class="p">[</span><span class="nx">_from</span><span class="p">].</span><span class="nx">balance</span><span class="p">.</span><span class="nx">sub</span><span class="p">(</span><span class="nx">_value</span><span class="p">);</span>
         <span class="nx">accounts</span><span class="p">[</span><span class="nx">_to</span><span class="p">].</span><span class="nx">balance</span> <span class="o">=</span> <span class="nx">accounts</span><span class="p">[</span><span class="nx">_to</span><span class="p">].</span><span class="nx">balance</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="nx">_value</span><span class="p">);</span>
 
-        <span class="nx">Transfer</span><span class="p">(</span><span class="nx">_from</span><span class="p">,</span> <span class="nx">_to</span><span class="p">,</span> <span class="nx">_value</span><span class="p">);</span>
+        <span class="kr">emit</span> <span class="nx">Transfer</span><span class="p">(</span><span class="nx">_from</span><span class="p">,</span> <span class="nx">_to</span><span class="p">,</span> <span class="nx">_value</span><span class="p">);</span>
 
         <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
     <span class="p">}</span>

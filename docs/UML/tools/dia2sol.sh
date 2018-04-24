@@ -16,7 +16,7 @@ SCRIPTDIR=$(dirname "$SCRIPT")
 
 DIAFILE="$1"
 SOLDIR="$2"
-VERSION="0.4.19"
+VERSION="0.4.23"
 
 if [ "$SOLDIR" = "" ]
 then

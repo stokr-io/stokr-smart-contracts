@@ -1,4 +1,4 @@
-pragma solidity 0.4.19;
+pragma solidity 0.4.23;
 
 import "Ownable.sol";
 
@@ -11,7 +11,7 @@ contract KeyRecoverer is Ownable {
     address[] public tokens;
 
     /// @dev Constructor
-    function KeyRecoverer() public {
+    constructor() public {
         require(IMPLEMENTATION);
     }
 

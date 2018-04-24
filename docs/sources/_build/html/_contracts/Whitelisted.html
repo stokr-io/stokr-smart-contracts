@@ -161,7 +161,7 @@
             
   <div class="section" id="whitelisted">
 <h1>Whitelisted<a class="headerlink" href="#whitelisted" title="Permalink to this headline">¶</a></h1>
-<div class="highlight-solidity"><div class="highlight"><pre><span></span><span class="kr">pragma</span> <span class="nx">solidity</span> <span class="mf">0.4.19</span><span class="p">;</span>
+<div class="highlight-solidity"><div class="highlight"><pre><span></span><span class="kr">pragma</span> <span class="nx">solidity</span> <span class="mf">0.4.23</span><span class="p">;</span>
 
 <span class="kr">import</span> <span class="s2">&quot;../zeppelin-solidity/contracts/ownership/Ownable.sol&quot;</span><span class="p">;</span>
 <span class="kr">import</span> <span class="s2">&quot;./Whitelist.sol&quot;</span><span class="p">;</span>
@@ -185,7 +185,7 @@
 
     <span class="c1">/// @dev Constructor</span>
     <span class="c1">/// @param _whitelist An Ethereum address</span>
-    <span class="kd">function</span> <span class="nx">Whitelisted</span><span class="p">(</span><span class="kt">address</span> <span class="nx">_whitelist</span><span class="p">)</span> <span class="kr">public</span> <span class="p">{</span>
+    <span class="kd">constructor</span><span class="p">(</span><span class="kt">address</span> <span class="nx">_whitelist</span><span class="p">)</span> <span class="kr">public</span> <span class="p">{</span>
         <span class="nx">setWhitelist</span><span class="p">(</span><span class="nx">_whitelist</span><span class="p">);</span>
     <span class="p">}</span>
 
@@ -195,7 +195,7 @@
         <span class="nb">require</span><span class="p">(</span><span class="nx">_newWhitelist</span> <span class="o">!=</span> <span class="kt">address</span><span class="p">(</span><span class="mh">0x0</span><span class="p">));</span>
 
         <span class="k">if</span> <span class="p">(</span><span class="nx">whitelist</span> <span class="o">!=</span> <span class="kt">address</span><span class="p">(</span><span class="mh">0x0</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">_newWhitelist</span> <span class="o">!=</span> <span class="kt">address</span><span class="p">(</span><span class="nx">whitelist</span><span class="p">))</span> <span class="p">{</span>
-            <span class="nx">WhitelistChanged</span><span class="p">(</span><span class="nx">_newWhitelist</span><span class="p">);</span>
+            <span class="kr">emit</span> <span class="nx">WhitelistChanged</span><span class="p">(</span><span class="nx">_newWhitelist</span><span class="p">);</span>
         <span class="p">}</span>
         <span class="nx">whitelist</span> <span class="o">=</span> <span class="nx">Whitelist</span><span class="p">(</span><span class="nx">_newWhitelist</span><span class="p">);</span>
     <span class="p">}</span>

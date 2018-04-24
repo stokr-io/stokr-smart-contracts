@@ -161,7 +161,7 @@
             
   <div class="section" id="mintabletoken">
 <h1>MintableToken<a class="headerlink" href="#mintabletoken" title="Permalink to this headline">¶</a></h1>
-<div class="highlight-solidity"><div class="highlight"><pre><span></span><span class="kr">pragma</span> <span class="nx">solidity</span> <span class="mf">0.4.19</span><span class="p">;</span>
+<div class="highlight-solidity"><div class="highlight"><pre><span></span><span class="kr">pragma</span> <span class="nx">solidity</span> <span class="mf">0.4.23</span><span class="p">;</span>
 
 <span class="kr">import</span> <span class="s2">&quot;./ProfitSharing.sol&quot;</span><span class="p">;</span>
 <span class="kr">import</span> <span class="s2">&quot;./Whitelisted.sol&quot;</span><span class="p">;</span>
@@ -215,15 +215,15 @@
         <span class="nx">totalSupply_</span> <span class="o">=</span> <span class="nx">totalSupply_</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="nx">_amount</span><span class="p">);</span>
         <span class="nx">accounts</span><span class="p">[</span><span class="nx">_to</span><span class="p">].</span><span class="nx">balance</span> <span class="o">=</span> <span class="nx">accounts</span><span class="p">[</span><span class="nx">_to</span><span class="p">].</span><span class="nx">balance</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="nx">_amount</span><span class="p">);</span>
 
-        <span class="nx">Minted</span><span class="p">(</span><span class="nx">_to</span><span class="p">,</span> <span class="nx">_amount</span><span class="p">);</span>
-        <span class="nx">Transfer</span><span class="p">(</span><span class="kt">address</span><span class="p">(</span><span class="mh">0x0</span><span class="p">),</span> <span class="nx">_to</span><span class="p">,</span> <span class="nx">_amount</span><span class="p">);</span>
+        <span class="kr">emit</span> <span class="nx">Minted</span><span class="p">(</span><span class="nx">_to</span><span class="p">,</span> <span class="nx">_amount</span><span class="p">);</span>
+        <span class="kr">emit</span> <span class="nx">Transfer</span><span class="p">(</span><span class="kt">address</span><span class="p">(</span><span class="mh">0x0</span><span class="p">),</span> <span class="nx">_to</span><span class="p">,</span> <span class="nx">_amount</span><span class="p">);</span>
     <span class="p">}</span>
 
     <span class="c1">/// @dev Finish minting</span>
     <span class="kd">function</span> <span class="nx">finishMinting</span><span class="p">()</span> <span class="kr">public</span> <span class="nx">onlyMinter</span> <span class="nx">canMint</span> <span class="p">{</span>
         <span class="nx">totalSupplyIsFixed</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
 
-        <span class="nx">MintFinished</span><span class="p">();</span>
+        <span class="kr">emit</span> <span class="nx">MintFinished</span><span class="p">();</span>
     <span class="p">}</span>
 
     <span class="c1">/// @dev Minting finished</span>

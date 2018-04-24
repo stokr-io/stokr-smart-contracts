@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
 
+#
+# Sphinx 1.8 Extensions Module
+#
+# - Custom syntax highlighting theme
+# - Javascript lexer: ES2017 extension
+# - Solidity lexer
+# - EPS support in LaTeX
+#
+# G.Baecker, 2018
+#
+
 from pygments.lexers.javascript import JavascriptLexer
 from pygments.style import Style
 from pygments.token import *
@@ -7,7 +18,7 @@ from pygments.token import *
 from sphinx.highlighting import lexers
 
 
-class CustomStyle(Style):
+class TecneosStyle(Style):
     default_style = ""
     styles = {
         Comment:                "#888888",
@@ -35,18 +46,20 @@ class CustomStyle(Style):
     }
 
     @classmethod
-    def patch(cls, name):
+    def register(cls):
         import sys
         import types
         import pygments.styles
         from pygments.styles import STYLE_MAP
-        module = types.ModuleType(name)
+        module = types.ModuleType("tecneos")
         setattr(module, cls.__name__, cls)
-        setattr(pygments.styles, name, module)
-        sys.modules["pygments.styles." + name] = module
-        pygments.styles.STYLE_MAP[name] = name + "::" + cls.__name__
+        setattr(pygments.styles, "tecneos", module)
+        sys.modules["pygments.styles.tecneos"] = module
+        pygments.styles.STYLE_MAP["tecneos"] = "tecneos::" + cls.__name__
 
 
+# The builtin javascript lexer doesn't recognize floating point numbers
+# in scientific format if they do not contain a decimal point.
 class FixedFloatJavascriptLexer(JavascriptLexer):
 
     def __init__(self):
@@ -54,6 +67,7 @@ class FixedFloatJavascriptLexer(JavascriptLexer):
         super().__init__()
 
 
+# Javascript lexer extension for ES2017: arrow functions, asynchronous keywords
 class ES2017Lexer(FixedFloatJavascriptLexer):
     ADDITIONAL_OPERATORS = {"=>"}
     ADDITIONAL_KEYWORDS = {"async", "await"}
@@ -67,14 +81,15 @@ class ES2017Lexer(FixedFloatJavascriptLexer):
             yield index, token, value
 
 
+# Solidity lexer (based on Javascript lexer).
 class SolidityLexer(FixedFloatJavascriptLexer):
     ADDITIONAL_OPERATORS = {"=>"}
     ADDITIONAL_RSVD_KWDS = {"as", "from", "is", "returns", "pragma", "using"} \
                          | {"external", "internal", "public", "private"} \
-                         | {"constant", "payable", "pure", "view"}
-    ADDITIONAL_DECL_KWDS = {"assembly", "contract", "enum", "event",
-                            "interface", "library", "mapping", "modifier",
-                            "struct"} \
+                         | {"constant", "payable", "pure", "view", "emit"}
+    ADDITIONAL_DECL_KWDS = {"assembly", "contract", "constructor",
+                            "enum", "event", "interface", "library",
+                            "mapping", "modifier", "struct"} \
                          | {"memory", "storage"}
     ADDITIONAL_TYPE_KWDS = {"address", "bool", "byte", "bytes", "indexed",
                             "int", "mapping", "string", "uint"} \
@@ -120,8 +135,13 @@ class SolidityLexer(FixedFloatJavascriptLexer):
 
 
 def setup(app):
+    # Support Encapsulated Postscript images
     from sphinx.builders.latex import LaTeXBuilder
     LaTeXBuilder.supported_image_types.insert(0, "image/x-eps")
-    CustomStyle.patch("custom")
+    # Register custom Pygments style
+    TecneosStyle.register()
+    # Overwrite standard Javascript lexer
     lexers["javascript"] = ES2017Lexer()
+    # Add Solidity lexer
     lexers["solidity"] = SolidityLexer()
+
