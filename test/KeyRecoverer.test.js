@@ -2,10 +2,9 @@
 
 const KeyRecoverer = artifacts.require("./KeyRecoverer.sol");
 
-const { expect } = require("chai");
-const { should } = require("./helpers/utils");
-const { rejectTx } = require("./helpers/tecneos");
-
+const BN = web3.BigNumber;
+const {expect} = require("chai").use(require("chai-bignumber")(BN));
+const {reject} = require("./helpers/common");
 
 contract("KeyRecoverer", ([owner, anyone]) => {
     let keyRecoverer;
@@ -14,13 +13,11 @@ contract("KeyRecoverer", ([owner, anyone]) => {
 
         it("should succeed", async () => {
             keyRecoverer = await KeyRecoverer.new({from: owner});
-            let code = await web3.eth.getCode(keyRecoverer.address);
-            assert(code !== "0x" && code !== "0x0", "contract code is expected to be non-zero");
+            expect(await web3.eth.getCode(keyRecoverer.address)).to.be.not.oneOf(["0x", "0x0"]);
         });
 
         it("sets correct owner", async () => {
-            let _owner = await keyRecoverer.owner();
-            _owner.should.be.bignumber.equal(owner);
+            expect(await keyRecoverer.owner()).to.be.bignumber.equal(owner);
         });
 
     });

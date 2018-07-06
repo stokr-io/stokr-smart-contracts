@@ -16,13 +16,14 @@ SCRIPTDIR=$(dirname "$SCRIPT")
 
 DIAFILE="$1"
 SOLDIR="$2"
-VERSION="0.4.23"
+VERSION="0.4.24"
 
 if [ "$SOLDIR" = "" ]
 then
     mkdir -p "$SOLDIR"
 fi
 
+echo "$DIAFILE --> $SOLDIR/*.sol"
 gunzip -c "$DIAFILE" \
     | xsltproc "$SCRIPTDIR/dia2xml.xsl" - \
     | xsltproc --stringparam directory "$SOLDIR" \

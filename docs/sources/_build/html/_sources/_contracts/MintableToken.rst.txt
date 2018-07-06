@@ -1,6 +1,0 @@
-
-=============
-MintableToken
-=============
-
-.. literalinclude:: ../../../contracts/MintableToken.sol

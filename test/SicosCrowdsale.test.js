@@ -4,9 +4,9 @@ const Whitelist = artifacts.require("./Whitelist.sol");
 const SicosToken = artifacts.require("./SicosToken.sol");
 const SicosCrowdsale = artifacts.require("./SicosCrowdsale.sol");
 
-const { expect } = require("chai");
-const { should } = require("./helpers/utils");
-const { rejectDeploy, rejectTx, now, sleep, duration, currency } = require("./helpers/tecneos");
+const BN = web3.BigNumber;
+const {expect} = require("chai").use(require("chai-bignumber")(BN));
+const {reject, time, money} = require("./helpers/common");
 
 
 contract("SicosCrowdsale", ([owner,
@@ -18,9 +18,9 @@ contract("SicosCrowdsale", ([owner,
 
     // Helper function to deploy a Whitelist, a SicosToken, and a SicosCrowdsale.
     const deployWhitelistAndTokenAndCrowdsale = async (openingTime, closingTime) => {
-        const goal = currency.ether(8);
+        const goal = money.ether(8);
         const rate = 42;  // 42 tokens per wei
-        const cap = currency.ether(10);  // total investments are limited to 10 ether
+        const cap = money.ether(10);  // total investments are limited to 10 ether
         const teamShare = 2525;
         let whitelist = await Whitelist.new({from: owner});
         await whitelist.addAdmin(owner, {from: owner});
@@ -34,8 +34,8 @@ contract("SicosCrowdsale", ([owner,
     };
 
     describe("deployment", () => {
-        const openingTime = now() + duration.days(1);
-        const closingTime = openingTime + duration.days(1);
+        const openingTime = time.now() + time.days(1);
+        const closingTime = openingTime + time.days(1);
         const goal = 252525;
         const rate = 2525;
         const cap = 123456;
@@ -48,100 +48,90 @@ contract("SicosCrowdsale", ([owner,
         });
 
         it("should fail if token address is zero", async () => {
-            await rejectDeploy(SicosCrowdsale.new(0x0, openingTime, closingTime,
-                                                  goal, rate, cap, teamShare, wallet,
-                                                  {from: owner}));
+            await reject.deploy(SicosCrowdsale.new(0x0, openingTime, closingTime,
+                                                   goal, rate, cap, teamShare, wallet,
+                                                   {from: owner}));
         });
 
         it("should fail if openingTime is in the past", async () => {
-            let _openingTime = now() - duration.mins(1);
-            await rejectDeploy(SicosCrowdsale.new(token.address, _openingTime, closingTime,
-                                                  goal, rate, cap, teamShare, wallet,
-                                                  {from: owner}));
+            let _openingTime = time.now() - time.mins(1);
+            await reject.deploy(SicosCrowdsale.new(token.address, _openingTime, closingTime,
+                                                   goal, rate, cap, teamShare, wallet,
+                                                   {from: owner}));
         });
 
         it("should fail if closingTime is before openingTime", async () => {
-            let _closingTime = openingTime - duration.secs(1);
-            await rejectDeploy(SicosCrowdsale.new(token.address, openingTime, _closingTime,
-                                                  goal, rate, cap, teamShare, wallet,
-                                                  {from: owner}));
+            let _closingTime = openingTime - time.secs(1);
+            await reject.deploy(SicosCrowdsale.new(token.address, openingTime, _closingTime,
+                                                   goal, rate, cap, teamShare, wallet,
+                                                   {from: owner}));
         });
 
         it("should fail if goal is zero", async () => {
-            await rejectDeploy(SicosCrowdsale.new(token.address, openingTime, closingTime,
-                                                  0, rate, cap, teamShare, wallet,
-                                                  {from: owner}));
+            await reject.deploy(SicosCrowdsale.new(token.address, openingTime, closingTime,
+                                                   0, rate, cap, teamShare, wallet,
+                                                   {from: owner}));
         });
 
         it("should fail if rate is zero", async () => {
-            await rejectDeploy(SicosCrowdsale.new(token.address, openingTime, closingTime,
-                                                  goal, 0, cap, teamShare, wallet,
-                                                  {from: owner}));
+            await reject.deploy(SicosCrowdsale.new(token.address, openingTime, closingTime,
+                                                   goal, 0, cap, teamShare, wallet,
+                                                   {from: owner}));
         });
 
         it("should fail if cap is zero", async () => {
-            await rejectDeploy(SicosCrowdsale.new(token.address, openingTime, closingTime,
-                                                  goal, rate, 0, teamShare, wallet,
-                                                  {from: owner}));
+            await reject.deploy(SicosCrowdsale.new(token.address, openingTime, closingTime,
+                                                   goal, rate, 0, teamShare, wallet,
+                                                   {from: owner}));
         });
 
         it("should fail if wallet address is zero", async () => {
-            await rejectDeploy(SicosCrowdsale.new(token.address, openingTime, closingTime,
-                                                  goal, rate, cap, teamShare, 0x0,
-                                                  {from: owner}));
+            await reject.deploy(SicosCrowdsale.new(token.address, openingTime, closingTime,
+                                                   goal, rate, cap, teamShare, 0x0,
+                                                   {from: owner}));
         });
 
         it("should succeed", async () => {
             crowdsale = await SicosCrowdsale.new(token.address, openingTime, closingTime,
                                                  goal, rate, cap, teamShare, wallet,
                                                  {from: owner});
-            let code = await web3.eth.getCode(crowdsale.address);
-            assert(code !== "0x" && code !== "0x0", "contract code is expected to be non-zero");
+            expect(await web3.eth.getCode(crowdsale.address)).to.be.not.oneOf(["0x", "0x0"]);
         });
 
         it("sets correct owner", async () => {
-            let _owner = await crowdsale.owner();
-            _owner.should.be.bignumber.equal(owner);
+            expect(await crowdsale.owner()).to.be.bignumber.equal(owner);
         });
 
         it("sets correct token address", async () => {
-            let tokenAddress = await crowdsale.token();
-            tokenAddress.should.be.bignumber.equal(token.address);
+            expect(await crowdsale.token()).to.be.bignumber.equal(token.address);
         });
 
         it("sets correct openingTime", async () => {
-            let openingTime = await crowdsale.openingTime();
-            openingTime.should.be.bignumber.equal(openingTime);
+            expect(await crowdsale.openingTime()).to.be.bignumber.equal(openingTime);
         });
 
         it("sets correct closingTime", async () => {
-            let closingTime = await crowdsale.closingTime();
-            closingTime.should.be.bignumber.equal(closingTime);
+            expect(await crowdsale.closingTime()).to.be.bignumber.equal(closingTime);
         });
 
         it("sets correct goal", async () => {
-            let _goal = await crowdsale.goal();
-            _goal.should.be.bignumber.equal(goal);
+            expect(await crowdsale.goal()).to.be.bignumber.equal(goal);
         });
 
         it("sets correct rate", async () => {
-            let _rate = await crowdsale.rate();
-            _rate.should.be.bignumber.equal(rate);
+            expect(await crowdsale.rate()).to.be.bignumber.equal(rate);
         });
 
         it("sets correct cap", async () => {
-            let _cap = await crowdsale.cap();
-            _cap.should.be.bignumber.equal(cap);
+            expect(await crowdsale.cap()).to.be.bignumber.equal(cap);
         });
 
         it("sets correct team share", async () => {
-            let _teamShare = await crowdsale.teamShare();
-            _teamShare.should.be.bignumber.equal(teamShare);
+            expect(await crowdsale.teamShare()).to.be.bignumber.equal(teamShare);
         });
 
         it("sets correct wallet address", async () => {
-            let _wallet = await crowdsale.wallet();
-            _wallet.should.be.bignumber.equal(wallet);
+            expect(await crowdsale.wallet()).to.be.bignumber.equal(wallet);
         });
 
     });
@@ -150,35 +140,32 @@ contract("SicosCrowdsale", ([owner,
         let whitelist, token, crowdsale;
 
         before("deployment", async () => {
-            const openingTime = now() + duration.days(1);
-            const closingTime = openingTime + duration.days(1);
+            const openingTime = time.now() + time.days(1);
+            const closingTime = openingTime + time.days(1);
             [whitelist, token, crowdsale] = await deployWhitelistAndTokenAndCrowdsale(openingTime, closingTime);
         });
 
         it("by anyone is forbidden", async () => {
-            let rateBefore = await crowdsale.rate();
-            await rejectTx(crowdsale.setRate(rateBefore.times(2), {from: anyone}));
-            let rateAfter = await crowdsale.rate();
-            rateAfter.should.be.bignumber.equal(rateBefore);
+            let rate = await crowdsale.rate();
+            await reject.tx(crowdsale.setRate(rate.times(2), {from: anyone}));
+            expect(await crowdsale.rate()).to.be.bignumber.equal(rate);
         });
 
         it("to zero is forbidden", async () => {
-            let rateBefore = await crowdsale.rate();
-            await rejectTx(crowdsale.setRate(0, {from: owner}));
-            let rateAfter = await crowdsale.rate();
-            rateAfter.should.be.bignumber.equal(rateBefore);
+            let rate = await crowdsale.rate();
+            await reject.tx(crowdsale.setRate(0, {from: owner}));
+            expect(await crowdsale.rate()).to.be.bignumber.equal(rate);
         });
 
         it("is possible", async () => {
-            let rateBefore = await crowdsale.rate();
-            let newRate = rateBefore.times(2);
+            let rate = await crowdsale.rate();
+            let newRate = rate.times(2);
             let tx = await crowdsale.setRate(newRate, {from: owner});
             let entry = tx.logs.find(entry => entry.event == "RateChanged");
-            should.exist(entry);
-            entry.args.oldRate.should.be.bignumber.equal(rateBefore);
-            entry.args.newRate.should.be.bignumber.equal(newRate);
-            let rateAfter = await crowdsale.rate();
-            rateAfter.should.be.bignumber.equal(newRate);
+            expect(entry).to.exist;
+            expect(entry.args.oldRate).to.be.bignumber.equal(rate);
+            expect(entry.args.newRate).to.be.bignumber.equal(newRate);
+            expect(await crowdsale.rate()).to.be.bignumber.equal(newRate);
         });
 
     });
@@ -187,30 +174,27 @@ contract("SicosCrowdsale", ([owner,
         let whitelist, token, crowdsale;
 
         before("deployment", async () => {
-            const openingTime = now() + duration.days(1);
-            const closingTime = openingTime + duration.days(1);
+            const openingTime = time.now() + time.days(1);
+            const closingTime = openingTime + time.days(1);
             [whitelist, token, crowdsale] = await deployWhitelistAndTokenAndCrowdsale(openingTime, closingTime);
         });
 
         it("by anyone is forbidden", async () => {
-            let teamAccountBefore = await crowdsale.teamAccount();
-            await rejectTx(crowdsale.setTeamAccount(anyone, {from: anyone}));
-            let teamAccountAfter = await crowdsale.teamAccount();
-            teamAccountAfter.should.be.bignumber.equal(teamAccountBefore);
+            let teamAccount = await crowdsale.teamAccount();
+            await reject.tx(crowdsale.setTeamAccount(anyone, {from: anyone}));
+            expect(await crowdsale.teamAccount()).to.be.bignumber.equal(teamAccount);
         });
 
         it("to zero is forbidden", async () => {
-            let teamAccountBefore = await crowdsale.teamAccount();
-            await rejectTx(crowdsale.setTeamAccount(0x0, {from: owner}));
-            let teamAccountAfter = await crowdsale.teamAccount();
-            teamAccountAfter.should.be.bignumber.equal(teamAccountBefore);
+            let teamAccount = await crowdsale.teamAccount();
+            await reject.tx(crowdsale.setTeamAccount(0x0, {from: owner}));
+            expect(await crowdsale.teamAccount()).to.be.bignumber.equal(teamAccount);
         });
 
         it("is possible", async () => {
-            let teamAccountBefore = await crowdsale.teamAccount();
+            let teamAccount = await crowdsale.teamAccount();
             await crowdsale.setTeamAccount(anyone, {from: owner});
-            let teamAccountAfter = await crowdsale.teamAccount();
-            teamAccountAfter.should.be.bignumber.equal(anyone);
+            expect(await crowdsale.teamAccount()).to.be.bignumber.equal(anyone);
         });
 
     });
@@ -219,71 +203,63 @@ contract("SicosCrowdsale", ([owner,
         let whitelist, token, crowdsale;
 
         before("deployment", async () => {
-            const openingTime = now() + duration.secs(1);
-            const closingTime = openingTime + duration.days(1);
+            const openingTime = time.now() + time.secs(1);
+            const closingTime = openingTime + time.days(1);
             [whitelist, token, crowdsale] = await deployWhitelistAndTokenAndCrowdsale(openingTime, closingTime);
-            await sleep(duration.secs(2));
+            await time.sleep(time.secs(2));
             let rate = await crowdsale.rate();
             await crowdsale.setRate(rate, {from: owner});  // Trigger a neutral transaction
         });
 
         it("token purchase is forbidden for non-whitelisted", async () => {
-            let totalSupplyBefore = await token.totalSupply();
-            await rejectTx(crowdsale.buyTokens(anyone, {from: anyone, value: currency.wei(1)}));
-            let totalSupplyAfter = await token.totalSupply();
-            totalSupplyAfter.should.be.bignumber.equal(totalSupplyBefore);
+            let totalSupply = await token.totalSupply();
+            await reject.tx(crowdsale.buyTokens(anyone, {from: anyone, value: money.wei(1)}));
+            expect(await token.totalSupply()).to.be.bignumber.equal(totalSupply);
         });
 
         it("token purchase for the benefit of someone else is forbidden", async () => {
-            let totalSupplyBefore = await token.totalSupply();
-            await rejectTx(crowdsale.buyTokens(investor2, {from: investor1, value: currency.wei(1)}));
-            let totalSupplyAfter = await token.totalSupply();
-            totalSupplyAfter.should.be.bignumber.equal(totalSupplyBefore);
+            let totalSupply = await token.totalSupply();
+            await reject.tx(crowdsale.buyTokens(investor2, {from: investor1, value: money.wei(1)}));
+            expect(await token.totalSupply()).to.be.bignumber.equal(totalSupply);
         });
 
         it("token purchase is possible", async () => {
             let rate = await crowdsale.rate();
-            let totalSupplyBefore = await token.totalSupply();
-            let balanceBefore = await token.balanceOf(investor1);
-            let value = currency.ether(4);
+            let totalSupply = await token.totalSupply();
+            let balance = await token.balanceOf(investor1);
+            let value = money.ether(4);
             let tx = await crowdsale.buyTokens(investor1, {from: investor1, value: value});
             let entry = tx.logs.find(entry => entry.event === "TokenPurchase");
-            should.exist(entry);
-            entry.args.purchaser.should.be.bignumber.equal(investor1);
-            entry.args.beneficiary.should.be.bignumber.equal(investor1);
-            entry.args.value.should.be.bignumber.equal(value);
-            entry.args.amount.should.be.bignumber.equal(value.times(rate));
-            let totalSupplyAfter = await token.totalSupply();
-            let balanceAfter = await token.balanceOf(investor1);
-            totalSupplyAfter.should.be.bignumber.equal(totalSupplyBefore.plus(value.times(rate)));
-            balanceAfter.should.be.bignumber.equal(balanceBefore.plus(value.times(rate)));
+            expect(entry).to.exist;
+            expect(entry.args.purchaser).to.be.bignumber.equal(investor1);
+            expect(entry.args.beneficiary).to.be.bignumber.equal(investor1);
+            expect(entry.args.value).to.be.bignumber.equal(value);
+            expect(entry.args.amount).to.be.bignumber.equal(value.times(rate));
+            expect(await token.totalSupply()).to.be.bignumber.equal(totalSupply.plus(value.times(rate)));
+            expect(await token.balanceOf(investor1)).to.be.bignumber.equal(balance.plus(value.times(rate)));
         });
 
         it("token purchase increases vault wei balance", async () => {
             let vault = await crowdsale.vault();
-            let weiRaisedBefore = await crowdsale.weiRaised();
-            let weiBalanceBefore = await web3.eth.getBalance(vault);
-            let value = currency.ether(2);
+            let weiRaised = await crowdsale.weiRaised();
+            let weiBalance = await web3.eth.getBalance(vault);
+            let value = money.ether(2);
             await crowdsale.buyTokens(investor1, {from: investor1, value: value});
-            let weiRaisedAfter = await crowdsale.weiRaised();
-            let weiBalanceAfter = await web3.eth.getBalance(vault);
-            weiRaisedAfter.should.be.bignumber.equal(weiRaisedBefore.plus(value));
-            weiBalanceAfter.should.be.bignumber.equal(weiBalanceBefore.plus(value));
+            expect(await crowdsale.weiRaised()).to.be.bignumber.equal(weiRaised.plus(value));
+            expect(await web3.eth.getBalance(vault)).to.be.bignumber.equal(weiBalance.plus(value));
         });
 
         it("token purchase exceeding cap is forbidden", async () => {
             let cap = await crowdsale.cap();
-            let weiRaisedBefore = await crowdsale.weiRaised();
-            let value = cap.minus(weiRaisedBefore).plus(currency.wei(1));
-            await rejectTx(crowdsale.buyTokens(investor1, {from: investor1, value: value}));
-            let weiRaisedAfter = await crowdsale.weiRaised();
-            weiRaisedAfter.should.be.bignumber.equal(weiRaisedBefore);
+            let weiRaised = await crowdsale.weiRaised();
+            let value = cap.minus(weiRaised).plus(money.wei(1));
+            await reject.tx(crowdsale.buyTokens(investor1, {from: investor1, value: value}));
+            expect(await crowdsale.weiRaised()).to.be.bignumber.equal(weiRaised);
         });
 
         it("finalization is forbidden", async () => {
-            await rejectTx(crowdsale.finalize({from: owner}));
-            let isFinalized = await crowdsale.isFinalized();
-            isFinalized.should.be.false;
+            await reject.tx(crowdsale.finalize({from: owner}));
+            expect(await crowdsale.isFinalized()).to.be.false;
         });
 
     });
@@ -292,71 +268,60 @@ contract("SicosCrowdsale", ([owner,
         let whitelist, token, crowdsale;
 
         before("deployment", async () => {
-            const openingTime = now() + duration.secs(1);
+            const openingTime = time.now() + time.secs(1);
             const closingTime = openingTime;
             [whitelist, token, crowdsale] = await deployWhitelistAndTokenAndCrowdsale(openingTime, closingTime);
-            await sleep(duration.secs(2));
+            await time.sleep(time.secs(2));
             let rate = await crowdsale.rate();
             await crowdsale.setRate(rate, {from: owner});  // Trigger a neutral transaction
         });
 
         it("it is closed but not finalized and token minting hasn't finished", async () => {
-            let hasClosed = await crowdsale.hasClosed();
-            let isFinalized = await crowdsale.isFinalized();
-            let mintingFinished = await token.mintingFinished();
-            hasClosed.should.be.true;
-            isFinalized.should.be.false;
-            mintingFinished.should.be.false;
+            expect(await crowdsale.hasClosed()).to.be.true;
+            expect(await crowdsale.isFinalized()).to.be.false;
+            expect(await token.mintingFinished()).to.be.false;
         });
 
         it("token purchases are forbidden", async () => {
-            let balanceBefore = await token.balanceOf(investor1);
-            await rejectTx(crowdsale.buyTokens(investor1, {from: investor1, value: currency.wei(1)}));
-            let balanceAfter = await token.balanceOf(investor1);
-            balanceAfter.should.be.bignumber.equal(balanceBefore);
+            let balance = await token.balanceOf(investor1);
+            await reject.tx(crowdsale.buyTokens(investor1, {from: investor1, value: money.wei(1)}));
+            expect(await token.balanceOf(investor1)).to.be.bignumber.equal(balance);
         });
 
         it("finalization is forbidden if no team account was set", async () => {
-            await rejectTx(crowdsale.finalize({from: owner}));
-            let isFinalized = await crowdsale.isFinalized();
-            isFinalized.should.be.false;
+            await reject.tx(crowdsale.finalize({from: owner}));
+            expect(await crowdsale.isFinalized()).to.be.false;
         });
 
         it("finalization by anyone is forbidden", async () => {
             await crowdsale.setTeamAccount(teamAccount, {from: owner});
-            await rejectTx(crowdsale.finalize({from: anyone}));
-            let isFinalized = await crowdsale.isFinalized();
-            isFinalized.should.be.false;
+            await reject.tx(crowdsale.finalize({from: anyone}));
+            expect(await crowdsale.isFinalized()).to.be.false;
         });
 
         it("finalization is forbidden if team account wasn't whitelisted", async () => {
-            await rejectTx(crowdsale.finalize({from: owner}));
-            let isFinalized = await crowdsale.isFinalized();
-            isFinalized.should.be.false;
+            await reject.tx(crowdsale.finalize({from: owner}));
+            expect(await crowdsale.isFinalized()).to.be.false;
         });
 
         it("finalization is possible", async () => {
             await whitelist.addToWhitelist([teamAccount], {from: owner});
             let tx = await crowdsale.finalize({from: owner});
             let entry = tx.logs.find(entry => entry.event === "Finalized");
-            should.exist(entry);
-            let isFinalized = await crowdsale.isFinalized();
-            isFinalized.should.be.true;
+            expect(entry).to.exist;
+            expect(await crowdsale.isFinalized()).to.be.true;
         });
 
         it("finalization mints team share", async () => {
-            let teamShare = await crowdsale.teamShare();
-            let teamBalance = await token.balanceOf(teamAccount);
-            teamBalance.should.be.bignumber.equal(teamShare);
+            expect(await token.balanceOf(teamAccount)).to.be.bignumber.equal(await crowdsale.teamShare());
         });
 
         it("finalization finshes token minting", async () => {
-            let mintingFinished = await token.mintingFinished();
-            mintingFinished.should.be.true;
+            expect(await token.mintingFinished()).to.be.true;
         });
 
         it("finalization again is forbidden", async () => {
-            await rejectTx(crowdsale.finalize({from: owner}));
+            await reject.tx(crowdsale.finalize({from: owner}));
         });
 
     });

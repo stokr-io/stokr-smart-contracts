@@ -1,7 +1,0 @@
-
-==========
-Migrations
-==========
-
-.. literalinclude:: ../../contracts/Migrations.sol
-
