@@ -45,7 +45,9 @@ contract SicosCrowdsale is RefundableCrowdsale, CappedCrowdsale {
     /// @dev Set rate
     /// @param _newRate A positive number
     function setRate(uint _newRate) public onlyOwner {
-        require(_newRate > 0);
+        // A rate change by an order of magnitude (or more) is likely a typo instead of intention
+        // Note, this implicitly ensures the new rate cannot be set to zero
+        require(rate / 10 < _newRate && _newRate < 10 * rate);
 
         if (_newRate != rate) {
             emit RateChanged(rate, _newRate);
@@ -88,3 +90,4 @@ contract SicosCrowdsale is RefundableCrowdsale, CappedCrowdsale {
     }
 
 }
+
