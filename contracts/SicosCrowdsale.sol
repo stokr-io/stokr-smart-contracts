@@ -1,7 +1,7 @@
 pragma solidity 0.4.24;
 
 import "../zeppelin-solidity/contracts/crowdsale/distribution/RefundableCrowdsale.sol";
-import "./MintableToken.sol";
+import "./SicosToken.sol";
 
 
 /// @title SicosCrowdsale
@@ -27,7 +27,7 @@ contract SicosCrowdsale is RefundableCrowdsale {
     /// @param _closingTime Unix timestamp of crowdsale closing
     /// @param _rate Tokens per ether rate
     /// @param _wallet Multisig wallet for receiving invested ether
-    constructor(MintableToken _token,
+    constructor(SicosToken _token,
                 uint _tokenCap,
                 uint _tokenGoal,
                 uint _openingTime,
@@ -122,8 +122,13 @@ contract SicosCrowdsale is RefundableCrowdsale {
 
         super.finalization();
 
-        MintableToken(token).mint(teamAccount, teamShare);
-        MintableToken(token).finishMinting();
+        if (goalReached()) {
+            SicosToken(token).mint(teamAccount, teamShare);
+            SicosToken(token).finishMinting();
+        }
+        else {
+            SicosToken(token).destruct();
+        }
     }
 
 }
