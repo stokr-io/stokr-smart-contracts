@@ -54,19 +54,9 @@ contract SicosCrowdsale is RefundableCrowdsale {
     function distributePresoldTokens(address[] _accounts, uint[] _amounts) public onlyOwner {
         require(_accounts.length == _amounts.length);
 
-        // We could simply call _deliverTokens(...) and were done, but this would
-        // increase gas usage because of state variable changes within the loop.
-
-        uint newRemainingTokenAmount = remainingTokenAmount;
-
         for (uint i = 0; i < _accounts.length; ++i) {
-            require(_amounts[i] <= newRemainingTokenAmount);
-
-            newRemainingTokenAmount -= _amounts[i];
-            MintableToken(token).mint(_accounts[i], _amounts[i]);
+            _deliverTokens(_accounts[i], _amounts[i]);
         }
-
-        remainingTokenAmount = newRemainingTokenAmount;
     }
 
     /// @dev Set rate
