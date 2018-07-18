@@ -42,6 +42,17 @@ contract SicosCrowdsale is RefundableCrowdsale, CappedCrowdsale {
         teamShare = _teamShare;
     }
 
+    /// @dev Distribute presold tokens.
+    /// @param _accounts List of Ethereum addresses who will receive tokens
+    /// @param _amounts List of token amounts per account
+    function distributePresoldTokens(address[] _accounts, uint[] _amounts) public onlyOwner {
+        require(_account.length == _amounts.length);
+
+        for (uint i = 0; i < _accounts.length; ++i) {
+            MintableToken(token).mint(_accounts[i], _amounts[i]);
+        }
+    }
+
     /// @dev Set rate
     /// @param _newRate A positive number
     function setRate(uint _newRate) public onlyOwner {
