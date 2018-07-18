@@ -10,6 +10,7 @@ import "./Whitelisted.sol";
 contract MintableToken is ERC20, ProfitSharing, Whitelisted {
 
     address public minter;
+    uint public numberOfInvestors = 0;
 
     /// @dev Log entry on mint
     /// @param to An Ethereum address
@@ -49,6 +50,10 @@ contract MintableToken is ERC20, ProfitSharing, Whitelisted {
     /// @param _to An Ethereum address
     /// @param _amount A positive number
     function mint(address _to, uint _amount) public onlyMinter canMint onlyWhitelisted(_to) {
+        if (accounts[_to].balance == 0) {
+            numberOfInvestors++;
+        }
+
         totalSupply_ = totalSupply_.add(_amount);
         accounts[_to].balance = accounts[_to].balance.add(_amount);
 
