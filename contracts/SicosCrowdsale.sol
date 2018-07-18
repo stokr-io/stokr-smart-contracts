@@ -12,6 +12,11 @@ contract SicosCrowdsale is RefundableCrowdsale, CappedCrowdsale {
     address public teamAccount;
     uint public teamShare;
 
+    /// @dev Log entry on rate changed
+    /// @param oldRate A positive number
+    /// @param newRate A positive number
+    event RateChanged(uint oldRate, uint newRate);
+
     /// @dev Crowdsale
     /// @param _token An Ethereum address
     /// @param _openingTime A positive number
@@ -37,11 +42,6 @@ contract SicosCrowdsale is RefundableCrowdsale, CappedCrowdsale {
         teamShare = _teamShare;
     }
 
-    /// @dev Log entry on rate changed
-    /// @param oldRate A positive number
-    /// @param newRate A positive number
-    event RateChanged(uint oldRate, uint newRate);
-
     /// @dev Set rate
     /// @param _newRate A positive number
     function setRate(uint _newRate) public onlyOwner {
@@ -61,6 +61,16 @@ contract SicosCrowdsale is RefundableCrowdsale, CappedCrowdsale {
         require(_teamAccount != address(0x0));
 
         teamAccount = _teamAccount;
+    }
+
+    /// @dev Remaining time of open crowdsale.
+    /// @returns Remaining time in seconds, or 0 if crowdsale has ended.
+    function remaingingTime() public view returns (uint) {
+        if (now >= closingTime) {
+            return 0;
+        }
+
+        return closingTime - now;
     }
 
     /// @dev Extend parent behavior requiring beneficiary to be identical to msg.sender
@@ -90,4 +100,3 @@ contract SicosCrowdsale is RefundableCrowdsale, CappedCrowdsale {
     }
 
 }
-
