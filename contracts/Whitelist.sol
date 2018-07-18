@@ -37,6 +37,8 @@ contract Whitelist is Ownable {
     /// @dev Add admin
     /// @param _admin An Ethereum address
     function addAdmin(address _admin) public onlyOwner {
+        require(_admin != address(0x0));
+
         if (!admins[_admin]) {
             admins[_admin] = true;
             emit AdminAdded(_admin);
@@ -46,6 +48,8 @@ contract Whitelist is Ownable {
     /// @dev Remove admin
     /// @param _admin An Ethereum address
     function removeAdmin(address _admin) public onlyOwner {
+        require(_admin != address(0x0));
+
         if (admins[_admin]) {
             admins[_admin] = false;
             emit AdminRemoved(_admin);
