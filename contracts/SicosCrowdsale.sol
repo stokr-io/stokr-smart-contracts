@@ -113,7 +113,7 @@ contract SicosCrowdsale is RefundableCrowdsale {
 
         tokenRemaining -= _tokenAmount;
 
-        MintableToken(token).mint(_beneficiary, _tokenAmount);
+        SicosToken(token).mint(_beneficiary, _tokenAmount);
     }
 
     /// @dev Extend parent behavior to finish the token minting.
