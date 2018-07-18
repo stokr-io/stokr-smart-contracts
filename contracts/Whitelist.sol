@@ -1,6 +1,6 @@
 pragma solidity 0.4.24;
 
-import "../zeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
 /// @title Whitelist
