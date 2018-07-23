@@ -41,7 +41,7 @@ contract MintableToken is ERC20, ProfitSharing, Whitelisted {
     /// @dev Set minter
     /// @param _minter An Ethereum address
     function setMinter(address _minter) public onlyOwner {
-        require(_minter != address(0x0) && minter == address(0x0));
+        require(_minter != address(0x0) && minter == address(0x0), "Minter may only be set once.");
 
         minter = _minter;
     }

@@ -46,7 +46,7 @@ contract ProfitSharing is Ownable {
 
     /// @dev Ensure only depositor
     modifier onlyProfitDepositor() {
-        require(msg.sender == profitDepositor);
+        require(msg.sender == profitDepositor, "Operation is restricted to profit depositor.");
         _;
     }
 
@@ -59,7 +59,7 @@ contract ProfitSharing is Ownable {
     /// @dev Change profit depositor
     /// @param _newProfitDepositor An Ethereum address
     function setProfitDepositor(address _newProfitDepositor) public onlyOwner {
-        require(_newProfitDepositor != address(0x0));
+        require(_newProfitDepositor != address(0x0), "Profit depositor address must not be zero.");
 
         if (profitDepositor != address(0x0) && _newProfitDepositor != profitDepositor) {
             emit ProfitDepositorChanged(_newProfitDepositor);
@@ -78,17 +78,18 @@ contract ProfitSharing is Ownable {
     /// @param _investor An Ethereum address
     /// @return A positive number
     function profitShareOwing(address _investor) public view returns (uint) {
-        return totalSupplyIsFixed && totalSupply_ > 0
-               ? totalProfits.sub(accounts[_investor].lastTotalProfits)
-                             .mul(accounts[_investor].balance)
-                             .div(totalSupply_)  // <- The linter doesn't like this.
-               : 0;
+        if (!totalSupplyIsFixed || totalSupply_ == 0) {
+            return 0;
+        }
+        return totalProfits.sub(accounts[_investor].lastTotalProfits)
+                           .mul(accounts[_investor].balance)
+                           .div(totalSupply_);  // <- The linter doesn't like this.
     }
 
     /// @dev Update profit share
     /// @param _investor An Ethereum address
     function updateProfitShare(address _investor) public {
-        require(totalSupplyIsFixed);
+        require(totalSupplyIsFixed, "Total supply must be fixed prior to update profit share.");
 
         uint additionalProfitShare =  profitShareOwing(_investor);
 

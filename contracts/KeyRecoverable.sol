@@ -20,7 +20,7 @@ contract KeyRecoverable is Ownable {
 
     /// @dev Ensure only key recoverer
     modifier onlyKeyRecoverer() {
-        require(msg.sender == keyRecoverer);
+        require(msg.sender == keyRecoverer, "Operation is restricted to key recoverer.");
         _;
     }
 
@@ -33,7 +33,7 @@ contract KeyRecoverable is Ownable {
     /// @dev Set key recoverer
     /// @param _newKeyRecoverer An Ethereum address
     function setKeyRecoverer(address _newKeyRecoverer) public onlyOwner {
-        require(_newKeyRecoverer != address(0x0));
+        require(_newKeyRecoverer != address(0x0), "Key recoverer address must not be zero.");
 
         if (keyRecoverer != address(0x0) && _newKeyRecoverer != keyRecoverer) {
             emit KeyRecovererChanged(_newKeyRecoverer);

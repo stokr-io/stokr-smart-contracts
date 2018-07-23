@@ -40,8 +40,8 @@ contract SicosCrowdsale is RefundableCrowdsale {
         TimedCrowdsale(_openingTime, _closingTime)
         Crowdsale(_rate, _wallet, _token)
     {
-        require(_teamShare <= _tokenCap);
-        require(_tokenGoal <= _tokenCap - _teamShare);
+        require(_teamShare <= _tokenCap, "Team share must not exceed token cap.");
+        require(_tokenGoal <= _tokenCap - _teamShare, "Goal must be attainable.");
 
         tokenCap = _tokenCap;
         teamShare = _teamShare;
@@ -52,7 +52,7 @@ contract SicosCrowdsale is RefundableCrowdsale {
     /// @param _accounts List of Ethereum addresses who will receive tokens
     /// @param _amounts List of token amounts per account
     function distributeTokens(address[] _accounts, uint[] _amounts) public onlyOwner {
-        require(_accounts.length == _amounts.length);
+        require(_accounts.length == _amounts.length, "Number of accounts and amounts must be equal.");
 
         for (uint i = 0; i < _accounts.length; ++i) {
             _deliverTokens(_accounts[i], _amounts[i]);
@@ -64,7 +64,7 @@ contract SicosCrowdsale is RefundableCrowdsale {
     function setRate(uint _newRate) public onlyOwner {
         // A rate change by an order of magnitude (or more) is likely a typo instead of intention
         // Note, this implicitly ensures the new rate cannot be set to zero
-        require(rate / 10 < _newRate && _newRate < 10 * rate);
+        require(rate / 10 < _newRate && _newRate < 10 * rate, "Rate change must be less than an order of magnitude.");
 
         if (_newRate != rate) {
             emit RateChanged(rate, _newRate);
@@ -75,7 +75,7 @@ contract SicosCrowdsale is RefundableCrowdsale {
     /// @dev Set team account
     /// @param _teamAccount An Ethereum address.
     function setTeamAccount(address _teamAccount) public onlyOwner {
-        require(_teamAccount != address(0x0));
+        require(_teamAccount != address(0x0), "Team account address must not be zero.");
 
         teamAccount = _teamAccount;
     }
@@ -100,7 +100,7 @@ contract SicosCrowdsale is RefundableCrowdsale {
     /// @param _beneficiary Token purchaser
     /// @param _weiAmount Amount of wei contributed
     function _preValidatePurchase(address _beneficiary, uint256 _weiAmount) internal {
-        require(_beneficiary == msg.sender);
+        require(_beneficiary == msg.sender, "Message sender and beneficiary address must be the same.");
 
         super._preValidatePurchase(_beneficiary, _weiAmount);
     }
@@ -109,7 +109,7 @@ contract SicosCrowdsale is RefundableCrowdsale {
     /// @param _beneficiary Token recipient
     /// @param _tokenAmount Token amount
     function _deliverTokens(address _beneficiary, uint256 _tokenAmount) internal {
-        require(tokenRemaining >= _tokenAmount);
+        require(tokenRemaining >= _tokenAmount, "Amount of tokens to deliver exceeds remaining amount.");
 
         tokenRemaining -= _tokenAmount;
 
@@ -118,7 +118,7 @@ contract SicosCrowdsale is RefundableCrowdsale {
 
     /// @dev Extend parent behavior to finish the token minting.
     function finalization() internal {
-        require(teamAccount != address(0x0));
+        require(teamAccount != address(0x0), "Team account has to be set prior to finalization.");
 
         super.finalization();
 
