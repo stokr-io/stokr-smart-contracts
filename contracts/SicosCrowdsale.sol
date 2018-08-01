@@ -46,8 +46,6 @@ contract SicosCrowdsale is RefundableCrowdsale {
         tokenCap = _tokenCap;
         teamShare = _teamShare;
         tokenRemaining = _tokenCap - _teamShare;
-
-        _token.setMinter(this);
     }
 
     /// @dev Distribute tokens.
