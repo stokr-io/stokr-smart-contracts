@@ -61,7 +61,6 @@ contract("SicosCrowdsale", ([owner,
 
     let initialState;
 
-    /*
     before("save inital state", async () => {
         initialState = await snapshot.new();
     });
@@ -69,7 +68,6 @@ contract("SicosCrowdsale", ([owner,
     after("revert to inital state", async () => {
         await initialState.revert();
     });
-    */
 
     describe("deployment", () => {
 
@@ -232,7 +230,7 @@ contract("SicosCrowdsale", ([owner,
 
             it("by anyone but owner is forbidden", async () => {
                 let teamAccount = await sale.teamAccount();
-                await reject.tx(sale.setTeamAccount(random.address(), {from: anyone}));
+                await reject.tx(sale.setTeamAccount(teamAccount, {from: anyone}));
                 expect(await sale.teamAccount()).to.be.bignumber.equal(teamAccount);
             });
 
@@ -291,7 +289,7 @@ contract("SicosCrowdsale", ([owner,
         describe("finalization", () => {
 
             it("is forbidden", async () => {
-                await sale.setTeamAccount(random.address(), {from: owner});
+                await sale.setTeamAccount(teamAccount, {from: owner});
                 await reject.tx(sale.finalize({from: owner}));
                 expect(await sale.isFinalized()).to.be.false;
             });
@@ -407,18 +405,18 @@ contract("SicosCrowdsale", ([owner,
         describe("finalization", () => {
 
             it("is forbidden", async () => {
-                await sale.setTeamAccount(random.address(), {from: owner});
+                await sale.setTeamAccount(teamAccount, {from: owner});
                 await reject.tx(sale.finalize({from: owner}));
                 expect(await sale.isFinalized()).to.be.false;
             });
         });
     });
 
-    describe.only("after sale goal wasn't reached", () => {
+    describe("after sale goal was missed", () => {
         let sale, token, whitelist;
 
         before("deploy", async () => {
-            //await initialState.restore();
+            await initialState.restore();
             sale = await deploySale();
             token = await SicosToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
@@ -457,14 +455,8 @@ contract("SicosCrowdsale", ([owner,
                 expect(await sale.isFinalized()).to.be.false;
             });
 
-            it("with team account not whitelisted is forbidden", async () => {
-                await sale.setTeamAccount(teamAccount, {from: owner});
-                await reject.tx(sale.finalize({from: owner}));
-                expect(await sale.isFinalized()).to.be.false;
-            });
-
             it("by anyone is forbidden", async () => {
-                await whitelist.addToWhitelist([teamAccount], {from: owner});
+                await sale.setTeamAccount(teamAccount, {from: owner});
                 await reject.tx(sale.finalize({from: anyone}));
                 expect(await sale.isFinalized()).to.be.false;
             });
@@ -478,15 +470,16 @@ contract("SicosCrowdsale", ([owner,
         });
     });
 
-    describe.only("after sale goal wasn't reached", () => {
+    describe("after sale goal was reached", () => {
         let sale, token, whitelist;
 
         before("deploy", async () => {
-            //await initialState.restore();
+            await initialState.restore();
             sale = await deploySale();
             token = await SicosToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
             await token.setMinter(sale.address, {from: owner});
+            await sale.distributeTokens([investor1], [await sale.goal()], {from: owner});
             await time.increaseTo((await sale.closingTime()).plus(time.secs(1)));
         });
 
@@ -521,7 +514,7 @@ contract("SicosCrowdsale", ([owner,
                 expect(await sale.isFinalized()).to.be.false;
             });
 
-            it("with team account not whitelisted is forbidden", async () => {
+            it("without team account being whitelisted is forbidden", async () => {
                 await sale.setTeamAccount(teamAccount, {from: owner});
                 await reject.tx(sale.finalize({from: owner}));
                 expect(await sale.isFinalized()).to.be.false;
@@ -556,7 +549,89 @@ contract("SicosCrowdsale", ([owner,
             await sale.finalize({from: owner});
         });
 
+        describe("sale state", () => {
 
+            it("has a zero remaining time", async () => {
+                expect(await sale.timeRemaining()).to.be.bignumber.zero;
+            });
+
+            it("is closed", async () => {
+                expect(await sale.hasClosed()).to.be.true;
+            });
+
+            it("is not finalized", async () => {
+                expect(await sale.isFinalized()).to.be.true;
+            });
+        });
+
+        describe("token contract", () => {
+
+            it("is destructed", async () => {
+                expect(await web3.eth.getCode(token.address)).to.be.oneOf(["0x", "0x0"]);
+            });
+        });
+
+        describe("finalization", () => {
+
+            it("is forbidden", async () => {
+                await reject.tx(sale.finalize({from: owner}));
+            });
+        });
+    });
+
+    describe("after finalization if goal was reached", () => {
+        let sale, token, whitelist;
+
+        before("deploy", async () => {
+            await initialState.restore();
+            sale = await deploySale();
+            token = await SicosToken.at(await sale.token());
+            whitelist = await Whitelist.at(await token.whitelist());
+            await token.setMinter(sale.address, {from: owner});
+            await time.increaseTo((await sale.closingTime()).plus(time.secs(1)));
+            await sale.distributeTokens([investor1], [await sale.goal()], {from: owner});
+            await whitelist.addToWhitelist([teamAccount], {from: owner});
+            await sale.setTeamAccount(teamAccount, {from: owner});
+            await sale.finalize({from: owner});
+        });
+
+        describe("sale state", () => {
+
+            it("has a zero remaining time", async () => {
+                expect(await sale.timeRemaining()).to.be.bignumber.zero;
+            });
+
+            it("is closed", async () => {
+                expect(await sale.hasClosed()).to.be.true;
+            });
+
+            it("is not finalized", async () => {
+                expect(await sale.isFinalized()).to.be.true;
+            });
+        });
+
+        describe("token purchase", () => {
+
+            it("is forbidden", async () => {
+                let balance = await token.balanceOf(investor1);
+                await reject.tx(sale.buyTokens(investor1, {from: investor1, value: money.ether(1)}));
+                expect(await token.balanceOf(investor1)).to.be.bignumber.equal(balance);
+            });
+        });
+
+        describe("team account", () => {
+
+            it("received team share", async () => {
+                expect(await token.balanceOf(teamAccount)).to.be.bignumber.equal(await sale.teamShare());
+            });
+        });
+
+        describe("finalization", () => {
+
+            it("is forbidden", async () => {
+                await reject.tx(sale.finalize({from: owner}));
+            });
+        });
     });
 
 });
