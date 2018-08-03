@@ -2,7 +2,6 @@ module.exports = {
     // See <http://truffleframework.com/docs/advanced/configuration>
     // to customize your Truffle configuration!
 
-    /*
     networks: {
         // Local testrpc network
         development: {
@@ -11,6 +10,5 @@ module.exports = {
             network_id: "*" // Match any network id
         },
     },
-    */
 
 };
