@@ -22,7 +22,7 @@ contract SicosToken is MintableToken, KeyRecoverable {
     {}
 
     /// @dev Self destruct
-    function destruct() public onlyOwner notMinting {
+    function destruct() public onlyMinter {
         selfdestruct(owner);
     }
 
