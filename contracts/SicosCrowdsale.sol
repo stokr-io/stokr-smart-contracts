@@ -118,11 +118,11 @@ contract SicosCrowdsale is RefundableCrowdsale {
 
     /// @dev Extend parent behavior to finish the token minting.
     function finalization() internal {
-        require(teamAccount != address(0x0), "Team account has to be set prior to finalization.");
-
         super.finalization();
 
         if (goalReached()) {
+            require(teamAccount != address(0x0), "Team account has to be set prior to finalization.");
+
             SicosToken(token).mint(teamAccount, teamShare);
             SicosToken(token).finishMinting();
         }
