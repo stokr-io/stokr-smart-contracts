@@ -8,7 +8,7 @@ const RefundVault = artifacts.require("../node_modules/zeppelin-solidity/contrac
 
 const BN = web3.BigNumber;
 const {expect} = require("chai").use(require("chai-bignumber")(BN));
-const {random, time, money, reject, snapshot} = require("./helpers/common");
+const {random, time, money, reject, snapshot, logGas} = require("./helpers/common");
 
 
 contract("SicosCrowdsale", ([owner,
@@ -174,18 +174,21 @@ contract("SicosCrowdsale", ([owner,
                 expect(await sale.tokenRemaining()).to.be.bignumber.equal(params.tokenCap.minus(params.teamShare));
             });
 
-            it("correctly calculates remaining sale time", async () => {
+            it.skip("correctly calculates remaining sale time", async () => {
                 expect(await sale.timeRemaining()).to.be.bignumber.equal(params.closingTime - time.now());
             });
         });
     });
 
     describe("time independent", () => {
-        let sale;
+        let sale, token, whitelist;
 
         before("deploy", async () => {
             await initialState.restore();
             sale = await deploySale();
+            token = await SicosToken.at(await sale.token());
+            whitelist = await Whitelist.at(await token.whitelist());
+            await token.setMinter(sale.address, {from: owner});
         });
 
         describe("rate change", () => {
@@ -248,6 +251,78 @@ contract("SicosCrowdsale", ([owner,
         });
 
         describe("token distribution", () => {
+
+            it("by anyone is forbidden", async () => {
+                let totalSupply = await token.totalSupply();
+                await reject.tx(sale.distributeTokens([investor1], [1], {from: anyone}));
+                expect(await token.totalSupply()).to.be.bignumber.equal(totalSupply);
+            });
+
+            it("beyond remaining tokens is forbidden", async () => {
+                let totalSupply = await token.totalSupply();
+                await reject.tx(sale.distributeTokens([investor1, investor2],
+                                                      [await sale.tokenRemaining(), 1],
+                                                      {from: owner}));
+                expect(await token.totalSupply()).to.be.bignumber.equal(totalSupply);
+            });
+
+            it("is possible", async () => {
+                let amount = (await sale.tokenRemaining()).divToInt(2);
+                await sale.distributeTokens([investor1], [amount], {from: owner});
+            });
+
+            it("increases recipient's balance", async () => {
+                let balance = await token.balanceOf(investor1);
+                let amount = (await sale.tokenRemaining()).divToInt(2);
+                await sale.distributeTokens([investor1], [amount], {from: owner});
+                expect(await token.balanceOf(investor1)).to.be.bignumber.equal(balance.plus(amount));
+            });
+
+            it("increases token total supply", async () => {
+                let totalSupply = await token.totalSupply();
+                let amount = (await sale.tokenRemaining()).divToInt(2);
+                await sale.distributeTokens([investor1], [amount], {from: owner});
+                expect(await token.totalSupply()).to.be.bignumber.equal(totalSupply.plus(amount));
+            });
+
+            it("decreases remaining tokens", async () => {
+                let remaining = await sale.tokenRemaining();
+                let amount = (await sale.tokenRemaining()).divToInt(2);
+                await sale.distributeTokens([investor1], [amount], {from: owner});
+                expect(await sale.tokenRemaining()).to.be.bignumber.equal(remaining.minus(amount));
+            });
+
+            it.skip("many recipients at once is possible", async () => {
+                await logGas(sale.distributeTokens([], [], {from: owner}), "no investors");
+                let nSucc = 0;
+                let nFail = -1;
+                let nTest = 1;
+                while (nTest != nSucc && nTest < 1024) {
+                    let investors = [];
+                    let amounts = [];
+                    for (let i = 0; i < nTest; ++i) {
+                        investors.push(random.address());
+                        amounts.push(i);
+                    }
+                    await whitelist.addToWhitelist(investors, {from: owner});
+                    let success = true;
+                    try {
+                        await logGas(sale.distributeTokens(investors, amounts, {from: owner}), nTest + " investors");
+                    }
+                    catch (error) {
+                        success = false;
+                    }
+                    if (success) {
+                        nSucc = nTest;
+                        nTest = nFail < 0 ? 2 * nTest : Math.trunc((nTest + nFail) / 2);
+                    }
+                    else {
+                        nFail = nTest;
+                        nTest = Math.trunc((nSucc + nTest) / 2);
+                    }
+                }
+                expect(nSucc).to.be.at.above(2);
+            });
         });
     });
 
@@ -371,7 +446,7 @@ contract("SicosCrowdsale", ([owner,
                 expect(await vault.deposited(investor1)).to.be.bignumber.equal(deposit.plus(value));
             });
 
-            it("increases token supply", async () => {
+            it("increases token total supply", async () => {
                 let totalSupply = await token.totalSupply();
                 let value = money.ether(2);
                 let amount = value.times(await sale.rate());
@@ -450,13 +525,7 @@ contract("SicosCrowdsale", ([owner,
 
         describe("finalization", () => {
 
-            it("without team account is forbidden", async () => {
-                await reject.tx(sale.finalize({from: owner}));
-                expect(await sale.isFinalized()).to.be.false;
-            });
-
             it("by anyone is forbidden", async () => {
-                await sale.setTeamAccount(teamAccount, {from: owner});
                 await reject.tx(sale.finalize({from: anyone}));
                 expect(await sale.isFinalized()).to.be.false;
             });
@@ -545,7 +614,6 @@ contract("SicosCrowdsale", ([owner,
             whitelist = await Whitelist.at(await token.whitelist());
             await token.setMinter(sale.address, {from: owner});
             await time.increaseTo((await sale.closingTime()).plus(time.secs(1)));
-            await sale.setTeamAccount(teamAccount, {from: owner});
             await sale.finalize({from: owner});
         });
 
