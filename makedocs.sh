@@ -2,9 +2,9 @@
 
 echo "WARNING: solidity-doc is crap!"
 
-( for solfile in contracts/*.sol
+( for solfile in contracts/SicosToken.sol
   do
-      node_modules/.bin/solidity-doc generate ${solfile} 2> /dev/null
+    node_modules/.bin/solidity-doc generate ${solfile} 2> /dev/null
   done ) \
 | sed -r '/^## Functions/d;
           s/^empty list$/*none*/;
