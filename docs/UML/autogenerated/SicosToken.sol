@@ -18,6 +18,11 @@ contract SicosToken is MintableToken, KeyRecoverable {
         require(IMPLEMENTATION);
     }
 
+    /// @dev Destruct
+    function destruct() public onlyMinter {
+        require(IMPLEMENTATION);
+    }
+
     /// @dev Recover key
     /// @param _oldAddress An Ethereum address
     /// @param _newAddress An Ethereum address
@@ -76,7 +81,7 @@ contract SicosToken is MintableToken, KeyRecoverable {
     /// @param _to An Ethereum address
     /// @param _value A positive number
     /// @return True or false
-    function _transfer(address _from, address _to, uint _value) public onlyWhitelisted(_from) onlyWhitelisted(_to) notMinting returns (bool) {
+    function _transfer(address _from, address _to, uint _value) internal onlyWhitelisted(_from) onlyWhitelisted(_to) notMinting returns (bool) {
         require(IMPLEMENTATION);
     }
 
