@@ -9,6 +9,13 @@ contract SampleToken is SicosToken {
 
     string public name = "Sample Sicos Token";
     string public symbol = "SAM";
-    uint public decimal = 18;
+    uint8 public decimals = 18;
+
+    constructor(string _name, string _symbol, Whitelist _whitelist, address _profitDepositor, address _keyRecoverer)
+        SicosToken(_whitelist, _profitDepositor, _keyRecoverer)
+    {
+        name = _name;
+        symbol = _symbol;
+    }
 
 }

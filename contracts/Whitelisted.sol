@@ -22,16 +22,16 @@ contract Whitelisted is Ownable {
 
     /// @dev Constructor
     /// @param _whitelist An Ethereum address
-    constructor(address _whitelist) public {
+    constructor(Whitelist _whitelist) public {
         setWhitelist(_whitelist);
     }
 
     /// @dev Set whitelist
     /// @param _newWhitelist An Ethereum address
-    function setWhitelist(address _newWhitelist) public onlyOwner {
+    function setWhitelist(Whitelist _newWhitelist) public onlyOwner {
         require(_newWhitelist != address(0x0), "Whitelist address must not be zero.");
 
-        if (whitelist != address(0x0) && _newWhitelist != address(whitelist)) {
+        if (address(whitelist) != address(0x0) && address(_newWhitelist) != address(whitelist)) {
             emit WhitelistChanged(_newWhitelist);
         }
         whitelist = Whitelist(_newWhitelist);

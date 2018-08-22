@@ -1,8 +1,17 @@
 {
+  "name": "stokr-token-platform",
+  "version": "0.1.0",
+  "description": "Stokr Token Platform Solidity Contracts",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "http://46.101.229.186:3000/sicos/tokenplatform"
+  },
   "dependencies": {
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
     "chai-bignumber": "^2.0.2",
+    "eth-gas-reporter": "^0.1.10",
     "ganache-cli": "^6.1.6",
     "solhint": "^1.2.1",
     "solidity-doc": "^0.1.3",

@@ -14,7 +14,7 @@ contract SicosToken is MintableToken, KeyRecoverable {
     /// @dev Constructor
     /// @param _whitelist An Ethereum address
     /// @param _keyRecoverer An Ethereum address
-    constructor(address _whitelist, address _profitDepositor, address _keyRecoverer)
+    constructor(Whitelist _whitelist, address _profitDepositor, address _keyRecoverer)
         public
         Whitelisted(_whitelist)
         ProfitSharing(_profitDepositor)

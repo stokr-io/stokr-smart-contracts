@@ -1,14 +1,25 @@
 module.exports = {
-    // See <http://truffleframework.com/docs/advanced/configuration>
-    // to customize your Truffle configuration!
 
     networks: {
-        // Local testrpc network
+        // Local (ephemeral) testrpc/ganache network
         development: {
+            network_id: "*",
             host: "localhost",
             port: 8545,
-            network_id: "*" // Match any network id
         },
+
+        // Local (persistent) PoA test network
+        o34poa: {
+            network_id: "*",
+            host: "192.168.42.36",
+            port: 8545,
+        }
     },
+
+    /*
+    mocha: {
+        reporter: "eth-gas-reporter",
+    },
+    */
 
 };
