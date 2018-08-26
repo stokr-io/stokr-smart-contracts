@@ -47,8 +47,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'TokenPlatform'
-copyright = '2018, Sicos'
-author = 'Sicos'
+copyright = '2018, SICOS'
+author = 'SICOS'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -124,7 +124,7 @@ html_sidebars = {
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'TokenPlatformdoc'
+htmlhelp_basename = 'TokenPlatform'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -165,7 +165,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'TokenPlatform.tex', 'TokenPlatform Documentation',
-     'Sicos', 'manual'),
+     'SICOS', 'manual'),
 ]
 
 

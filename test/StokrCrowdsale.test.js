@@ -1,8 +1,8 @@
 "use strict";
 
 const Whitelist = artifacts.require("./Whitelist.sol");
-const SicosToken = artifacts.require("./SicosToken.sol");
-const SicosCrowdsale = artifacts.require("./SicosCrowdsale.sol");
+const StokrToken = artifacts.require("./StokrToken.sol");
+const StokrCrowdsale = artifacts.require("./StokrCrowdsale.sol");
 const RefundVault = artifacts.require("../node_modules/zeppelin-solidity/contracts/crowdsale/distribution/utils"
                                       + "/RefundVault.sol");
 
@@ -11,7 +11,7 @@ const {expect} = require("chai").use(require("chai-bignumber")(BN));
 const {random, time, money, reject, snapshot, logGas} = require("./helpers/common");
 
 
-contract("SicosCrowdsale", ([owner,
+contract("StokrCrowdsale", ([owner,
                              investor1,
                              investor2,
                              teamAccount,
@@ -29,7 +29,7 @@ contract("SicosCrowdsale", ([owner,
         wallet
     });
 
-    // Helper function: deploy SicosCrowdsale (and Whitelist and SicosToken if necessary)
+    // Helper function: deploy StokrCrowdsale (and Whitelist and StokrToken if necessary)
     const deploySale = async params => {
         let $ = defaultParams();
 
@@ -42,13 +42,13 @@ contract("SicosCrowdsale", ([owner,
             let whitelist = await Whitelist.new({from: owner});
             await whitelist.addAdmin(owner, {from: owner});
             await whitelist.addToWhitelist([investor1, investor2], {from: owner});
-            $.token = (await SicosToken.new(whitelist.address,
+            $.token = (await StokrToken.new(whitelist.address,
                                             random.address(),
                                             random.address(),
                                             {from: owner})).address;
         }
 
-        return SicosCrowdsale.new($.token,
+        return StokrCrowdsale.new($.token,
                                   $.tokenCap,
                                   $.tokenGoal,
                                   $.openingTime,
@@ -126,7 +126,7 @@ contract("SicosCrowdsale", ([owner,
             let sale;
 
             it("succeeds", async () => {
-                params.token = (await SicosToken.new(random.address(),
+                params.token = (await StokrToken.new(random.address(),
                                                      random.address(),
                                                      random.address(),
                                                      {from: owner})).address;
@@ -186,7 +186,7 @@ contract("SicosCrowdsale", ([owner,
         before("deploy", async () => {
             await initialState.restore();
             sale = await deploySale();
-            token = await SicosToken.at(await sale.token());
+            token = await StokrToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
             await token.setMinter(sale.address, {from: owner});
         });
@@ -332,7 +332,7 @@ contract("SicosCrowdsale", ([owner,
         before("deploy", async () => {
             await initialState.restore();
             sale = await deploySale();
-            token = await SicosToken.at(await sale.token());
+            token = await StokrToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
             await token.setMinter(sale.address, {from: owner});
         });
@@ -377,7 +377,7 @@ contract("SicosCrowdsale", ([owner,
         before("deploy", async () => {
             await initialState.restore();
             sale = await deploySale();
-            token = await SicosToken.at(await sale.token());
+            token = await StokrToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
             await token.setMinter(sale.address, {from: owner});
             await time.increaseTo((await sale.openingTime()).plus(time.secs(1)));
@@ -493,7 +493,7 @@ contract("SicosCrowdsale", ([owner,
         before("deploy", async () => {
             await initialState.restore();
             sale = await deploySale();
-            token = await SicosToken.at(await sale.token());
+            token = await StokrToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
             await token.setMinter(sale.address, {from: owner});
             await time.increaseTo((await sale.closingTime()).plus(time.secs(1)));
@@ -545,7 +545,7 @@ contract("SicosCrowdsale", ([owner,
         before("deploy", async () => {
             await initialState.restore();
             sale = await deploySale();
-            token = await SicosToken.at(await sale.token());
+            token = await StokrToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
             await token.setMinter(sale.address, {from: owner});
             await sale.distributeTokens([investor1], [await sale.goal()], {from: owner});
@@ -610,7 +610,7 @@ contract("SicosCrowdsale", ([owner,
         before("deploy", async () => {
             await initialState.restore();
             sale = await deploySale();
-            token = await SicosToken.at(await sale.token());
+            token = await StokrToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
             await token.setMinter(sale.address, {from: owner});
             await time.increaseTo((await sale.closingTime()).plus(time.secs(1)));
@@ -653,7 +653,7 @@ contract("SicosCrowdsale", ([owner,
         before("deploy", async () => {
             await initialState.restore();
             sale = await deploySale();
-            token = await SicosToken.at(await sale.token());
+            token = await StokrToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
             await token.setMinter(sale.address, {from: owner});
             await time.increaseTo((await sale.closingTime()).plus(time.secs(1)));

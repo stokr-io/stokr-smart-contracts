@@ -1,14 +1,14 @@
 "use strict";
 
 const Whitelist = artifacts.require("./Whitelist.sol");
-const SicosToken = artifacts.require("./SicosToken.sol");
+const StokrToken = artifacts.require("./StokrToken.sol");
 
 const BN = web3.BigNumber;
 const {expect} = require("chai").use(require("chai-bignumber")(BN));
 const {random, time, money, reject} = require("./helpers/common");
 
 
-contract("SicosToken", ([owner,
+contract("StokrToken", ([owner,
                          minter,
                          profitDepositor,
                          keyRecoverer,
@@ -19,14 +19,14 @@ contract("SicosToken", ([owner,
                          anyone]) => {
     const investors = [investor1, investor2, investor3];
 
-    // Helper function to deploy a Whitelist and a SicosToken.
+    // Helper function to deploy a Whitelist and a StokrToken.
     const deployWhitelistAndToken = async () => {
         // deploy whitelist contract where owner becomes whitelist admin and adds three investors
         let whitelist = await Whitelist.new({from: owner});
         await whitelist.addAdmin(owner, {from: owner});
         await whitelist.addToWhitelist(investors, {from: owner});
         // deploy token contract with keyRecoverer and minter
-        let token = await SicosToken.new(whitelist.address,
+        let token = await StokrToken.new(whitelist.address,
                                          profitDepositor,
                                          keyRecoverer,
                                          {from: owner});
@@ -46,15 +46,15 @@ contract("SicosToken", ([owner,
         describe("with invalid parameters", () => {
 
             it("fails if whitelist is zero address", async () => {
-                await reject.deploy(SicosToken.new(0x0, profitDepositor, keyRecoverer, {from: owner}));
+                await reject.deploy(StokrToken.new(0x0, profitDepositor, keyRecoverer, {from: owner}));
             });
 
             it("fails if profitDepositor is zero address", async () => {
-                await reject.deploy(SicosToken.new(whitelist.address, 0x0, keyRecoverer, {from: owner}));
+                await reject.deploy(StokrToken.new(whitelist.address, 0x0, keyRecoverer, {from: owner}));
             });
 
             it("fails if keyRecoverer is zero address", async () => {
-                await reject.deploy(SicosToken.new(whitelist.address, profitDepositor, 0x0, {from: owner}));
+                await reject.deploy(StokrToken.new(whitelist.address, profitDepositor, 0x0, {from: owner}));
             });
         });
 
@@ -62,7 +62,7 @@ contract("SicosToken", ([owner,
             let token;
 
             it("succeeds", async () => {
-                token = await SicosToken.new(whitelist.address,
+                token = await StokrToken.new(whitelist.address,
                                              profitDepositor,
                                              keyRecoverer,
                                              {from: owner});
@@ -109,7 +109,7 @@ contract("SicosToken", ([owner,
 
         before("deploy contracts", async () => {
             whitelist = await Whitelist.new({from: owner});
-            token = await SicosToken.new(whitelist.address,
+            token = await StokrToken.new(whitelist.address,
                                          profitDepositor,
                                          keyRecoverer,
                                          {from: owner});

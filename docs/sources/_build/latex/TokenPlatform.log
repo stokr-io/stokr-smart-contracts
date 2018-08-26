@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (Web2C 2015) (preloaded format=pdflatex 2017.12.30)  8 AUG 2018 19:14
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (Web2C 2015) (preloaded format=pdflatex 2018.8.11)  27 AUG 2018 01:02
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1102,26 +1102,22 @@ Overfull \vbox (3.29312pt too high) detected at line 836
 [17] [18]
 Chapter 9.
 No file TokenPlatform.ind.
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 862.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 875.
 [19
 
 ]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 862.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 875.
  (./TokenPlatform.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 862.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 862.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 875.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 875.
 Package rerunfilecheck Info: File `TokenPlatform.out' has not changed.
-(rerunfilecheck)             Checksum: 8D0FD4BF011FD1D3F380A3EF453FC169;922.
-
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 862.
+(rerunfilecheck)             Checksum: F198E6D95F3AFCBA45136F211C7FB124;922.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 875.
  ) 
 Here is how much of TeX's memory you used:
  13346 strings out of 493093
- 184503 string characters out of 6138119
- 457882 words of memory out of 5000000
+ 184503 string characters out of 6138120
+ 457886 words of memory out of 5000000
  16527 multiletter control sequences out of 15000+600000
  32844 words of font info for 51 fonts, out of 8000000 for 9000
  1142 hyphenation exceptions out of 8191
@@ -1133,7 +1129,7 @@ public/inconsolata/Inconsolata-zi4r.pfb></usr/local/share/texmf-dist/fonts/type
 1/public/amsfonts/cm/cmmi5.pfb></usr/local/share/texmf-dist/fonts/type1/public/
 amsfonts/cm/cmsy5.pfb></usr/local/share/texmf-dist/fonts/type1/urw/helvetic/uhv
 b8a.pfb></usr/local/share/texmf-dist/fonts/type1/urw/helvetic/uhvbo8a.pfb>
-Output written on TokenPlatform.pdf (21 pages, 80020 bytes).
+Output written on TokenPlatform.pdf (21 pages, 80224 bytes).
 PDF statistics:
  181 PDF objects out of 1000 (max. 8388607)
  146 compressed objects within 2 object streams

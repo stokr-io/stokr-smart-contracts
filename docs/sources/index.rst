@@ -11,10 +11,10 @@ TokenPlatform's Solidity Sources
 
    _contracts/Whitelist
    _contracts/KeyRecoverer
-   _contracts/SicosCrowdsale
+   _contracts/StokrCrowdsale
    _contracts/Whitelisted
    _contracts/KeyRecoverable
    _contracts/ProfitSharing
    _contracts/MintableToken
-   _contracts/SicosToken
+   _contracts/StokrToken
    _contracts/SampleToken
