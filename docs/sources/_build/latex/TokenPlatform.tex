@@ -58,7 +58,7 @@
 
 
 \title{TokenPlatform Documentation}
-\date{Aug 27, 2018}
+\date{Aug 28, 2018}
 \release{}
 \author{SICOS}
 \newcommand{\sphinxlogo}{\vbox{}}
@@ -74,7 +74,7 @@
 
 
 \chapter{Whitelist}
-\label{\detokenize{_contracts/Whitelist:whitelist}}\label{\detokenize{_contracts/Whitelist::doc}}\label{\detokenize{_contracts/Whitelist:tokenplatform-s-solidity-sources}}
+\label{\detokenize{_contracts/Whitelist:tokenplatform-s-solidity-sources}}\label{\detokenize{_contracts/Whitelist::doc}}\label{\detokenize{_contracts/Whitelist:whitelist}}
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{k+kr}{pragma} \PYG{n+nx}{solidity} \PYG{l+m+mf}{0.4}\PYG{l+m+mf}{.24}\PYG{p}{;}
 
@@ -226,7 +226,7 @@
     \PYG{c+c1}{/// @param \PYGZus{}oldAddress Old Ethereum address of the investor}
     \PYG{c+c1}{/// @param \PYGZus{}newAddress New Ethereum address of the investor}
     \PYG{k+kd}{function} \PYG{n+nx}{recoverKey}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}oldAddress}\PYG{p}{,} \PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}newAddress}\PYG{p}{)} \PYG{k+kr}{public} \PYG{n+nx}{onlyOwner} \PYG{p}{\PYGZob{}}
-        \PYG{k}{for} \PYG{p}{(}\PYG{k+kt}{uint} \PYG{n+nx}{i}\PYG{o}{=}\PYG{l+m+mi}{1}\PYG{p}{;} \PYG{n+nx}{i} \PYG{o}{\PYGZlt{}} \PYG{n+nx}{tokens}\PYG{p}{.}\PYG{n+nx}{length}\PYG{p}{;} \PYG{n+nx}{i}\PYG{o}{++}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+        \PYG{k}{for} \PYG{p}{(}\PYG{k+kt}{uint} \PYG{n+nx}{i} \PYG{o}{=} \PYG{l+m+mi}{1}\PYG{p}{;} \PYG{n+nx}{i} \PYG{o}{\PYGZlt{}} \PYG{n+nx}{tokens}\PYG{p}{.}\PYG{n+nx}{length}\PYG{p}{;} \PYG{n+nx}{i}\PYG{o}{++}\PYG{p}{)} \PYG{p}{\PYGZob{}}
             \PYG{k}{if} \PYG{p}{(}\PYG{n+nx}{KeyRecoverable}\PYG{p}{(}\PYG{n+nx}{tokens}\PYG{p}{[}\PYG{n+nx}{i}\PYG{p}{]}\PYG{p}{)}\PYG{p}{.}\PYG{n+nx}{keyRecoverer}\PYG{p}{(}\PYG{p}{)} \PYG{o}{==} \PYG{k+kt}{address}\PYG{p}{(}\PYG{k}{this}\PYG{p}{)}\PYG{p}{)} \PYG{p}{\PYGZob{}}
                 \PYG{n+nx}{KeyRecoverable}\PYG{p}{(}\PYG{n+nx}{tokens}\PYG{p}{[}\PYG{n+nx}{i}\PYG{p}{]}\PYG{p}{)}\PYG{p}{.}\PYG{n+nx}{recoverKey}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}oldAddress}\PYG{p}{,} \PYG{n+nx}{\PYGZus{}newAddress}\PYG{p}{)}\PYG{p}{;}
             \PYG{p}{\PYGZcb{}}
@@ -236,7 +236,7 @@
     \PYG{c+c1}{/// @dev Check if this instance is the keyRecoverer of all registered tokens.}
     \PYG{c+c1}{/// @return True or false}
     \PYG{k+kd}{function} \PYG{n+nx}{checkTokens}\PYG{p}{(}\PYG{p}{)} \PYG{k+kr}{public} \PYG{k+kr}{view} \PYG{n+nx}{onlyOwner} \PYG{k+kr}{returns} \PYG{p}{(}\PYG{k+kt}{bool}\PYG{p}{)} \PYG{p}{\PYGZob{}}
-        \PYG{k}{for} \PYG{p}{(}\PYG{k+kt}{uint} \PYG{n+nx}{i}\PYG{o}{=}\PYG{l+m+mi}{1}\PYG{p}{;} \PYG{n+nx}{i} \PYG{o}{\PYGZlt{}} \PYG{n+nx}{tokens}\PYG{p}{.}\PYG{n+nx}{length}\PYG{p}{;} \PYG{n+nx}{i}\PYG{o}{++}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+        \PYG{k}{for} \PYG{p}{(}\PYG{k+kt}{uint} \PYG{n+nx}{i} \PYG{o}{=} \PYG{l+m+mi}{1}\PYG{p}{;} \PYG{n+nx}{i} \PYG{o}{\PYGZlt{}} \PYG{n+nx}{tokens}\PYG{p}{.}\PYG{n+nx}{length}\PYG{p}{;} \PYG{n+nx}{i}\PYG{o}{++}\PYG{p}{)} \PYG{p}{\PYGZob{}}
             \PYG{k}{if} \PYG{p}{(}\PYG{n+nx}{KeyRecoverable}\PYG{p}{(}\PYG{n+nx}{tokens}\PYG{p}{[}\PYG{n+nx}{i}\PYG{p}{]}\PYG{p}{)}\PYG{p}{.}\PYG{n+nx}{keyRecoverer}\PYG{p}{(}\PYG{p}{)} \PYG{o}{==} \PYG{k+kt}{address}\PYG{p}{(}\PYG{k}{this}\PYG{p}{)}\PYG{p}{)} \PYG{p}{\PYGZob{}}
                 \PYG{k}{return} \PYG{k+kc}{false}\PYG{p}{;}
             \PYG{p}{\PYGZcb{}}
@@ -389,7 +389,7 @@
 
 
 \chapter{Whitelisted}
-\label{\detokenize{_contracts/Whitelisted::doc}}\label{\detokenize{_contracts/Whitelisted:whitelisted}}
+\label{\detokenize{_contracts/Whitelisted:whitelisted}}\label{\detokenize{_contracts/Whitelisted::doc}}
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{k+kr}{pragma} \PYG{n+nx}{solidity} \PYG{l+m+mf}{0.4}\PYG{l+m+mf}{.24}\PYG{p}{;}
 
@@ -435,7 +435,7 @@
 
 
 \chapter{KeyRecoverable}
-\label{\detokenize{_contracts/KeyRecoverable::doc}}\label{\detokenize{_contracts/KeyRecoverable:keyrecoverable}}
+\label{\detokenize{_contracts/KeyRecoverable:keyrecoverable}}\label{\detokenize{_contracts/KeyRecoverable::doc}}
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{k+kr}{pragma} \PYG{n+nx}{solidity} \PYG{l+m+mf}{0.4}\PYG{l+m+mf}{.24}\PYG{p}{;}
 
@@ -490,7 +490,7 @@
 
 
 \chapter{ProfitSharing}
-\label{\detokenize{_contracts/ProfitSharing:profitsharing}}\label{\detokenize{_contracts/ProfitSharing::doc}}
+\label{\detokenize{_contracts/ProfitSharing::doc}}\label{\detokenize{_contracts/ProfitSharing:profitsharing}}
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{k+kr}{pragma} \PYG{n+nx}{solidity} \PYG{l+m+mf}{0.4}\PYG{l+m+mf}{.24}\PYG{p}{;}
 
@@ -585,7 +585,7 @@
     \PYG{k+kd}{function} \PYG{n+nx}{updateProfitShare}\PYG{p}{(}\PYG{k+kt}{address} \PYG{n+nx}{\PYGZus{}investor}\PYG{p}{)} \PYG{k+kr}{public} \PYG{p}{\PYGZob{}}
         \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{totalSupplyIsFixed}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Total supply must be fixed prior to update profit share.\PYGZdq{}}\PYG{p}{)}\PYG{p}{;}
 
-        \PYG{k+kt}{uint} \PYG{n+nx}{additionalProfitShare} \PYG{o}{=}  \PYG{n+nx}{profitShareOwing}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}investor}\PYG{p}{)}\PYG{p}{;}
+        \PYG{k+kt}{uint} \PYG{n+nx}{additionalProfitShare} \PYG{o}{=} \PYG{n+nx}{profitShareOwing}\PYG{p}{(}\PYG{n+nx}{\PYGZus{}investor}\PYG{p}{)}\PYG{p}{;}
 
         \PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}investor}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{lastTotalProfits} \PYG{o}{=} \PYG{n+nx}{totalProfits}\PYG{p}{;}
         \PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}investor}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{profitShare} \PYG{o}{=} \PYG{n+nx}{accounts}\PYG{p}{[}\PYG{n+nx}{\PYGZus{}investor}\PYG{p}{]}\PYG{p}{.}\PYG{n+nx}{profitShare}\PYG{p}{.}\PYG{n+nx}{add}\PYG{p}{(}\PYG{n+nx}{additionalProfitShare}\PYG{p}{)}\PYG{p}{;}
@@ -610,7 +610,7 @@
 
 
 \chapter{MintableToken}
-\label{\detokenize{_contracts/MintableToken::doc}}\label{\detokenize{_contracts/MintableToken:mintabletoken}}
+\label{\detokenize{_contracts/MintableToken:mintabletoken}}\label{\detokenize{_contracts/MintableToken::doc}}
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{k+kr}{pragma} \PYG{n+nx}{solidity} \PYG{l+m+mf}{0.4}\PYG{l+m+mf}{.24}\PYG{p}{;}
 
@@ -636,19 +636,19 @@
 
     \PYG{c+c1}{/// @dev Ensure only minter}
     \PYG{k+kd}{modifier} \PYG{n+nx}{onlyMinter}\PYG{p}{(}\PYG{p}{)} \PYG{p}{\PYGZob{}}
-        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender} \PYG{o}{==} \PYG{n+nx}{minter}\PYG{p}{)}\PYG{p}{;}
+        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{sender} \PYG{o}{==} \PYG{n+nx}{minter}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Operation is restricted to minter.\PYGZdq{}}\PYG{p}{)}\PYG{p}{;}
         \PYG{n+nx}{\PYGZus{}}\PYG{p}{;}
     \PYG{p}{\PYGZcb{}}
 
     \PYG{c+c1}{/// @dev Ensure can mint}
     \PYG{k+kd}{modifier} \PYG{n+nx}{canMint}\PYG{p}{(}\PYG{p}{)} \PYG{p}{\PYGZob{}}
-        \PYG{n+nb}{require}\PYG{p}{(}\PYG{o}{!}\PYG{n+nx}{totalSupplyIsFixed}\PYG{p}{)}\PYG{p}{;}
+        \PYG{n+nb}{require}\PYG{p}{(}\PYG{o}{!}\PYG{n+nx}{totalSupplyIsFixed}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Total token supply must not be fixed.\PYGZdq{}}\PYG{p}{)}\PYG{p}{;}
         \PYG{n+nx}{\PYGZus{}}\PYG{p}{;}
     \PYG{p}{\PYGZcb{}}
 
     \PYG{c+c1}{/// @dev Ensure not minting}
     \PYG{k+kd}{modifier} \PYG{n+nx}{notMinting}\PYG{p}{(}\PYG{p}{)} \PYG{p}{\PYGZob{}}
-        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{totalSupplyIsFixed}\PYG{p}{)}\PYG{p}{;}
+        \PYG{n+nb}{require}\PYG{p}{(}\PYG{n+nx}{totalSupplyIsFixed}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Total token supply must not change.\PYGZdq{}}\PYG{p}{)}\PYG{p}{;}
         \PYG{n+nx}{\PYGZus{}}\PYG{p}{;}
     \PYG{p}{\PYGZcb{}}
 
@@ -694,7 +694,7 @@
 
 
 \chapter{StokrToken}
-\label{\detokenize{_contracts/StokrToken:stokrtoken}}\label{\detokenize{_contracts/StokrToken::doc}}
+\label{\detokenize{_contracts/StokrToken::doc}}\label{\detokenize{_contracts/StokrToken:stokrtoken}}
 \begin{sphinxVerbatim}[commandchars=\\\{\}]
 \PYG{k+kr}{pragma} \PYG{n+nx}{solidity} \PYG{l+m+mf}{0.4}\PYG{l+m+mf}{.24}\PYG{p}{;}
 
