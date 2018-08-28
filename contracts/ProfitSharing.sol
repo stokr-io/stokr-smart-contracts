@@ -91,7 +91,7 @@ contract ProfitSharing is Ownable {
     function updateProfitShare(address _investor) public {
         require(totalSupplyIsFixed, "Total supply must be fixed prior to update profit share.");
 
-        uint additionalProfitShare =  profitShareOwing(_investor);
+        uint additionalProfitShare = profitShareOwing(_investor);
 
         accounts[_investor].lastTotalProfits = totalProfits;
         accounts[_investor].profitShare = accounts[_investor].profitShare.add(additionalProfitShare);

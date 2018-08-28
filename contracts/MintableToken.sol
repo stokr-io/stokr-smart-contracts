@@ -22,19 +22,19 @@ contract MintableToken is ERC20, ProfitSharing, Whitelisted {
 
     /// @dev Ensure only minter
     modifier onlyMinter() {
-        require(msg.sender == minter);
+        require(msg.sender == minter, "Operation is restricted to minter.");
         _;
     }
 
     /// @dev Ensure can mint
     modifier canMint() {
-        require(!totalSupplyIsFixed);
+        require(!totalSupplyIsFixed, "Total token supply must not be fixed.");
         _;
     }
 
     /// @dev Ensure not minting
     modifier notMinting() {
-        require(totalSupplyIsFixed);
+        require(totalSupplyIsFixed, "Total token supply must not change.");
         _;
     }
 

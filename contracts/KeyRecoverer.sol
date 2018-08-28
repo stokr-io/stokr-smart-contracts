@@ -57,7 +57,7 @@ contract KeyRecoverer is Ownable {
     /// @param _oldAddress Old Ethereum address of the investor
     /// @param _newAddress New Ethereum address of the investor
     function recoverKey(address _oldAddress, address _newAddress) public onlyOwner {
-        for (uint i=1; i < tokens.length; i++) {
+        for (uint i = 1; i < tokens.length; i++) {
             if (KeyRecoverable(tokens[i]).keyRecoverer() == address(this)) {
                 KeyRecoverable(tokens[i]).recoverKey(_oldAddress, _newAddress);
             }
@@ -67,7 +67,7 @@ contract KeyRecoverer is Ownable {
     /// @dev Check if this instance is the keyRecoverer of all registered tokens.
     /// @return True or false
     function checkTokens() public view onlyOwner returns (bool) {
-        for (uint i=1; i < tokens.length; i++) {
+        for (uint i = 1; i < tokens.length; i++) {
             if (KeyRecoverable(tokens[i]).keyRecoverer() == address(this)) {
                 return false;
             }
