@@ -352,6 +352,13 @@ contract("StokrToken", ([owner,
                 expect(await token.balanceOf(debited)).to.be.bignumber.equal(balance);
             });
 
+            it("to zero address is forbidden", async () => {
+                let balance = await token.balanceOf(debited);
+                await whitelist.addToWhitelist([0x0], {from: owner});
+                await reject.tx(token.transfer(0x0, 0, {from: debited}));
+                expect(await token.balanceOf(debited)).to.be.bignumber.equal(balance);
+            });
+
             it("is possible", async () => {
                 let amount = (await token.balanceOf(debited)).dividedToIntegerBy(2);
                 let tx = await token.transfer(credited, amount, {from: debited});

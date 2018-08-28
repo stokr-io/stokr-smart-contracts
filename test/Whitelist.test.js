@@ -35,6 +35,10 @@ contract("Whitelist", ([owner,
             await reject.tx(whitelist.addAdmin(admin1, {from: anyone}));
         });
 
+        it("cannot be added if zero", async () => {
+            await reject.tx(whitelist.addAdmin(0x0, {from: owner}));
+        });
+
         it("can be added by owner", async () => {
             let tx = await whitelist.addAdmin(admin1, {from: owner});
             let entry = tx.logs.find(entry => entry.event === "AdminAdded");
@@ -46,8 +50,18 @@ contract("Whitelist", ([owner,
             expect(await whitelist.admins(admin1)).to.be.true;
         });
 
+        it("isn't logged if added again", async () => {
+            let tx = await whitelist.addAdmin(admin1, {from: owner});
+            let entry = tx.logs.find(entry => entry.event === "AdminAdded");
+            expect(entry).to.not.exist;
+        });
+
         it("cannot be removed by anyone", async () => {
             await reject.tx(whitelist.removeAdmin(admin1, {from: anyone}));
+        });
+
+        it("cannot be removed if zero", async () => {
+            await reject.tx(whitelist.removeAdmin(0x0, {from: owner}));
         });
 
         it("can be removed by owner", async () => {
@@ -61,6 +75,11 @@ contract("Whitelist", ([owner,
             expect(await whitelist.admins(admin1)).to.be.false;
         });
 
+        it("isn't logged if removed again", async () => {
+            let tx = await whitelist.removeAdmin(admin1, {from: owner});
+            let entry = tx.logs.find(entry => entry.event === "AdminRemoved");
+            expect(entry).to.not.exist;
+        });
     });
 
     describe("single investor", () => {

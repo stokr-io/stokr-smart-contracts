@@ -225,6 +225,13 @@ contract("StokrCrowdsale", ([owner,
                 expect(entry.args.newRate).to.be.bignumber.equal(newRate);
                 expect(await sale.rate()).to.be.bignumber.equal(newRate);
             });
+
+            it("is not logged if value remains unchanged", async () => {
+                let rate = await sale.rate();
+                let tx = await sale.setRate(rate, {from: owner});
+                let entry = tx.logs.find(entry => entry.event === "RateChanged");
+                expect(entry).to.not.exist;
+            });
         });
 
         describe("team account change", () => {
@@ -261,6 +268,18 @@ contract("StokrCrowdsale", ([owner,
                 await reject.tx(sale.distributeTokens([investor1, investor2],
                                                       [await sale.tokenRemaining(), 1],
                                                       {from: owner}));
+                expect(await token.totalSupply()).to.be.bignumber.equal(totalSupply);
+            });
+
+            it("with less accounts than amounts given is forbidden", async () => {
+                let totalSupply = await token.totalSupply();
+                await reject.tx(sale.distributeTokens([investor1, investor2], [1, 2, 3], {from: owner}));
+                expect(await token.totalSupply()).to.be.bignumber.equal(totalSupply);
+            });
+
+            it("with more accounts than amounts given is forbidden", async () => {
+                let totalSupply = await token.totalSupply();
+                await reject.tx(sale.distributeTokens([investor1, investor2], [1], {from: owner}));
                 expect(await token.totalSupply()).to.be.bignumber.equal(totalSupply);
             });
 
