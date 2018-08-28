@@ -6,7 +6,7 @@ module.exports = {
     testrpcOptions: "",
     testCommand: "truffle test",
     copyPackages: ["zeppelin-solidity"],
-    skipFiles: ["Migrations.sol"],
+    skipFiles: ["Migrations.sol", "KeyRecoverer.sol", "SampleToken.sol"],
     dir: ".",
     buildDirPath: "/build/contracts",
 };
