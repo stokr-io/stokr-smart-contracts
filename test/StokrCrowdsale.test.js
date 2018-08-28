@@ -3,8 +3,6 @@
 const Whitelist = artifacts.require("./Whitelist.sol");
 const StokrToken = artifacts.require("./StokrToken.sol");
 const StokrCrowdsale = artifacts.require("./StokrCrowdsale.sol");
-const RefundVault = artifacts.require("../node_modules/zeppelin-solidity/contracts/crowdsale/distribution/utils"
-                                      + "/RefundVault.sol");
 
 const BN = web3.BigNumber;
 const {expect} = require("chai").use(require("chai-bignumber")(BN));
@@ -438,14 +436,6 @@ contract("StokrCrowdsale", ([owner,
                 expect(await web3.eth.getBalance(investor1)).to.be.bignumber.most(weiBalance.minus(value));
             });
 
-            it("increases investor's vault deposit", async () => {
-                let vault = await RefundVault.at(await sale.vault());
-                let deposit = await vault.deposited(investor1);
-                let value = money.ether(2);
-                await sale.buyTokens(investor1, {from: investor1, value});
-                expect(await vault.deposited(investor1)).to.be.bignumber.equal(deposit.plus(value));
-            });
-
             it("increases token total supply", async () => {
                 let totalSupply = await token.totalSupply();
                 let value = money.ether(2);
@@ -488,14 +478,17 @@ contract("StokrCrowdsale", ([owner,
     });
 
     describe("after sale goal was missed", () => {
-        let sale, token, whitelist;
+        let sale, token, whitelist, investment;
 
         before("deploy", async () => {
             await initialState.restore();
             sale = await deploySale();
             token = await StokrToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
+            investment = (await sale.goal()).divToInt(await sale.rate()).minus(money.wei(1));
             await token.setMinter(sale.address, {from: owner});
+            await time.increaseTo((await sale.openingTime()).plus(time.secs(1)));
+            await sale.buyTokens(investor1, {from: investor1, value: investment});
             await time.increaseTo((await sale.closingTime()).plus(time.secs(1)));
         });
 
@@ -509,6 +502,10 @@ contract("StokrCrowdsale", ([owner,
                 expect(await sale.hasClosed()).to.be.true;
             });
 
+            it("goal was missed", async () => {
+                expect(await sale.goalReached()).to.be.false;
+            });
+
             it("is not finalized", async () => {
                 expect(await sale.isFinalized()).to.be.false;
             });
@@ -520,6 +517,12 @@ contract("StokrCrowdsale", ([owner,
                 let balance = await token.balanceOf(investor1);
                 await reject.tx(sale.buyTokens(investor1, {from: investor1, value: money.ether(1)}));
                 expect(await token.balanceOf(investor1)).to.be.bignumber.equal(balance);
+            });
+
+            it("refund is forbidden", async () => {
+                let weiBalance = await web3.eth.getBalance(investor1);
+                await reject.tx(sale.claimRefund({from: investor1}));
+                expect(await web3.eth.getBalance(investor1)).to.be.bignumber.most(weiBalance);
             });
         });
 
@@ -540,15 +543,17 @@ contract("StokrCrowdsale", ([owner,
     });
 
     describe("after sale goal was reached", () => {
-        let sale, token, whitelist;
+        let sale, token, whitelist, investment;
 
         before("deploy", async () => {
             await initialState.restore();
             sale = await deploySale();
             token = await StokrToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
+            investment = (await sale.goal()).divToInt(await sale.rate()).plus(money.wei(1));
             await token.setMinter(sale.address, {from: owner});
-            await sale.distributeTokens([investor1], [await sale.goal()], {from: owner});
+            await time.increaseTo((await sale.openingTime()).plus(time.secs(1)));
+            await sale.buyTokens(investor1, {from: investor1, value: investment});
             await time.increaseTo((await sale.closingTime()).plus(time.secs(1)));
         });
 
@@ -562,6 +567,10 @@ contract("StokrCrowdsale", ([owner,
                 expect(await sale.hasClosed()).to.be.true;
             });
 
+            it("goal was reached", async () => {
+                expect(await sale.goalReached()).to.be.true;
+            });
+
             it("is not finalized", async () => {
                 expect(await sale.isFinalized()).to.be.false;
             });
@@ -573,6 +582,12 @@ contract("StokrCrowdsale", ([owner,
                 let balance = await token.balanceOf(investor1);
                 await reject.tx(sale.buyTokens(investor1, {from: investor1, value: money.ether(1)}));
                 expect(await token.balanceOf(investor1)).to.be.bignumber.equal(balance);
+            });
+
+            it("refund is forbidden", async () => {
+                let weiBalance = await web3.eth.getBalance(investor1);
+                await reject.tx(sale.claimRefund({from: investor1}));
+                expect(await web3.eth.getBalance(investor1)).to.be.bignumber.most(weiBalance);
             });
         });
 
@@ -605,14 +620,17 @@ contract("StokrCrowdsale", ([owner,
     });
 
     describe("after finalization if goal was missed", () => {
-        let sale, token, whitelist;
+        let sale, token, whitelist, investment;
 
         before("deploy", async () => {
             await initialState.restore();
             sale = await deploySale();
             token = await StokrToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
+            investment = (await sale.goal()).divToInt(await sale.rate()).minus(money.wei(1));
             await token.setMinter(sale.address, {from: owner});
+            await time.increaseTo((await sale.openingTime()).plus(time.secs(1)));
+            await sale.buyTokens(investor1, {from: investor1, value: investment});
             await time.increaseTo((await sale.closingTime()).plus(time.secs(1)));
             await sale.finalize({from: owner});
         });
@@ -627,6 +645,10 @@ contract("StokrCrowdsale", ([owner,
                 expect(await sale.hasClosed()).to.be.true;
             });
 
+            it("goal was missed", async () => {
+                expect(await sale.goalReached()).to.be.false;
+            });
+
             it("is not finalized", async () => {
                 expect(await sale.isFinalized()).to.be.true;
             });
@@ -634,8 +656,21 @@ contract("StokrCrowdsale", ([owner,
 
         describe("token contract", () => {
 
-            it("is destructed", async () => {
+            it("is destroyed", async () => {
                 expect(await web3.eth.getCode(token.address)).to.be.oneOf(["0x", "0x0"]);
+            });
+        });
+
+        describe("token purchase", () => {
+
+            it("is forbidden", async () => {
+                await reject.tx(sale.buyTokens(investor1, {from: investor1, value: money.ether(1)}));
+            });
+
+            it("refund is possible", async () => {
+                let weiBalance = await web3.eth.getBalance(investor1);
+                await sale.claimRefund({from: investor1});
+                expect(await web3.eth.getBalance(investor1)).to.be.bignumber.above(weiBalance);
             });
         });
 
@@ -648,16 +683,18 @@ contract("StokrCrowdsale", ([owner,
     });
 
     describe("after finalization if goal was reached", () => {
-        let sale, token, whitelist;
+        let sale, token, whitelist, investment;
 
         before("deploy", async () => {
             await initialState.restore();
             sale = await deploySale();
             token = await StokrToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
+            investment = (await sale.goal()).divToInt(await sale.rate()).plus(money.wei(1));
             await token.setMinter(sale.address, {from: owner});
+            await time.increaseTo((await sale.openingTime()).plus(time.secs(1)));
+            await sale.buyTokens(investor1, {from: investor1, value: investment});
             await time.increaseTo((await sale.closingTime()).plus(time.secs(1)));
-            await sale.distributeTokens([investor1], [await sale.goal()], {from: owner});
             await whitelist.addToWhitelist([teamAccount], {from: owner});
             await sale.setTeamAccount(teamAccount, {from: owner});
             await sale.finalize({from: owner});
@@ -673,7 +710,11 @@ contract("StokrCrowdsale", ([owner,
                 expect(await sale.hasClosed()).to.be.true;
             });
 
-            it("is not finalized", async () => {
+            it("goal was reached", async () => {
+                expect(await sale.goalReached()).to.be.true;
+            });
+
+            it("is finalized", async () => {
                 expect(await sale.isFinalized()).to.be.true;
             });
         });
@@ -684,6 +725,12 @@ contract("StokrCrowdsale", ([owner,
                 let balance = await token.balanceOf(investor1);
                 await reject.tx(sale.buyTokens(investor1, {from: investor1, value: money.ether(1)}));
                 expect(await token.balanceOf(investor1)).to.be.bignumber.equal(balance);
+            });
+
+            it("refund is forbidden", async () => {
+                let weiBalance = await web3.eth.getBalance(investor1);
+                await reject.tx(sale.claimRefund({from: investor1}));
+                expect(await web3.eth.getBalance(investor1)).to.be.bignumber.most(weiBalance);
             });
         });
 
