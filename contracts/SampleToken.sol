@@ -12,12 +12,13 @@ contract SampleToken is StokrToken {
     uint8 public decimals = 18;
 
     constructor(
-        string _name,
-        string _symbol,
+        string memory _name,
+        string memory _symbol,
         Whitelist _whitelist,
         address _profitDepositor,
         address _keyRecoverer
     )
+        public
         StokrToken(_whitelist, _profitDepositor, _keyRecoverer)
     {
         name = _name;
