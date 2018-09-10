@@ -15,7 +15,7 @@ contract MintableToken is ERC20, ProfitSharing, Whitelisted {
     /// @dev Log entry on mint
     /// @param to An Ethereum address
     /// @param amount A positive number
-    event Minted(address to, uint amount);
+    event Minted(address indexed to, uint amount);
 
     /// @dev Log entry on mint finished
     event MintFinished();

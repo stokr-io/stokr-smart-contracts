@@ -12,21 +12,21 @@ contract Whitelist is Ownable {
 
     /// @dev Log entry on admin added
     /// @param admin An Ethereum address
-    event AdminAdded(address admin);
+    event AdminAdded(address indexed admin);
 
     /// @dev Log entry on admin removed
     /// @param admin An Ethereum address
-    event AdminRemoved(address admin);
+    event AdminRemoved(address indexed admin);
 
     /// @dev Log entry on investor added
     /// @param admin An Ethereum address
     /// @param investor An Ethereum address
-    event InvestorAdded(address admin, address investor);
+    event InvestorAdded(address indexed admin, address indexed investor);
 
     /// @dev Log entry on investor removed
     /// @param admin An Ethereum address
     /// @param investor An Ethereum address
-    event InvestorRemoved(address admin, address investor);
+    event InvestorRemoved(address indexed admin, address indexed investor);
 
     /// @dev Only admin
     modifier onlyAdmin() {

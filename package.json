@@ -13,6 +13,7 @@
     "chai-bignumber": "^2.0.2",
     "eth-gas-reporter": "^0.1.10",
     "ganache-cli": "^6.1.6",
+    "solgraph": "^0.3.3",
     "solhint": "^1.2.1",
     "solidity-coverage": "^0.5.8",
     "solidity-doc": "^0.1.3",

@@ -27,22 +27,22 @@ contract ProfitSharing is Ownable {
     bool public totalSupplyIsFixed;
     uint internal totalSupply_;
 
-    event ProfitDepositorChanged(address newProfitDepositor);
+    event ProfitDepositorChanged(address indexed newProfitDepositor);
 
     /// @dev Log entry on profit deposited
     /// @param depositor An Ethereum address
     /// @param amount A positive number
-    event ProfitDeposited(address depositor, uint amount);
+    event ProfitDeposited(address indexed depositor, uint amount);
 
     /// @dev Log entry on profit share updated
     /// @param investor An Ethereum address
     /// @param amount A positive number
-    event ProfitShareUpdated(address investor, uint amount);
+    event ProfitShareUpdated(address indexed investor, uint amount);
 
     /// @dev Log entry on profit withdrawal
     /// @param investor An Ethereum address
     /// @param amount A positive number
-    event ProfitWithdrawal(address investor, uint amount);
+    event ProfitWithdrawal(address indexed investor, uint amount);
 
     /// @dev Ensure only depositor
     modifier onlyProfitDepositor() {

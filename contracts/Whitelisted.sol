@@ -12,7 +12,7 @@ contract Whitelisted is Ownable {
 
     /// @dev Log entry on whitelist changed
     /// @param newWhitelist An Ethereum address
-    event WhitelistChanged(address newWhitelist);
+    event WhitelistChanged(address indexed newWhitelist);
 
     /// @dev Ensure only whitelisted
     modifier onlyWhitelisted(address _address) {

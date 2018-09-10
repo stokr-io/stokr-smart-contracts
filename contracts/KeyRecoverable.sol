@@ -11,14 +11,14 @@ contract KeyRecoverable is Ownable {
 
     /// @dev Log entry on key recoverer changed
     /// @param newKeyRecoverer An Ethereum address
-    event KeyRecovererChanged(address newKeyRecoverer);
+    event KeyRecovererChanged(address indexed newKeyRecoverer);
 
     /// @dev Log entry on key recovered
     /// @param oldAddress An Ethereum address
     /// @param newAddress An Ethereum address
-    event KeyRecovered(address oldAddress, address newAddress);
+    event KeyRecovered(address indexed oldAddress, address indexed newAddress);
 
-    /// @dev Ensure only key recoverer
+    /// @dev Ensure only key recoverer:w
     modifier onlyKeyRecoverer() {
         require(msg.sender == keyRecoverer, "Operation is restricted to key recoverer.");
         _;
