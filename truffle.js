@@ -13,7 +13,15 @@ module.exports = {
             network_id: "*",
             host: "192.168.42.36",
             port: 8545,
-        }
+        },
+
+        // Rinkeby test network
+        rinkeby: {
+            network_id: 4,
+            host: "localhost",
+            port: 8545,
+            gas: 4612388,
+        },
     },
 
     mocha: {
