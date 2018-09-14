@@ -9,7 +9,7 @@ module.exports = {
         },
 
         // Local (persistent) PoA test network
-        o34poa: {
+        o34testnet: {
             network_id: "*",
             host: "192.168.42.36",
             port: 8545,
