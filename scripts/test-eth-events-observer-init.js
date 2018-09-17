@@ -4,7 +4,10 @@ const Whitelist = artifacts.require("./Whitelist.sol");
 const Token = artifacts.require("./SampleToken.sol");
 const Sale = artifacts.require("./StokrCrowdsale.sol");
 
+const fs = require("fs");
+
 const BN = web3.BigNumber;
+const now = () => Date.now() / 1000 | 0;
 const choose = list => list[Math.trunc(list.length * Math.random())];
 const sleep = secs => new Promise(resolve => setTimeout(resolve, 1000 * secs));
 
@@ -58,12 +61,11 @@ const deploySales = async () => {
     sales = [];
     for (let t = 0; t < tokens.length; ++t) {
         let token = tokens[t];
-        let now = Date.now() / 1000 | 0;
         let sale = await Sale.new(token.address,  // token address
                                   new BN("100e18"),  // token cap
                                   new BN("3e18"),  // token goal
-                                  now + 2,  // opening time
-                                  now + 10,  // closing time
+                                  now() + 30,  // opening time
+                                  now() + 150,  // closing time
                                   2,  // token per ether rate
                                   0,  // team token share
                                   owner,  // wallet
@@ -72,6 +74,22 @@ const deploySales = async () => {
         await sale.setTeamAccount(owner, {from: owner});
         sales.push(sale);
         console.log(`- sale for ${await token.symbol()} at ${sale.address}`);
+    }
+};
+
+const allSalesOpened = async () => {
+    console.log("wait until all sales opened...");
+    let allOpened = false;
+    while (!allOpened) {
+        allOpened = true;
+        for (let s = 0; s < sales.length; ++s) {
+            let sale = sales[s];
+            if ((await sale.openingTime()).gt(now())) {
+                allOpened = false;
+                await sleep(1);
+                break;
+            }
+        }
     }
 };
 
@@ -87,6 +105,22 @@ const purchaseTokens = async () => {
                 await sale.buyTokens(investor, {from: investor, value: ethValue * 1e18});
             }
             console.log(`- ${investor} bought ${await token.symbol()} for ${ethValue} ether`);
+        }
+    }
+};
+
+const allSalesClosed = async () => {
+    console.log("wait until all sales closed...");
+    let allClosed = false;
+    while (!allClosed) {
+        allClosed = true;
+        for (let s = 0; s < sales.length; ++s) {
+            let sale = sales[s];
+            if (!(await sale.hasClosed())) {
+                allClosed = false;
+                await sleep(1);
+                break;
+            }
         }
     }
 };
@@ -118,72 +152,37 @@ const distributeTokens = async () => {
     }
 };
 
-const doSomething = async () => {
-    if (Math.random() < 0.1) {
-        let token = choose(tokens);
-        let profits = choose([1, 2, 3, 4, 5]);
-        await token.depositProfit({from: owner, value: profits * 1e18});
-        console.log(`- profits of ${profits} ether deposited at ${await token.symbol()}`);
-    }
-    if (Math.random() < 0.1) {
-        let token = choose(tokens);
-        let investor = choose(investors);
-        await token.withdrawProfitShare({from: investor});
-        console.log(`- ${investor} withdrew profit share from ${await token.symbol()}`);
-    }
-    if (Math.random() < 0.1) {
-        let investor = choose(investors);
-        if (await whitelist.isWhitelisted(investor)) {
-            await whitelist.removeFromWhitelist([investor], {from: owner});
-            console.log(`- ${investor} removed from whitelist`);
+const saveAddresses = () => {
+    let path = `${__dirname}/addresses.json`;
+    console.log("save", path);
+    let addresses = {
+        accounts: {owner, investors},
+        contracts: {
+            whitelist: whitelist.address,
+            tokens: tokens.map(token => token.address),
+            sales: sales.map(sale => sale.address)
         }
-    }
-    if (Math.random() < 0.5) {
-        let investor = choose(investors);
-        if (!await whitelist.isWhitelisted(investor)) {
-            await whitelist.addToWhitelist([investor], {from: owner});
-            console.log(`- ${investor} added to whitelist`);
-        }
-    }
-    if (Math.random() < 0.8) {
-        let token = choose(tokens);
-        let sender = choose(investors);
-        let recipient = choose(investors);
-        let fraction = choose([1/100, 1/50, 1/20, 1/10]);
-        let amount = (await token.balanceOf(sender)).mul(fraction).truncated();
-        if (await whitelist.isWhitelisted(sender) && await whitelist.isWhitelisted(recipient)) {
-            await token.transfer(recipient, amount, {from: sender});
-            console.log(`- ${sender} sent ${amount} a${await token.symbol()} to ${recipient}`);
-        }
-    }
+    };
+    fs.writeFileSync(path, JSON.stringify(addresses, null, 4));
 };
 
 const run = async () => {
     await setAccounts();
     await deployWhitelist();
     await deployTokens(3);  // 3 tokens
-
-    if (false) {
+    if (true) {
         await deploySales();
-
-        console.log("wait 5 secs...");
-        await sleep(5);  // until sale opened
+        await allSalesOpened();
         await purchaseTokens();
-
-        console.log("wait 5 secs...");
-        await sleep(5);  // until sale closed
+        await allSalesClosed();
         await finalizeSales();
     }
-    else {
+    else {  // in case you're in a hurry
+        sales = [];
         await distributeTokens();
     }
-
-    console.log("action");
-    while (true) {
-        await sleep(4);
-        await doSomething();
-    }
-}
+    saveAddresses();
+};
 
 module.exports = callback => {
     (async () => {

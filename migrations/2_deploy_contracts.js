@@ -29,7 +29,7 @@ module.exports = function(deployer, network, accounts) {
         return Sale.new(token.address,
                         1000e18,
                         30e18,
-                        now + 3,
+                        now + 30,
                         now + 24 * 60 * 60,
                         20,
                         0,

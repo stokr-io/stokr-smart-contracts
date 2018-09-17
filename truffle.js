@@ -13,6 +13,7 @@ module.exports = {
             network_id: "*",
             host: "192.168.42.36",
             port: 8545,
+            gas: 8000000,
         },
 
         // Rinkeby test network

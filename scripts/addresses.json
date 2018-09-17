@@ -1,0 +1,25 @@
+{
+    "accounts": {
+        "owner": "0x000b0c6b19e6c32c1859163ac6886c0ee8024a22",
+        "investors": [
+            "0x002af7e79d3849600072d7a9e9b3a8c84b936501",
+            "0x003846dcad141ca34d29752b3c9548dfe52f3deb",
+            "0x003b46ac7e801108b270bf83d2db19abea898bc9",
+            "0x0074d68d2a3e81dc7c5666a56eaee5db5269e58c",
+            "0x00c783297e0541299bc624ae70a4ff16e07ebfcb"
+        ]
+    },
+    "contracts": {
+        "whitelist": "0x9084a0c85d79f51a1a33441787d86a13d0e0ef11",
+        "tokens": [
+            "0x137c580e9a75e7912f37d07247d80f694aee4d0e",
+            "0x90efc4d8e33892494ac26eae4c7136b2f3b66899",
+            "0x68bb1fe455cc8d20186b5b438deabbad4aa19d15"
+        ],
+        "sales": [
+            "0x7d937c9554c42b5fa97b5f52100c2e97d0a835bc",
+            "0xb24a3439a520c1942bb69dfdb15b9d09eacb3f1e",
+            "0x00cc536bd1d147dc99d6c25a226313ac629b7b04"
+        ]
+    }
+}
