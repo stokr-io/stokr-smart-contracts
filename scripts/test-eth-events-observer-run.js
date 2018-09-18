@@ -86,7 +86,7 @@ const run = async () => {
 
     console.log("actions");
     while (true) {
-        await sleep(4);
+        await sleep(8);
         await doSomething();
     }
 };

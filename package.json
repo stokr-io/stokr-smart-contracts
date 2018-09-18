@@ -11,7 +11,7 @@
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
     "chai-bignumber": "^2.0.2",
-    "eth-gas-reporter": "^0.1.11",
+    "eth-gas-reporter": "^0.1.12",
     "ganache-cli": "^6.1.8",
     "solgraph": "^0.3.3",
     "solhint": "^1.2.1",
