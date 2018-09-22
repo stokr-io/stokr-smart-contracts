@@ -50,6 +50,11 @@ contract ProfitSharing is Ownable {
         require(IMPLEMENTATION);
     }
 
+    /// @dev Default function
+    () public payable {
+        require(IMPLEMENTATION);
+    }
+
     /// @dev Set profit depositor
     /// @param _newProfitDepositor An Ethereum address
     function setProfitDepositor(address _newProfitDepositor) public onlyOwner {

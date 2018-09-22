@@ -11,5 +11,13 @@ contract SampleToken is StokrToken {
     string public symbol = "SAM";
     uint8 public decimal = 18;
 
+    /// @dev Constructor
+    /// @param _whitelist An Ethereum address
+    /// @param _profitDepositor An Ethereum address
+    /// @param _keyRecoverer An Ethereum address
+    constructor(address _whitelist, address _profitDepositor, address _keyRecoverer) public {
+        require(IMPLEMENTATION);
+    }
+
 }
 

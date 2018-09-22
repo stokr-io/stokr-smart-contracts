@@ -582,7 +582,8 @@ contract("StokrToken", ([owner,
                     let investor = investors[i];
                     let account = await getAccount(investor);
                     let profitShareOwing = await token.profitShareOwing(investor);
-                    sumOfProfitShares = sumOfProfitShares.plus(account.profitShare).plus(profitShareOwing);
+                    sumOfProfitShares = sumOfProfitShares.plus(account.profitShare)
+                                                         .plus(profitShareOwing);
                 }
                 expect(sumOfProfitShares).to.be.bignumber.equal(weiBalance);
             }
@@ -590,15 +591,24 @@ contract("StokrToken", ([owner,
 
         describe("depositing", () => {
 
-            it("via fallback function is forbidden", async () => {
-                let weiBalance = await web3.eth.getBalance(token.address);
-                await reject.tx(token.send(money.ether(1), {from: anyone}));
-                expect(await web3.eth.getBalance(token.address)).to.be.bignumber.equal(weiBalance);
-            });
-
             it("by anyone but profitDepositor is forbidden", async () => {
                 let weiBalance = await web3.eth.getBalance(token.address);
                 await reject.tx(token.depositProfit({from: anyone, value: money.ether(1)}));
+                expect(await web3.eth.getBalance(token.address)).to.be.bignumber.equal(weiBalance);
+            });
+
+            it("by anyone but profitDepositor via fallback function is forbidden", async () => {
+                let weiBalance = await web3.eth.getBalance(token.address);
+                try {
+                    await web3.eth.sendTransaction(
+                        {from: anyone, to: token.address, value: money.ether(1)});
+                    throw new Error("Transaction should have failed but didn't");
+                }
+                catch (error) {
+                    if (!error.message.toLowerCase().includes("transaction: revert")) {
+                        throw error;
+                    }
+                }
                 expect(await web3.eth.getBalance(token.address)).to.be.bignumber.equal(weiBalance);
             });
 
@@ -611,11 +621,21 @@ contract("StokrToken", ([owner,
                 expect(entry.args.amount).to.be.bignumber.equal(weiAmount);
             });
 
+            it("via fallback function is possible", async () => {
+                let weiBalance = await web3.eth.getBalance(token.address);
+                let weiAmount = money.ether(2);
+                await web3.eth.sendTransaction(
+                    {from: profitDepositor, to: token.address, value: weiAmount});
+                expect(await web3.eth.getBalance(token.address))
+                    .to.be.bignumber.equal(weiBalance.plus(weiAmount));
+            });
+
             it("increases wei balance", async () => {
                 let weiBalance = await web3.eth.getBalance(token.address);
                 let weiAmount = money.ether(2);
                 await token.depositProfit({from: profitDepositor, value: weiAmount});
-                expect(await web3.eth.getBalance(token.address)).to.be.bignumber.equal(weiBalance.plus(weiAmount));
+                expect(await web3.eth.getBalance(token.address))
+                    .to.be.bignumber.equal(weiBalance.plus(weiAmount));
             });
 
             it("increases totalProfits", async () => {
@@ -663,7 +683,8 @@ contract("StokrToken", ([owner,
                     // Use equivalence:
                     //      profitShareOwing / totalProfits == balance / totalSupply
                     // <=>  profitShareOwing * totalSupply  == balance * totalProfits
-                    expect(profitShareOwing.times(totalSupply)).to.be.bignumber.equal(balance.times(totalProfits));
+                    expect(profitShareOwing.times(totalSupply))
+                        .to.be.bignumber.equal(balance.times(totalProfits));
                 }
             });
 
@@ -678,7 +699,8 @@ contract("StokrToken", ([owner,
                     expect(entry).to.exist;
                     expect(entry.args.investor).to.be.bignumber.equal(investor);
                     expect(entry.args.amount).to.be.bignumber.equal(profitShareOwing);
-                    expect((await getAccount(investor)).lastTotalProfits).to.be.bignumber.equal(totalProfits);
+                    expect((await getAccount(investor)).lastTotalProfits)
+                        .to.be.bignumber.equal(totalProfits);
                     expect((await getAccount(investor)).profitShare)
                           .to.be.bignumber.equal(account.profitShare.plus(profitShareOwing));
                 }
@@ -728,10 +750,12 @@ contract("StokrToken", ([owner,
                     let entry = tx.logs.find(entry => entry.event === "ProfitWithdrawal");
                     expect(entry).to.exist;
                     expect(entry.args.investor).to.be.bignumber.equal(investor);
-                    expect(entry.args.amount).to.be.bignumber.equal(account.profitShare.plus(profitShareOwing));
+                    expect(entry.args.amount)
+                        .to.be.bignumber.equal(account.profitShare.plus(profitShareOwing));
                     expect((await getAccount(investor)).profitShare).to.be.bignumber.zero
                     expect(await web3.eth.getBalance(token.address))
-                          .to.be.bignumber.equal(weiBalance.minus(account.profitShare).minus(profitShareOwing));
+                        .to.be.bignumber.equal(weiBalance.minus(account.profitShare)
+                                                         .minus(profitShareOwing));
                 }
             });
 
@@ -817,10 +841,9 @@ contract("StokrToken", ([owner,
             expect(entry).to.exist;
             expect(entry.args.oldAddress).to.be.equal(investor2);
             expect(entry.args.newAddress).to.be.equal(investor3);
-            expectAccountEquality(await getAccount(investor2), {balance: 0, profitShare: 0, lastTotalProfits: 0});
+            expectAccountEquality(await getAccount(investor2),
+                {balance: 0, profitShare: 0, lastTotalProfits: 0});
             expectAccountEquality(await getAccount(investor3), account);
         });
-
     });
-
 });
