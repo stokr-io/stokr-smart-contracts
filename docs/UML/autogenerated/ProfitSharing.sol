@@ -51,7 +51,7 @@ contract ProfitSharing is Ownable {
     }
 
     /// @dev Default function
-    () public payable {
+    function () public payable {
         require(IMPLEMENTATION);
     }
 

@@ -334,7 +334,7 @@
     <xsl:call-template name="comment"/>
     <!-- function name -->
     <xsl:value-of select="$indent1"/>
-    <xsl:if test="name!='constructor'">
+    <xsl:if test="not(name) or name!='constructor'">
       <xsl:text>function </xsl:text>
     </xsl:if>
     <xsl:value-of select="name"/>
