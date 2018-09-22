@@ -285,7 +285,11 @@ contract("StokrCrowdsale", ([owner,
 
             it("is possible", async () => {
                 let amount = (await sale.tokenRemaining()).divToInt(2);
-                await sale.distributeTokens([investor1], [amount], {from: owner});
+                let tx = await sale.distributeTokens([investor1], [amount], {from: owner});
+                let entry = tx.logs.find(entry => entry.event === "TokenDistribution");
+                expect(entry).to.exist;
+                expect(entry.args.beneficiary).to.be.bignumber.equal(investor1);
+                expect(entry.args.amount).to.be.bignumber.equal(amount);
             });
 
             it("increases recipient's balance", async () => {

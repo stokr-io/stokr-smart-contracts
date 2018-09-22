@@ -14,6 +14,11 @@ contract StokrCrowdsale is RefundableCrowdsale {
     address public teamAccount;
     uint public teamShare;
 
+    /// @dev Log entry on token distribution
+    /// @param beneficiary An Ethereum address
+    /// @param amount A positive number
+    event TokenDistribution(address indexed beneficiary, uint amount);
+
     /// @dev Log entry on rate changed
     /// @param oldRate A positive number
     /// @param newRate A positive number
@@ -56,6 +61,8 @@ contract StokrCrowdsale is RefundableCrowdsale {
 
         for (uint i = 0; i < _accounts.length; ++i) {
             _deliverTokens(_accounts[i], _amounts[i]);
+
+            emit TokenDistribution(_accounts[i], _amounts[i]);
         }
     }
 

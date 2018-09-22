@@ -14,6 +14,11 @@ contract StokrCrowdsale is RefundableCrowdsale, CappedCrowdsale {
     address public teamAccount;
     uint public teamShare;
 
+    /// @dev Log entry on token distribution
+    /// @param beneficiary An Ethereum address
+    /// @param amount A positive number
+    event TokenDistribution(address beneficiary, uint amount);
+
     /// @dev Log entry on rate changed
     /// @param oldRate A positive number
     /// @param newRate A positive number
