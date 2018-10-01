@@ -20,6 +20,7 @@ contract ProfitSharing is Ownable {
     mapping(address => InvestorAccount) public accounts;
 
     address public profitDepositor;
+    address public profitDistributor;
     uint public totalProfits;
 
     // As long as the total supply isn't fixed, i.e. new tokens can appear out of thin air,
@@ -28,6 +29,8 @@ contract ProfitSharing is Ownable {
     uint internal totalSupply_;
 
     event ProfitDepositorChanged(address indexed newProfitDepositor);
+
+    event ProfitDistributorChanged(address indexed newProfitDistributor);
 
     /// @dev Log entry on profit deposited
     /// @param depositor An Ethereum address
@@ -42,11 +45,17 @@ contract ProfitSharing is Ownable {
     /// @dev Log entry on profit withdrawal
     /// @param investor An Ethereum address
     /// @param amount A positive number
-    event ProfitWithdrawal(address indexed investor, uint amount);
+    event ProfitShareWithdrawn(address indexed investor, address indexed beneficiary, uint amount);
 
     /// @dev Ensure only depositor
     modifier onlyProfitDepositor() {
         require(msg.sender == profitDepositor, "Operation is restricted to profit depositor.");
+        _;
+    }
+
+    /// @dev Ensure only distributor
+    modifier onlyProfitDistributor() {
+        require(msg.sender == profitDepositor, "Operation is restricted to profit distributor.");
         _;
     }
 
@@ -66,10 +75,23 @@ contract ProfitSharing is Ownable {
     function setProfitDepositor(address _newProfitDepositor) public onlyOwner {
         require(_newProfitDepositor != address(0x0), "Profit depositor address must not be zero.");
 
+        // Don't emit event if set for first time or to the same value again
         if (profitDepositor != address(0x0) && _newProfitDepositor != profitDepositor) {
             emit ProfitDepositorChanged(_newProfitDepositor);
         }
         profitDepositor = _newProfitDepositor;
+    }
+
+    /// @dev Change profit distributor
+    /// @param _newProfitDistributor An Ethereum address
+    function setProfitDistributor(address _newProfitDistributor) public onlyOwner {
+        require(_newProfitDistributor != address(0x0), "Profit distributor address must not be zero.");
+
+        // Don't emit event if set for first time or to the same value again
+        if (profitDistributor != address(0x0) && _newProfitDistributor != profitDistributor) {
+            emit ProfitDistributorChanged(_newProfitDistributor);
+        }
+        profitDistributor = _newProfitDistributor;
     }
 
     /// @dev Deposit profit
@@ -106,14 +128,30 @@ contract ProfitSharing is Ownable {
 
     /// @dev Withdraw profit share
     function withdrawProfitShare() public {
-        updateProfitShare(msg.sender);
+        _withdrawProfitShare(msg.sender, msg.sender);
+    }
 
-        uint withdrawnProfitShare = accounts[msg.sender].profitShare;
+    function withdrawProfitShare(address _beneficiary) public {
+        _withdrawProfitShare(msg.sender, _beneficiary);
+    }
 
-        accounts[msg.sender].profitShare = 0;
-        msg.sender.transfer(withdrawnProfitShare);
+    /// @dev Withdraw profit share
+    function withdrawProfitShares(address[] _investors) public onlyProfitDistributor {
+        for (uint i = 0; i < _investors.length; ++i) {
+            _withdrawProfitShare(_investors[i], _investors[i]);
+        }
+    }
 
-        emit ProfitWithdrawal(msg.sender, withdrawnProfitShare);
+    /// @dev Withdraw profit share
+    function _withdrawProfitShare(address _investor, address _beneficiary) internal {
+        updateProfitShare(_investor);
+
+        uint withdrawnProfitShare = accounts[_investor].profitShare;
+
+        accounts[_investor].profitShare = 0;
+        _beneficiary.transfer(withdrawnProfitShare);
+
+        emit ProfitShareWithdrawn(_investor, _beneficiary, withdrawnProfitShare);
     }
 
 }

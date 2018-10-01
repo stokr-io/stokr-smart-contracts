@@ -747,9 +747,10 @@ contract("StokrToken", ([owner,
                     let profitShareOwing = await token.profitShareOwing(investor);
                     let weiBalance = await web3.eth.getBalance(token.address);
                     let tx = await token.withdrawProfitShare({from: investor});
-                    let entry = tx.logs.find(entry => entry.event === "ProfitWithdrawal");
+                    let entry = tx.logs.find(entry => entry.event === "ProfitShareWithdrawn");
                     expect(entry).to.exist;
                     expect(entry.args.investor).to.be.bignumber.equal(investor);
+                    expect(entry.args.beneficiary).to.be.bignumber.equal(investor);
                     expect(entry.args.amount)
                         .to.be.bignumber.equal(account.profitShare.plus(profitShareOwing));
                     expect((await getAccount(investor)).profitShare).to.be.bignumber.zero
@@ -763,9 +764,10 @@ contract("StokrToken", ([owner,
                 await token.depositProfit({from: profitDepositor, value: money.ether(2)});
                 let weiBalance = await web3.eth.getBalance(token.address);
                 let tx = await token.withdrawProfitShare({from: anyone});
-                let entry = tx.logs.find(entry => entry.event === "ProfitWithdrawal");
+                let entry = tx.logs.find(entry => entry.event === "ProfitShareWithdrawn");
                 expect(entry).to.exist;
                 expect(entry.args.investor).to.be.bignumber.equal(anyone);
+                expect(entry.args.beneficiary).to.be.bignumber.equal(anyone);
                 expect(entry.args.amount).to.be.bignumber.zero;
                 expect(await web3.eth.getBalance(token.address)).to.be.bignumber.equal(weiBalance);
             });

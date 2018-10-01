@@ -103,6 +103,20 @@ contract StokrCrowdsale is RefundableCrowdsale {
         return tokenCap - teamShare - tokenRemaining >= goal;
     }
 
+    /**
+     * @dev Investors can claim refunds here if crowdsale is unsuccessful
+     */
+    function distributeRefunds(address[] _investors) public onlyOwner {
+        require(isFinalized);
+        require(!goalReached());
+
+        for (uint i = 0; i < _investors.length; ++i) {
+            // /!\ This won't work as the wise men from OpenZeppelin
+            //     decided to make escrow private instead of internal
+            //escrow.withdraw(_investors[i]);
+        }
+    }
+
     /// @dev Extend parent behavior requiring beneficiary to be identical to msg.sender
     /// @param _beneficiary Token purchaser
     /// @param _weiAmount Amount of wei contributed
