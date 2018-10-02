@@ -28,24 +28,24 @@ contract ProfitSharing is Ownable {
     bool public totalSupplyIsFixed;
     uint internal totalSupply_;
 
-    event ProfitDepositorChanged(address indexed newProfitDepositor);
+    event ProfitDepositorChange(address indexed newProfitDepositor);
 
-    event ProfitDistributorChanged(address indexed newProfitDistributor);
+    event ProfitDistributorChange(address indexed newProfitDistributor);
 
     /// @dev Log entry on profit deposited
     /// @param depositor An Ethereum address
     /// @param amount A positive number
-    event ProfitDeposited(address indexed depositor, uint amount);
+    event ProfitDeposit(address indexed depositor, uint amount);
 
     /// @dev Log entry on profit share updated
     /// @param investor An Ethereum address
     /// @param amount A positive number
-    event ProfitShareUpdated(address indexed investor, uint amount);
+    event ProfitShareUpdate(address indexed investor, uint amount);
 
     /// @dev Log entry on profit withdrawal
     /// @param investor An Ethereum address
     /// @param amount A positive number
-    event ProfitShareWithdrawn(address indexed investor, address indexed beneficiary, uint amount);
+    event ProfitShareWithdrawal(address indexed investor, address indexed beneficiary, uint amount);
 
     /// @dev Ensure only depositor
     modifier onlyProfitDepositor() {
@@ -77,7 +77,7 @@ contract ProfitSharing is Ownable {
 
         // Don't emit event if set for first time or to the same value again
         if (profitDepositor != address(0x0) && _newProfitDepositor != profitDepositor) {
-            emit ProfitDepositorChanged(_newProfitDepositor);
+            emit ProfitDepositorChange(_newProfitDepositor);
         }
         profitDepositor = _newProfitDepositor;
     }
@@ -89,7 +89,7 @@ contract ProfitSharing is Ownable {
 
         // Don't emit event if set for first time or to the same value again
         if (profitDistributor != address(0x0) && _newProfitDistributor != profitDistributor) {
-            emit ProfitDistributorChanged(_newProfitDistributor);
+            emit ProfitDistributorChange(_newProfitDistributor);
         }
         profitDistributor = _newProfitDistributor;
     }
@@ -98,7 +98,7 @@ contract ProfitSharing is Ownable {
     function depositProfit() public payable onlyProfitDepositor {
         totalProfits = totalProfits.add(msg.value);
 
-        emit ProfitDeposited(msg.sender, msg.value);
+        emit ProfitDeposit(msg.sender, msg.value);
     }
 
     /// @dev Profit share owing
@@ -123,7 +123,7 @@ contract ProfitSharing is Ownable {
         accounts[_investor].lastTotalProfits = totalProfits;
         accounts[_investor].profitShare = accounts[_investor].profitShare.add(additionalProfitShare);
 
-        emit ProfitShareUpdated(_investor, additionalProfitShare);
+        emit ProfitShareUpdate(_investor, additionalProfitShare);
     }
 
     /// @dev Withdraw profit share
@@ -151,7 +151,7 @@ contract ProfitSharing is Ownable {
         accounts[_investor].profitShare = 0;
         _beneficiary.transfer(withdrawnProfitShare);
 
-        emit ProfitShareWithdrawn(_investor, _beneficiary, withdrawnProfitShare);
+        emit ProfitShareWithdrawal(_investor, _beneficiary, withdrawnProfitShare);
     }
 
 }
