@@ -11,61 +11,89 @@ contract ProfitSharing is Ownable {
 
     using SafeMath for uint;
 
+
+    // An InvestorAccount object keeps track of the investor's
+    // - balance: amount of tokens he/she holds (always up-to-date)
+    // - profitShare: amount of wei this token owed him/her at the last update
+    // - lastTotalProfits: determines when his/her profitShare was updated
+    // Note, this construction requires:
+    // - totalProfits to never decrease
+    // - totalSupply to be fixed
+    // - profitShare of all involved parties to get updated prior to any token transfer
+    // - lastTotalProfits to be set to current totalProfits upon profitShare update
     struct InvestorAccount {
-        uint balance;
-        uint lastTotalProfits;
-        uint profitShare;
+        uint balance;           // token balance
+        uint lastTotalProfits;  // totalProfits [wei] at the time of last profit share update
+        uint profitShare;       // profit share [wei] of last update
     }
 
+
+    // Investor account database
     mapping(address => InvestorAccount) public accounts;
 
+    // Authority who is allowed to deposit profits [wei] on this
     address public profitDepositor;
+
+    // Authority who is allowed to distribute profit shares [wei] to investors
+    // (so, that they don't need to withdraw it by themselves)
     address public profitDistributor;
+
+    // Amount of total profits [wei] stored to this token
+    // In contrast to the wei balance (which may be reduced due to profit share withdrawal)
+    // this value will never decrease
     uint public totalProfits;
 
     // As long as the total supply isn't fixed, i.e. new tokens can appear out of thin air,
-    // the investors' profit shares aren't determined.
+    // the investors' profit shares aren't determined
     bool public totalSupplyIsFixed;
+
+    // Total amount of tokens
     uint internal totalSupply_;
 
+
+    /// @dev Log entry on change of profit deposit authority
+    /// @param newProfitDepositor New authority's address
     event ProfitDepositorChange(address indexed newProfitDepositor);
 
+    /// @dev Log entry on change of profit distribution authority
+    /// @param newProfitDistributor New authority's address
     event ProfitDistributorChange(address indexed newProfitDistributor);
 
-    /// @dev Log entry on profit deposited
-    /// @param depositor An Ethereum address
-    /// @param amount A positive number
+    /// @dev Log entry on profit deposit
+    /// @param depositor Profit depositor's address
+    /// @param amount Deposited profits in wei
     event ProfitDeposit(address indexed depositor, uint amount);
 
-    /// @dev Log entry on profit share updated
-    /// @param investor An Ethereum address
-    /// @param amount A positive number
+    /// @dev Log entry on profit share update
+    /// @param investor Investor's address
+    /// @param amount New wei amount the token owes the investor
     event ProfitShareUpdate(address indexed investor, uint amount);
 
     /// @dev Log entry on profit withdrawal
-    /// @param investor An Ethereum address
-    /// @param amount A positive number
+    /// @param investor Investor's address
+    /// @param amount Wei amount the investor withdrew from this token
     event ProfitShareWithdrawal(address indexed investor, address indexed beneficiary, uint amount);
 
-    /// @dev Ensure only depositor
+
+    /// @dev Restrict operation to profit deposit authority only
     modifier onlyProfitDepositor() {
         require(msg.sender == profitDepositor, "Operation is restricted to profit depositor.");
         _;
     }
 
-    /// @dev Ensure only distributor
+    /// @dev Restrict operation to profit distribution authority only
     modifier onlyProfitDistributor() {
         require(msg.sender == profitDepositor, "Operation is restricted to profit distributor.");
         _;
     }
 
     /// @dev Constructor
-    /// @param _profitDepositor An Ethereum address
+    /// @param _profitDepositor Profit deposit authority
     constructor(address _profitDepositor) public {
         setProfitDepositor(_profitDepositor);
     }
 
-    /// @dev Fallback function
+    /// @dev Profit deposit if possible via fallback function
     function() public payable {
         depositProfit();
     }
@@ -108,9 +136,13 @@ contract ProfitSharing is Ownable {
         if (!totalSupplyIsFixed || totalSupply_ == 0) {
             return 0;
         }
-        return totalProfits.sub(accounts[_investor].lastTotalProfits)
-                           .mul(accounts[_investor].balance)
-                           .div(totalSupply_);  // <- The linter doesn't like this.
+
+        InvestorAccount memory account = accounts[_investor];
+
+        return totalProfits.sub(account.lastTotalProfits)
+                           .mul(account.balance)
+                           .div(totalSupply_)
+                           .add(account.profitShare);  // <- The linter doesn't like this.
     }
 
     /// @dev Update profit share
@@ -118,12 +150,12 @@ contract ProfitSharing is Ownable {
     function updateProfitShare(address _investor) public {
         require(totalSupplyIsFixed, "Total supply must be fixed prior to update profit share.");
 
-        uint additionalProfitShare = profitShareOwing(_investor);
+        uint newProfitShare = profitShareOwing(_investor);
 
         accounts[_investor].lastTotalProfits = totalProfits;
-        accounts[_investor].profitShare = accounts[_investor].profitShare.add(additionalProfitShare);
+        accounts[_investor].profitShare = newProfitShare;
 
-        emit ProfitShareUpdate(_investor, additionalProfitShare);
+        emit ProfitShareUpdate(_investor, newProfitShare);
     }
 
     /// @dev Withdraw profit share

@@ -20,12 +20,12 @@ let owner;
 let investors;
 
 
-const setAccounts = async () => {
+const setAccounts = async number => {
     console.log("accounts");
     let accounts = await web3.eth.accounts;
     owner = accounts.shift();
     console.log(`- owner at ${owner}`);
-    investors = accounts.slice(0, 5);  // 5 investors
+    investors = accounts.slice(0, number);
     for (let i = 0; i < investors.length; ++i) {
         let investor = investors[i];
         console.log(`- investor #${i} at ${investor}`);
@@ -64,8 +64,8 @@ const deploySales = async () => {
         let sale = await Sale.new(token.address,  // token address
                                   new BN("100e18"),  // token cap
                                   new BN("3e18"),  // token goal
-                                  now() + 30,  // opening time
-                                  now() + 150,  // closing time
+                                  now() + 180,  // opening time
+                                  now() + 480,  // closing time
                                   2,  // token per ether rate
                                   0,  // team token share
                                   owner,  // wallet
@@ -167,7 +167,7 @@ const saveAddresses = () => {
 };
 
 const run = async () => {
-    await setAccounts();
+    await setAccounts(5);  // 5 investors
     await deployWhitelist();
     await deployTokens(3);  // 3 tokens
     if (true) {

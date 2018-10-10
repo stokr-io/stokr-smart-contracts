@@ -145,7 +145,7 @@ contract("StokrCrowdsale", ([owner,
             });
 
             it("sets correct goal", async () => {
-                expect(await sale.goal()).to.be.bignumber.equal(params.tokenGoal);
+                expect(await sale.tokenGoal()).to.be.bignumber.equal(params.tokenGoal);
             });
 
             it("sets correct openingTime", async () => {
@@ -444,6 +444,15 @@ contract("StokrCrowdsale", ([owner,
                 expect(entry.args.amount).to.be.bignumber.equal(value.times(await sale.rate()));
             });
 
+            it("gets credited as potential refunds", async () => {
+
+                let remaining = await sale.tokenGoalRemaining();
+                let value = remaining.divToInt(await sale.rate()).divToInt(2).minus(money.wei(1));
+                let investment = await sale.investments(
+
+
+            });
+
             it("increases investor's balance", async () => {
                 let balance = await token.balanceOf(investor1);
                 let value = money.ether(2);
@@ -508,7 +517,7 @@ contract("StokrCrowdsale", ([owner,
             sale = await deploySale();
             token = await StokrToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
-            investment = (await sale.goal()).divToInt(await sale.rate()).minus(money.wei(1));
+            investment = (await sale.tokenGoal()).divToInt(await sale.rate()).minus(money.wei(1));
             await token.setMinter(sale.address, {from: owner});
             await time.increaseTo((await sale.openingTime()).plus(time.secs(1)));
             await sale.buyTokens(investor1, {from: investor1, value: investment});
@@ -573,7 +582,7 @@ contract("StokrCrowdsale", ([owner,
             sale = await deploySale();
             token = await StokrToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
-            investment = (await sale.goal()).divToInt(await sale.rate()).plus(money.wei(1));
+            investment = (await sale.tokenGoal()).divToInt(await sale.rate()).plus(money.wei(1));
             await token.setMinter(sale.address, {from: owner});
             await time.increaseTo((await sale.openingTime()).plus(time.secs(1)));
             await sale.buyTokens(investor1, {from: investor1, value: investment});
@@ -650,7 +659,7 @@ contract("StokrCrowdsale", ([owner,
             sale = await deploySale();
             token = await StokrToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
-            investment = (await sale.goal()).divToInt(await sale.rate()).minus(money.wei(1));
+            investment = (await sale.tokenGoal()).divToInt(await sale.rate()).minus(money.wei(1));
             await token.setMinter(sale.address, {from: owner});
             await time.increaseTo((await sale.openingTime()).plus(time.secs(1)));
             await sale.buyTokens(investor1, {from: investor1, value: investment});
@@ -713,7 +722,7 @@ contract("StokrCrowdsale", ([owner,
             sale = await deploySale();
             token = await StokrToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
-            investment = (await sale.goal()).divToInt(await sale.rate()).plus(money.wei(1));
+            investment = (await sale.tokenGoal()).divToInt(await sale.rate()).plus(money.wei(1));
             await token.setMinter(sale.address, {from: owner});
             await time.increaseTo((await sale.openingTime()).plus(time.secs(1)));
             await sale.buyTokens(investor1, {from: investor1, value: investment});
