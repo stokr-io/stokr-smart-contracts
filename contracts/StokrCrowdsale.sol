@@ -29,7 +29,7 @@ contract StokrCrowdsale is FinalizableCrowdsale {
     /// @dev Log entry on rate changed
     /// @param oldRate A positive number
     /// @param newRate A positive number
-    event RateChanged(
+    event RateChange(
         uint oldRate,
         uint newRate
     );
@@ -98,7 +98,7 @@ contract StokrCrowdsale is FinalizableCrowdsale {
         require(rate / 10 < _newRate && _newRate < 10 * rate, "Rate change must be less than an order of magnitude.");
 
         if (_newRate != rate) {
-            emit RateChanged(rate, _newRate);
+            emit RateChange(rate, _newRate);
         }
         rate = _newRate;
     }

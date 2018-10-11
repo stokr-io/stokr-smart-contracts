@@ -20,7 +20,7 @@ module.exports = {
         vpstestnet: {
             network_id: "*",
             host: "88.198.129.41",
-            port: 8545,
+            port: 24036,
             gas: 5500000,
         },
 

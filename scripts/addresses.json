@@ -10,16 +10,16 @@
         ]
     },
     "contracts": {
-        "whitelist": "0xbea29ca4cf05b6dab70771b5303dbf6d5d9d25fd",
+        "whitelist": "0xac86704c91bf9a920549dcc0084a64977064a076",
         "tokens": [
-            "0x6321ec834dd866e2cbfcf693d054e493d83e842e",
-            "0xbe53331e5bf5dc619ebbf1952dea3ab42e329ce1",
-            "0x4c7597175b3b3d6b1301fa1b48434fad05f91c60"
+            "0x2449f6698f50f96c749677b74ccfea5b08db51da",
+            "0x15763acff4e623edef62414675c1c44dfba9fa64",
+            "0xe92419c0cd5dab09380d1fcd8a6148e452f6be83"
         ],
         "sales": [
-            "0xae9b90373b31aa778b21bffa4e812b51a853def9",
-            "0x5e29cb7fc62f28496776e2a8691817036faccc8e",
-            "0x441512c9a6f09ad6dcec86a3c03bd82930a7f3ed"
+            "0xfba717d08271fcb52ac9abc8067776046edb4955",
+            "0x3ff74104fcc155326ef2dc8e976e0ba7177226d1",
+            "0x9703a0fab09ac3a85c203d62e70b3e976225431b"
         ]
     }
 }

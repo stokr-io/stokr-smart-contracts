@@ -19,9 +19,14 @@ let sales;
 const loadAddresses = async () => {
     console.log("addresses");
     owner = addresses.accounts.owner;
+    //await web3.personal.unlockAccount(owner, "", 0);
     console.log(`- owner at ${owner}`);
     investors = addresses.accounts.investors;
-    investors.forEach(investor => console.log(`- investor at ${investor}`));
+    for (let i = 0; i < investors.length; ++i) {
+        let investor = investors[i];
+        //await web3.personal.unlockAccount(investor, "", 0);
+        console.log(`- investor at ${investor}`);
+    }
     whitelist = Whitelist.at(addresses.contracts.whitelist);
     console.log(`- whitelist at ${whitelist.address}`);
     tokens = [];
@@ -86,7 +91,7 @@ const run = async () => {
 
     console.log("actions");
     while (true) {
-        await sleep(8);
+        await sleep(20);
         await doSomething();
     }
 };
