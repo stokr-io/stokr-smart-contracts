@@ -2,24 +2,26 @@
     "accounts": {
         "owner": "0x81aec72bac583533d7665c4da85a99ee22a42500",
         "investors": [
-            "0xabeb212119948694f88537c03df38f401db85b5c",
-            "0xdf04bff6a55b3765104746570cea8c7e27bd438d",
-            "0x490447e2453d592f30db3a51650d376f7597dfd9",
-            "0x1b3a390de5fed6aee8735640298675a2822f9b95",
-            "0x8831e15df09ae259007d3a60d8d88acce5655a23"
+            "0x6f2568d117f1cace1f8d08878a2ca04b16def4e8",
+            "0xd402e3622c8fad9673c1acd49870d7a066193af6",
+            "0xd6bd6d84b02496deb7c3cefc33650c8a19619b63",
+            "0x012e9232f13c42c59d746f5051f31fafb3340532",
+            "0x01754148c8e9cd15711b401a8cf31f0a4bf37a29"
         ]
     },
     "contracts": {
-        "whitelist": "0xac86704c91bf9a920549dcc0084a64977064a076",
-        "tokens": [
-            "0x2449f6698f50f96c749677b74ccfea5b08db51da",
-            "0x15763acff4e623edef62414675c1c44dfba9fa64",
-            "0xe92419c0cd5dab09380d1fcd8a6148e452f6be83"
+        "Whitelist": [
+            "0x4f694a665f1de66f9d7c1bc68b03b0667dbd4aaa"
         ],
-        "sales": [
-            "0xfba717d08271fcb52ac9abc8067776046edb4955",
-            "0x3ff74104fcc155326ef2dc8e976e0ba7177226d1",
-            "0x9703a0fab09ac3a85c203d62e70b3e976225431b"
+        "StokrToken": [
+            "0xaf5a9ba8a2b755368b7334d187a095c0c23c87bf",
+            "0x4279018e63d8b2612e881c3ce975e5857bd84910",
+            "0xac47884c69c061f81fd1e622976d7caa39f6647c"
+        ],
+        "StokrCrowdsale": [
+            "0x61f3bd4144e67a7cc80f8e066136c547318bd7f2",
+            "0x57e4cd9e456dcdf2518b18c9f9239dd0f5fcd978",
+            "0x0df86539c94c04057615c1666cb7afefad3cca4c"
         ]
     }
 }

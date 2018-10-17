@@ -66,7 +66,7 @@ const deploySales = async () => {
                                   new BN("3e18"),  // token goal
                                   now() + 180,  // opening time
                                   now() + 480,  // closing time
-                                  2,  // token per ether rate
+                                  12345,  // token per ether rate
                                   0,  // team token share
                                   owner,  // wallet
                                   {from: owner});
@@ -158,9 +158,9 @@ const saveAddresses = () => {
     let addresses = {
         accounts: {owner, investors},
         contracts: {
-            whitelist: whitelist.address,
-            tokens: tokens.map(token => token.address),
-            sales: sales.map(sale => sale.address)
+            Whitelist: [whitelist.address],
+            StokrToken: tokens.map(token => token.address),
+            StokrCrowdsale: sales.map(sale => sale.address)
         }
     };
     fs.writeFileSync(path, JSON.stringify(addresses, null, 4));
