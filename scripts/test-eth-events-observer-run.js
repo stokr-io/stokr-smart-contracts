@@ -19,26 +19,20 @@ let sales;
 const loadAddresses = async () => {
     console.log("addresses");
     owner = addresses.accounts.owner;
-    //await web3.personal.unlockAccount(owner, "", 0);
     console.log(`- owner at ${owner}`);
     investors = addresses.accounts.investors;
-    for (let i = 0; i < investors.length; ++i) {
-        let investor = investors[i];
-        //await web3.personal.unlockAccount(investor, "", 0);
-        console.log(`- investor at ${investor}`);
-    }
+    investors.forEach(investor =>
+        console.log(`- investor at ${investor}`));
     whitelist = Whitelist.at(addresses.contracts.Whitelist[0]);
     console.log(`- whitelist at ${whitelist.address}`);
     tokens = [];
-    for (let i = 0; i < addresses.contracts.StokrToken.length; ++i) {
-        let address = addresses.contracts.StokrToken[i];
+    for (let address of addresses.contracts.StokrToken.values()) {
         let token = await Token.at(address);
         tokens.push(token);
         console.log(`- token ${await token.symbol()} at ${token.address}`);
     }
     sales = [];
-    for (let i = 0; i < addresses.contracts.StokrCrowdsale.length; ++i) {
-        let address = addresses.contracts.StokrCrowdsale[i];
+    for (let address of addresses.contracts.StokrCrowdsale.values()) {
         let sale = await Sale.at(address);
         let token = await Token.at(await sale.token());
         sales.push(await Sale.at(address));

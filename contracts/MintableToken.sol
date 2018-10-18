@@ -1,7 +1,8 @@
 pragma solidity 0.4.24;
 
-import "./ProfitSharing.sol";
+import "./token/ERC20.sol";
 import "./Whitelisted.sol";
+import "./ProfitSharing.sol";
 
 
 /// @title MintableToken

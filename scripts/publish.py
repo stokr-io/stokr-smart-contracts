@@ -16,7 +16,7 @@ import os.path
 import sys
 
 
-DB_ENDPOINT = "localhost:8000"
+DB_ENDPOINT = "88.198.129.43:8080"
 
 base_dir = os.path.dirname(__file__)
 

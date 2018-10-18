@@ -23,13 +23,12 @@ let investors;
 const setAccounts = async number => {
     console.log("accounts");
     let accounts = await web3.eth.accounts;
+    await web3.personal.unlockAccount(accounts[1], "", 0);
     owner = accounts.shift();
     console.log(`- owner at ${owner}`);
     investors = accounts.slice(0, number);
-    for (let i = 0; i < investors.length; ++i) {
-        let investor = investors[i];
-        console.log(`- investor #${i} at ${investor}`);
-    }
+    investors.forEach(investor =>
+        console.log(`- investor at ${investor}`));
 };
 
 const deployWhitelist = async () => {
@@ -44,9 +43,9 @@ const deployWhitelist = async () => {
 const deployTokens = async number => {
     console.log("deploy tokens");
     tokens = [];
-    for (let t = 0; t < number; ++t) {
-        let token = await Token.new(`Sample Token ${t}`,
-                                    `TOK${t}`,
+    for (let i = 0; i < number; ++i) {
+        let token = await Token.new(`Sample Token ${i}`,
+                                    `TOK${i}`,
                                     whitelist.address,
                                     owner,
                                     owner,
@@ -59,8 +58,7 @@ const deployTokens = async number => {
 const deploySales = async () => {
     console.log("deploy sales");
     sales = [];
-    for (let t = 0; t < tokens.length; ++t) {
-        let token = tokens[t];
+    for (let token of tokens.values()) {
         let sale = await Sale.new(token.address,  // token address
                                   new BN("100e18"),  // token cap
                                   new BN("3e18"),  // token goal
@@ -82,8 +80,7 @@ const allSalesOpened = async () => {
     let allOpened = false;
     while (!allOpened) {
         allOpened = true;
-        for (let s = 0; s < sales.length; ++s) {
-            let sale = sales[s];
+        for (let sale of sales.values()) {
             if ((await sale.openingTime()).gt(now())) {
                 allOpened = false;
                 await sleep(1);
@@ -95,11 +92,9 @@ const allSalesOpened = async () => {
 
 const purchaseTokens = async () => {
     console.log("purchase tokens");
-    for (let s = 0; s < sales.length; ++s) {
-        let sale = sales[s];
+    for (let sale of sales.values()) {
         let token = await Token.at(await sale.token());
-        for (let i = 0; i < investors.length; ++i) {
-            let investor = investors[i];
+        for (let investor of investors.values()) {
             let ethValue = choose([0, 1, 2, 3, 4]);
             if (ethValue > 0) {
                 await sale.buyTokens(investor, {from: investor, value: ethValue * 1e18});
@@ -114,8 +109,7 @@ const allSalesClosed = async () => {
     let allClosed = false;
     while (!allClosed) {
         allClosed = true;
-        for (let s = 0; s < sales.length; ++s) {
-            let sale = sales[s];
+        for (let sale of sales.values()) {
             if (!(await sale.hasClosed())) {
                 allClosed = false;
                 await sleep(1);
@@ -127,8 +121,7 @@ const allSalesClosed = async () => {
 
 const finalizeSales = async () => {
     console.log("finalize sales");
-    for (let s = 0; s < sales.length; ++s) {
-        let sale = sales[s];
+    for (let sale of sales.values()) {
         let token = await Token.at(await sale.token());
         await sale.finalize({from: owner});
         console.log(`- sale for ${await token.symbol()}`);
@@ -137,11 +130,9 @@ const finalizeSales = async () => {
 
 const distributeTokens = async () => {
     console.log("distribute tokens");
-    for (let t = 0; t < tokens.length; ++t) {
-        let token = tokens[t];
+    for (let token of tokens.values()) {
         await token.setMinter(owner, {from: owner});
-        for (let i = 0; i < investors.length; ++i) {
-            let investor = investors[i];
+        for (let investor of investors.values()) {
             let amount = choose([0, 2, 4, 6, 8]);
             if (amount > 0) {
                 await token.mint(investor, amount * 1e18, {from: owner});
