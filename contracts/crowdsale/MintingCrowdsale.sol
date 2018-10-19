@@ -32,8 +32,8 @@ contract MintingCrowdsale is Ownable {
     address public companyWallet;
 
     // Amount and receiver of revserved tokens.
-    uint tokenReserve;
-    address reserveAccount;
+    uint public tokenReserve;
+    address public reserveAccount;
 
     // Wether this crowdsale was finalized or not
     bool public isFinalized = false;
@@ -114,6 +114,12 @@ contract MintingCrowdsale is Ownable {
         tokenRemaining = _tokenCap - _tokenReserve;
     }
 
+    /// @dev Restrict operation to rate setting authority
+    modifier onlyRateAdmin() {
+        require(msg.sender == rateAdmin, "Operation is restricted to rate admin only");
+        _;
+    }
+
     /// @dev Fallback function: buys tokens
     function () public payable {
         buyTokens();
@@ -157,7 +163,7 @@ contract MintingCrowdsale is Ownable {
 
     /// @dev Set rate, i.e. adjust to changes of EUR/ether exchange rate
     /// @param _etherRate Rate in Euro cent per ether
-    function setRate(uint _etherRate) public onlyOwner {
+    function setRate(uint _etherRate) public onlyRateAdmin {
         // Rate changes beyond an order of magnitude are likely just typos
         require(etherRate / 10 < _etherRate && _etherRate < 10 * etherRate,
                 "Rate must not change by an order of magnitude or more");

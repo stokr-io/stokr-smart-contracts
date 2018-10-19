@@ -1,6 +1,6 @@
 "use strict";
 
-const KeyRecoverer = artifacts.require("./KeyRecoverer.sol");
+const KeyRecoverer = artifacts.require("./recovery/KeyRecoverer.sol");
 
 const BN = web3.BigNumber;
 const {expect} = require("chai").use(require("chai-bignumber")(BN));

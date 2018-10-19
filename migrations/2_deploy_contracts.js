@@ -1,8 +1,8 @@
 "use strict";
 
-const Whitelist = artifacts.require("Whitelist");
-const Token = artifacts.require("SampleToken");
-const Sale = artifacts.require("StokrCrowdsale");
+const Whitelist = artifacts.require("whitelist/Whitelist");
+const Token = artifacts.require("token/StokrToken");
+const Sale = artifacts.require("crowdsale/StokrCrowdsale");
 
 
 module.exports = function(deployer, network, accounts) {
@@ -29,9 +29,12 @@ module.exports = function(deployer, network, accounts) {
         return Sale.new(token.address,
                         1000e18,
                         30e18,
+                        100,
+                        16384,
+                        owner,
                         now + 30,
                         now + 24 * 60 * 60,
-                        20,
+                        owner,
                         0,
                         owner,
                         {from: owner});

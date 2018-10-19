@@ -167,7 +167,7 @@ module.exports = (() => {
                         });
                 });
 
-        // Revert to EVM snapshot with given id
+        // Revert to EVM state just before snapshot with the given id was created
         const revert = async id =>
             new Promise((resolve, reject) => {
                     web3.currentProvider.sendAsync(
@@ -182,7 +182,11 @@ module.exports = (() => {
         const $ = async () => {
             let id = await create();
             return {
+                // Revert to EVM state just before this is snapshot was created
+                // This snapshot object becomes invalid
                 revert: () => revert(id),
+                // Restore EVM state when this snapshot was created
+                // This snapshot object is still valid
                 restore: async () => {
                     await revert(id);
                     id = await create();

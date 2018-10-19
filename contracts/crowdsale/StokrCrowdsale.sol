@@ -14,7 +14,7 @@ contract StokrCrowdsale is MintingCrowdsale {
     // As long as the goal is not reached funds of purchases are held back
     // and investments are assigned to investors here to enable a refunding
     // if the goal is missed upon finalization
-    mapping(address => uint) investments;
+    mapping(address => uint) public investments;
 
 
     // Log entry upon investor refund event

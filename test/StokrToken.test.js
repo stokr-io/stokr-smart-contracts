@@ -1,7 +1,7 @@
 "use strict";
 
-const Whitelist = artifacts.require("./Whitelist.sol");
-const StokrToken = artifacts.require("./StokrToken.sol");
+const Whitelist = artifacts.require("./whitelist/Whitelist.sol");
+const StokrToken = artifacts.require("./token/StokrToken.sol");
 
 const BN = web3.BigNumber;
 const {expect} = require("chai").use(require("chai-bignumber")(BN));

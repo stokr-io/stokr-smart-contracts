@@ -17,7 +17,7 @@ contract Ownable {
 
     /// @dev Forbid call by anyone but owner
     modifier onlyOwner() {
-        require(msg.sender == owner);
+        require(msg.sender == owner, "Operation is restricted to owner only");
         _;
     }
 
@@ -29,7 +29,7 @@ contract Ownable {
     /// @dev Transfer ownership to a new Ethereum account
     /// @param _newOwner Ethereum address to transfer ownership to
     function transferOwnership(address _newOwner) public onlyOwner {
-        require(_newOwner != address(0x0), "New owner is zero");
+        require(_newOwner != address(0x0), "New owner address must not be zero");
 
         owner = _newOwner;
 
