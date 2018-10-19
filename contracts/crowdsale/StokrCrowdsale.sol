@@ -1,7 +1,7 @@
 pragma solidity 0.4.24;
 
 import "./MintingCrowdsale.sol";
-import "./StokrToken.sol";
+import "../token/StokrToken.sol";
 
 
 /// @title StokrCrowdsale
@@ -63,11 +63,6 @@ contract StokrCrowdsale is MintingCrowdsale {
         require(_tokenGoal <= _tokenCap - _tokenReserve, "Token goal must be attainable");
 
         tokenGoal = _tokenGoal;
-    }
-
-    /// @dev Prerequisite to refunding
-    modifier onlyWhenRefundPossible() {
-        _;
     }
 
     /// @dev Wether the goal of sold tokens was reached or not

@@ -1,7 +1,7 @@
 pragma solidity 0.4.24;
 
-import "./math/SafeMath.sol";
-import "./ownership/Ownable.sol";
+import "../math/SafeMath.sol";
+import "../ownership/Ownable.sol";
 
 
 /// @title ProfitSharing
@@ -141,7 +141,7 @@ contract ProfitSharing is Ownable {
         return totalProfits.sub(account.lastTotalProfits)
                            .mul(account.balance)
                            .div(totalSupply_)
-                           .add(account.profitShare);  // <- The linter doesn't like this.
+                           .add(account.profitShare);
     }
 
     /// @dev Update profit share

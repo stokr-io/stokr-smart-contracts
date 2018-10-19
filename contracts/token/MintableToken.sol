@@ -1,7 +1,7 @@
 pragma solidity 0.4.24;
 
-import "./token/ERC20.sol";
-import "./Whitelisted.sol";
+import "../whitelist/Whitelisted.sol";
+import "./ERC20.sol";
 import "./ProfitSharing.sol";
 
 

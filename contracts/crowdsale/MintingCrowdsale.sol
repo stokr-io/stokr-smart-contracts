@@ -1,8 +1,8 @@
 pragma solidity 0.4.24;
 
-import "./math/SafeMath.sol";
-import "./ownership/Ownable.sol";
-import "./MintableToken.sol";
+import "../math/SafeMath.sol";
+import "../ownership/Ownable.sol";
+import "../token/MintableToken.sol";
 
 
 /// @title MintingCrowdsale

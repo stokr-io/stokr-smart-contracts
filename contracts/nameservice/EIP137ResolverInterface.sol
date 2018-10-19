@@ -5,9 +5,9 @@ interface EIP137ResolverInterface {
 
     event AddrChanged(bytes32 indexed node, address a);
 
-    function supportsInterface(bytes4 interfaceID) constant returns (bool);
+    function supportsInterface(bytes4 interfaceID) external constant returns (bool);
 
-    function addr(bytes32 node) constant returns (address);
+    function addr(bytes32 node) external constant returns (address);
 
 }
 
