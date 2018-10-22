@@ -30,14 +30,14 @@ contract Whitelist is Ownable {
 
     /// @dev Only admin
     modifier onlyAdmin() {
-        require(admins[msg.sender], "Operation is restricted to whitelist admin.");
+        require(admins[msg.sender], "Restricted to whitelist admin");
         _;
     }
 
     /// @dev Add admin
     /// @param _admin An Ethereum address
     function addAdmin(address _admin) public onlyOwner {
-        require(_admin != address(0x0), "Whitelist admin address must not be zero.");
+        require(_admin != address(0x0), "Whitelist admin is zero");
 
         if (!admins[_admin]) {
             admins[_admin] = true;
@@ -49,7 +49,7 @@ contract Whitelist is Ownable {
     /// @dev Remove admin
     /// @param _admin An Ethereum address
     function removeAdmin(address _admin) public onlyOwner {
-        require(_admin != address(0x0), "Whitelist admin address must not be zero.");
+        require(_admin != address(0x0), "Whitelist admin is zero");  // Necessary?
 
         if (admins[_admin]) {
             admins[_admin] = false;

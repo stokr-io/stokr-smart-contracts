@@ -63,7 +63,7 @@ contract StokrCrowdsale is MintingCrowdsale {
             _reserveAccount
         )
     {
-        require(_tokenGoal <= _tokenCapOfPublicSale + _tokenCapOfPrivateSale, "Token goal must be attainable");
+        require(_tokenGoal <= _tokenCapOfPublicSale + _tokenCapOfPrivateSale, "Goal is not attainable");
 
         tokenGoal = _tokenGoal;
     }
@@ -89,8 +89,8 @@ contract StokrCrowdsale is MintingCrowdsale {
     /// @dev Refund an investor if the sale was not successful
     /// @param _investor Ethereum address of investor
     function refundInvestor(address _investor) internal {
-        require(isFinalized, "Refunding is not possible until sale has been finalized");
-        require(!goalReached(), "Refunding is not possible if goal was reached");
+        require(isFinalized, "Sale has not been finalized");
+        require(!goalReached(), "Goal was reached");
 
         uint investment = investments[_investor];
 

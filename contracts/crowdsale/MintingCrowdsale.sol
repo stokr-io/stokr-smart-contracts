@@ -102,16 +102,16 @@ contract MintingCrowdsale is Ownable {
     )
         public
     {
-        require(address(_token) != address(0x0), "Token address must not be zero");
-        require(_tokenCapOfPublicSale > 0, "Token cap of public sale must be greater than zero");
-        require(_tokenCapOfPrivateSale > 0, "Token cap of private sale must be greater than zero");
-        require(_tokenPrice > 0, "Token price must be greater than zero");
-        require(_etherRate > 0, "Ether price must be greater than zero");
-        require(_rateAdmin != address(0x0), "Rate admin address must not be zero");
-        require(_openingTime >= now, "Opening time must not lie in the past");
-        require(_closingTime >= _openingTime, "Closing time must not lie before opening time");
-        require(_companyWallet != address(0x0), "Company wallet address must not be zero");
-        require(_reserveAccount != address(0x0), "Reserve account address must not be zero");
+        require(address(_token) != address(0x0), "Token address is zero");
+        require(_tokenCapOfPublicSale > 0, "Cap of public sale is zero");
+        require(_tokenCapOfPrivateSale > 0, "Cap of private sale is zero");
+        require(_tokenPrice > 0, "Token price is zero");
+        require(_etherRate > 0, "Ether price is zero");
+        require(_rateAdmin != address(0x0), "Rate admin is zero");
+        require(_openingTime >= now, "Opening lies in the past");
+        require(_closingTime >= _openingTime, "Closing lies before opening");
+        require(_companyWallet != address(0x0), "Company wallet is zero");
+        require(_reserveAccount != address(0x0), "Reserve account is zero");
 
         // Utilize safe math to ensure the sum of three token pools does't overflow
         _tokenReserve.add(_tokenCapOfPublicSale).add(_tokenCapOfPrivateSale);
@@ -134,7 +134,7 @@ contract MintingCrowdsale is Ownable {
 
     /// @dev Restrict operation to rate setting authority
     modifier onlyRateAdmin() {
-        require(msg.sender == rateAdmin, "Operation is restricted to rate admin only");
+        require(msg.sender == rateAdmin, "Restricted to rate admin");
         _;
     }
 
@@ -162,7 +162,7 @@ contract MintingCrowdsale is Ownable {
     /// @dev Set rate admin, i.e. the ether rate setting authority
     /// @param _rateAdmin Ethereum address of new rate admin
     function setRateAdmin(address _rateAdmin) public onlyOwner {
-        require(_rateAdmin != address(0x0), "Rate setter address must not be zero");
+        require(_rateAdmin != address(0x0), "New rate admin is zero");
 
         if (_rateAdmin != rateAdmin) {
             emit RateAdminChange(rateAdmin, _rateAdmin);
@@ -175,8 +175,7 @@ contract MintingCrowdsale is Ownable {
     /// @param newRate Rate in Euro cent per ether
     function setRate(uint newRate) public onlyRateAdmin {
         // Rate changes beyond an order of magnitude are likely just typos
-        require(etherRate / 10 < newRate && newRate < 10 * etherRate,
-                "Rate must not change by an order of magnitude or more");
+        require(etherRate / 10 < newRate && newRate < 10 * etherRate, "Rate change too big");
 
         if (newRate != etherRate) {
             emit RateChange(etherRate, newRate);
@@ -216,7 +215,7 @@ contract MintingCrowdsale is Ownable {
 
     /// @dev Purchase tokens
     function buyTokens() public payable {
-        require(isOpen(), "Token purchase is not possible if sale is not open");
+        require(isOpen(), "Sale is not open");
 
         // Units:  [1e-18*ether] * [cent/ether] / [cent/token] => [1e-18*token]
         uint amount = msg.value.mul(etherRate).div(tokenPrice);
@@ -232,8 +231,8 @@ contract MintingCrowdsale is Ownable {
 
     /// @dev Finalize, i.e. end token minting phase and enable token trading
     function finalize() public onlyOwner {
-        require(!isFinalized, "Sale cannot get finalized again");
-        require(hasClosed(), "Sale must have been closed prior to finalizing");
+        require(!isFinalized, "Sale has already been finalized");
+        require(hasClosed(), "Sale has not closed");
 
         token.mint(reserveAccount, tokenReserve);
         token.finishMinting();
@@ -252,8 +251,8 @@ contract MintingCrowdsale is Ownable {
         onlyOwner
         returns (uint)
     {
-        require(!isFinalized, "Token distribution is not possible after finalization");
-        require(beneficiaries.length == amounts.length, "Arguments must have same length");
+        require(!isFinalized, "Sale was finalized");
+        require(beneficiaries.length == amounts.length, "Lengths are different");
 
         for (uint i = 0; i < beneficiaries.length; ++i) {
             address beneficiary = beneficiaries[i];

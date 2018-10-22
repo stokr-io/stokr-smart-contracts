@@ -6,6 +6,7 @@ const Sale = artifacts.require("crowdsale/StokrCrowdsale");
 
 
 module.exports = function(deployer, network, accounts) {
+    /*
     let owner = accounts[0];
     let now = Date.now() / 1000 | 0;
 
@@ -28,6 +29,7 @@ module.exports = function(deployer, network, accounts) {
         console.log("  Deploy Sale");
         return Sale.new(token.address,
                         1000e18,
+                        500e18,
                         30e18,
                         100,
                         16384,
@@ -41,5 +43,6 @@ module.exports = function(deployer, network, accounts) {
     }).then(sale => {
         console.log("  ==> at address " + sale.address);
     });
+    */
 };
 

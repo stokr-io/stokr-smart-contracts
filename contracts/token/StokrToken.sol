@@ -52,7 +52,7 @@ contract StokrToken is MintableToken, KeyRecoverable {
         // Check for account.profitShare is not needed because of following implication:
         //   (account.lastTotalProfits == 0) ==> (account.profitShare == 0)
         require(accounts[_newAddress].balance == 0 && accounts[_newAddress].lastTotalProfits == 0,
-                "New account address must not be an already existing account.");
+                "New address exists already");
 
         updateProfitShare(_oldAddress);
 
@@ -114,8 +114,7 @@ contract StokrToken is MintableToken, KeyRecoverable {
     /// @param _value A positive number
     /// @return True or false
     function transferFrom(address _from, address _to, uint _value) public returns (bool) {
-        require(_value <= allowance_[_from][msg.sender],
-                "Amount to transfer must not exceed allowance.");
+        require(_value <= allowance_[_from][msg.sender], "Amount exceeds allowance");
 
         allowance_[_from][msg.sender] = allowance_[_from][msg.sender].sub(_value);
 
@@ -134,8 +133,8 @@ contract StokrToken is MintableToken, KeyRecoverable {
         notMinting
         returns (bool)
     {
-        require(_to != address(0x0), "Recipient address must not be zero.");
-        require(_value <= accounts[_from].balance, "Amount to transfer must not exceed balance.");
+        require(_to != address(0x0), "Recipient is zero");
+        require(_value <= accounts[_from].balance, "Amount exceeds balance");
 
         updateProfitShare(_from);
         updateProfitShare(_to);

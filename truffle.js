@@ -6,6 +6,7 @@ module.exports = {
             network_id: "*",
             host: "localhost",
             port: 8545,
+            gas: 20000000,
         },
 
         // Persistent Parity PoA test network (Berlin O34 office LAN)
@@ -21,7 +22,7 @@ module.exports = {
             network_id: "*",
             host: "88.198.129.41",
             port: 24036,
-            gas: 5500000,
+            gas: 8000000,
         },
 
         // Rinkeby test network

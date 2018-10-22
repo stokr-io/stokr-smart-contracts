@@ -23,27 +23,27 @@ contract MintableToken is ERC20, ProfitSharing, Whitelisted {
 
     /// @dev Ensure only minter
     modifier onlyMinter() {
-        require(msg.sender == minter, "Operation is restricted to minter.");
+        require(msg.sender == minter, "Restricted to minter");
         _;
     }
 
     /// @dev Ensure can mint
     modifier canMint() {
-        require(!totalSupplyIsFixed, "Total token supply must not be fixed.");
+        require(!totalSupplyIsFixed, "Total supply has been fixed");
         _;
     }
 
     /// @dev Ensure not minting
     modifier notMinting() {
-        require(totalSupplyIsFixed, "Total token supply must not change.");
+        require(totalSupplyIsFixed, "Total supply may change");
         _;
     }
 
     /// @dev Set minter
     /// @param _minter An Ethereum address
     function setMinter(address _minter) public onlyOwner {
-        require(minter == address(0x0), "Minter may only be set once.");
-        require(_minter != address(0x0), "Minter address must not be zero.");
+        require(minter == address(0x0), "Minter has already been set");
+        require(_minter != address(0x0), "Minter is zero");
 
         minter = _minter;
     }

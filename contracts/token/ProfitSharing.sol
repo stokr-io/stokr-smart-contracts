@@ -76,13 +76,13 @@ contract ProfitSharing is Ownable {
 
     /// @dev Restrict operation to profit deposit authority only
     modifier onlyProfitDepositor() {
-        require(msg.sender == profitDepositor, "Operation is restricted to profit depositor.");
+        require(msg.sender == profitDepositor, "Restricted to profit depositor");
         _;
     }
 
     /// @dev Restrict operation to profit distribution authority only
     modifier onlyProfitDistributor() {
-        require(msg.sender == profitDepositor, "Operation is restricted to profit distributor.");
+        require(msg.sender == profitDepositor, "Restricted to profit distributor");
         _;
     }
 
@@ -100,7 +100,7 @@ contract ProfitSharing is Ownable {
     /// @dev Change profit depositor
     /// @param _newProfitDepositor An Ethereum address
     function setProfitDepositor(address _newProfitDepositor) public onlyOwner {
-        require(_newProfitDepositor != address(0x0), "Profit depositor address must not be zero.");
+        require(_newProfitDepositor != address(0x0), "New profit depositor is zero");
 
         // Don't emit event if set for first time or to the same value again
         if (profitDepositor != address(0x0) && _newProfitDepositor != profitDepositor) {
@@ -112,7 +112,7 @@ contract ProfitSharing is Ownable {
     /// @dev Change profit distributor
     /// @param _newProfitDistributor An Ethereum address
     function setProfitDistributor(address _newProfitDistributor) public onlyOwner {
-        require(_newProfitDistributor != address(0x0), "Profit distributor address must not be zero.");
+        require(_newProfitDistributor != address(0x0), "New profit distributor is zero");
 
         // Don't emit event if set for first time or to the same value again
         if (profitDistributor != address(0x0) && _newProfitDistributor != profitDistributor) {
@@ -147,7 +147,7 @@ contract ProfitSharing is Ownable {
     /// @dev Update profit share
     /// @param _investor An Ethereum address
     function updateProfitShare(address _investor) public {
-        require(totalSupplyIsFixed, "Total supply must be fixed prior to update profit share.");
+        require(totalSupplyIsFixed, "Total supply may change");
 
         uint newProfitShare = profitShareOwing(_investor);
 
