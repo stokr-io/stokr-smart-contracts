@@ -13,7 +13,7 @@ contract StokrProjectFactory is Ownable {
 
     Whitelist whitelist;
     address stokrToken;
-    //address stokrCrowdsale;
+    address stokrCrowdsale;
     string projectName;
   }
 
@@ -21,27 +21,34 @@ Whitelist currentWhitelist;
 
 StokrProject[] public projects;
 
-constructor(address _whitelist) {
+constructor(address _whitelist) public {
   currentWhitelist=Whitelist(_whitelist);
 }
 
   function createNewProject(
   string _name,
   string _symbol,
-  address _profitDepositor,
-  address _keyRecoverer,
+  address[3] _roles,
+  //roles[0] = _profitDepositor,
+  //roles[1] = _keyRecoverer,
+  //roles[2] = _rateAdmin,
+
   uint _tokenGoal,
-  uint _tokenCap,
+  uint[2] _caps,
+  //_caps[0] = _tokenCapOfPublicSale,
+  //_caps[1] = _tokenCapOfPrivateSale,
   uint _tokenPrice,
   uint _etherRate,
-  address _rateAdmin,
-  uint _openingTime,
-  uint _closingTime,
-  address _companyWallet,
-  uint _tokenReserve,
-  address _reserveAccount) onlyOwner {
-  StokrToken token = new StokrToken(_name,_symbol, currentWhitelist, _profitDepositor, _keyRecoverer);
-  //StokrCrowdsale crowdsale = new StokrCrowdsale(token,_tokenCap, _tokenGoal, _tokenPrice,_etherRate, _rateAdmin, _openingTime,_closingTime,_companyWallet,_tokenReserve, _reserveAccount);
-  //projects.push(StokrProject(currentWhitelist,token,_name));
+
+  uint[2] _times,
+
+  address[2] _wallets,
+  // _wallets[0] = companyWallet
+  // _wallets[1] = reserveAccount
+  uint _tokenReserve
+  ) public onlyOwner {
+  StokrToken token = new StokrToken(_name,_symbol, currentWhitelist, _roles[0], _roles[1]);
+  StokrCrowdsale crowdsale = new StokrCrowdsale(token, _caps[0], _caps[1], _tokenGoal, _tokenPrice, _etherRate, _roles[2], _times[0],_times[1], _wallets[0], _tokenReserve, _wallets[1]);
+  projects.push(StokrProject(currentWhitelist,token,crowdsale,_name));
 }
 }

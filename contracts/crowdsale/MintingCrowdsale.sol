@@ -146,7 +146,7 @@ contract MintingCrowdsale is Ownable {
     /// @dev Distribute tokens purchased off-chain via public sale
     /// @param beneficiaries List of recipients' Ethereum addresses
     /// @param amounts List of token units each recipient will receive
-    function distributeTokensViaPublicSale(address[] beneficiaries, uint[] amounts) {
+    function distributeTokensViaPublicSale(address[] beneficiaries, uint[] amounts) public {
         tokenRemainingForPublicSale =
             distributeTokens(tokenRemainingForPublicSale, beneficiaries, amounts);
     }
@@ -154,7 +154,7 @@ contract MintingCrowdsale is Ownable {
     /// @dev Distribute tokens purchased off-chain via private sale
     /// @param beneficiaries List of recipients' Ethereum addresses
     /// @param amounts List of token units each recipient will receive
-    function distributeTokensViaPrivateSale(address[] beneficiaries, uint[] amounts) {
+    function distributeTokensViaPrivateSale(address[] beneficiaries, uint[] amounts) public {
         tokenRemainingForPrivateSale =
             distributeTokens(tokenRemainingForPrivateSale, beneficiaries, amounts);
     }
@@ -276,4 +276,3 @@ contract MintingCrowdsale is Ownable {
     }
 
 }
-
