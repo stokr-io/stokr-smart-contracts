@@ -14,15 +14,26 @@ contract MintingCrowdsale is Ownable {
     address public rateAdmin;
 
     // The token to be sold
+    // In the following, the term "token unit" always refers to the smallest
+    // and non-divisible quantum. Thus, token unit amounts are always integers.
+    // One token is expected to consist of 10^18 token units.
     MintableToken public token;
 
-    // Token amounts
-    uint public tokenCap;       // Maximum number of token units to deliver
-    uint public tokenRemaining; // Remaining token units for sale
+    // Token amounts in token units
+    // The public and the private sale are both capped (i.e. two distinct token pools)
+    // The tokenRemaining variables keep track of how many token units are available
+    // for the respective type of sale
+    uint public tokenCapOfPublicSale;
+    uint public tokenCapOfPrivateSale;
+    uint public tokenRemainingForPublicSale;
+    uint public tokenRemainingForPrivateSale;
 
-    // Integral token units (10^-18 tokens) per wei
-    uint public tokenPrice;  // Token price in EUR cent per token
-    uint public etherRate;   // Ether price in EUR cent per ether
+    // Prices are in Euro cents (i.e. 1/100 EUR)
+    // The ether rate is actually a price, too, but it is called a rate here, because it
+    // may deviate from the current Ether price since it won't get updated at real time
+    // but at regular intervals by the rate admin authority
+    uint public tokenPrice;
+    uint public etherRate;
 
     // Public sale period
     uint public openingTime;
@@ -31,7 +42,7 @@ contract MintingCrowdsale is Ownable {
     // Ethereum address where invested funds will be transferred to
     address public companyWallet;
 
-    // Amount and receiver of revserved tokens.
+    // Amount and receiver of reserved tokens
     uint public tokenReserve;
     address public reserveAccount;
 
@@ -65,19 +76,21 @@ contract MintingCrowdsale is Ownable {
 
 
     /// @dev Constructor
-    /// @param _token The token
-    /// @param _tokenCap Maximum number of token units to create
+    /// @param _token The token to be sold
+    /// @param _tokenCapOfPublicSale Maximum number of token units to mint in public sale
+    /// @param _tokenCapOfPrivateSale Maximum number of token units to mint in private sale
     /// @param _tokenPrice Price of a token in EUR cent
     /// @param _etherRate Rate of an Ether in EUR cent
     /// @param _rateAdmin Ethereum address of ether rate setting authority
     /// @param _openingTime Block (Unix) timestamp of sale opening time
     /// @param _closingTime Block (Unix) timestamp of sale closing time
     /// @param _companyWallet Ethereum account who will receive sent ether
-    /// @param _tokenReserve A number
-    /// @param _reserveAccount An address
+    /// @param _tokenReserve Number of token units to mint for the benefit of reserve account
+    /// @param _reserveAccount Ethereum address of reserve tokens recipient
     constructor(
         MintableToken _token,
-        uint _tokenCap,
+        uint _tokenCapOfPublicSale,
+        uint _tokenCapOfPrivateSale,
         uint _tokenPrice,
         uint _etherRate,
         address _rateAdmin,
@@ -90,18 +103,22 @@ contract MintingCrowdsale is Ownable {
         public
     {
         require(address(_token) != address(0x0), "Token address must not be zero");
-        require(_tokenCap > 0, "Token cap must be greater than zero");
+        require(_tokenCapOfPublicSale > 0, "Token cap of public sale must be greater than zero");
+        require(_tokenCapOfPrivateSale > 0, "Token cap of private sale must be greater than zero");
         require(_tokenPrice > 0, "Token price must be greater than zero");
         require(_etherRate > 0, "Ether price must be greater than zero");
         require(_rateAdmin != address(0x0), "Rate admin address must not be zero");
         require(_openingTime >= now, "Opening time must not lie in the past");
         require(_closingTime >= _openingTime, "Closing time must not lie before opening time");
         require(_companyWallet != address(0x0), "Company wallet address must not be zero");
-        require(_tokenReserve <= _tokenCap, "Token reserve must not exceed token cap");
         require(_reserveAccount != address(0x0), "Reserve account address must not be zero");
 
+        // Utilize safe math to ensure the sum of three token pools does't overflow
+        _tokenReserve.add(_tokenCapOfPublicSale).add(_tokenCapOfPrivateSale);
+
         token = _token;
-        tokenCap = _tokenCap;
+        tokenCapOfPublicSale = _tokenCapOfPublicSale;
+        tokenCapOfPrivateSale = _tokenCapOfPrivateSale;
         tokenPrice = _tokenPrice;
         etherRate = _etherRate;
         rateAdmin = _rateAdmin;
@@ -111,7 +128,8 @@ contract MintingCrowdsale is Ownable {
         tokenReserve = _tokenReserve;
         reserveAccount = _reserveAccount;
 
-        tokenRemaining = _tokenCap - _tokenReserve;
+        tokenRemainingForPublicSale = _tokenCapOfPublicSale;
+        tokenRemainingForPrivateSale = _tokenCapOfPrivateSale;
     }
 
     /// @dev Restrict operation to rate setting authority
@@ -125,28 +143,20 @@ contract MintingCrowdsale is Ownable {
         buyTokens();
     }
 
-    /// @dev Distribute presold tokens and bonus tokens to investors
-    /// @param _beneficiaries List of recipients' Ethereum addresses
-    /// @param _amounts List of token units each recipient will receive
-    function distributeTokens(address[] _beneficiaries, uint[] _amounts) public onlyOwner {
-        require(!isFinalized, "Token distribution is not possible after finalization");
-        require(_beneficiaries.length == _amounts.length, "Arguments must have same length");
+    /// @dev Distribute tokens purchased off-chain via public sale
+    /// @param beneficiaries List of recipients' Ethereum addresses
+    /// @param amounts List of token units each recipient will receive
+    function distributeTokensViaPublicSale(address[] beneficiaries, uint[] amounts) {
+        tokenRemainingForPublicSale =
+            distributeTokens(tokenRemainingForPublicSale, beneficiaries, amounts);
+    }
 
-        uint newTokenRemaining = tokenRemaining;
-
-        for (uint i = 0; i < _beneficiaries.length; ++i) {
-            address beneficiary = _beneficiaries[i];
-            uint amount = _amounts[i];
-
-            require(amount <= newTokenRemaining, "Not enough tokens avaliable");
-
-            newTokenRemaining -= amount;
-            token.mint(beneficiary, amount);
-
-            emit TokenDistribution(beneficiary, amount);
-        }
-
-        tokenRemaining = newTokenRemaining;
+    /// @dev Distribute tokens purchased off-chain via private sale
+    /// @param beneficiaries List of recipients' Ethereum addresses
+    /// @param amounts List of token units each recipient will receive
+    function distributeTokensViaPrivateSale(address[] beneficiaries, uint[] amounts) {
+        tokenRemainingForPrivateSale =
+            distributeTokens(tokenRemainingForPrivateSale, beneficiaries, amounts);
     }
 
     /// @dev Set rate admin, i.e. the ether rate setting authority
@@ -162,16 +172,16 @@ contract MintingCrowdsale is Ownable {
     }
 
     /// @dev Set rate, i.e. adjust to changes of EUR/ether exchange rate
-    /// @param _etherRate Rate in Euro cent per ether
-    function setRate(uint _etherRate) public onlyRateAdmin {
+    /// @param newRate Rate in Euro cent per ether
+    function setRate(uint newRate) public onlyRateAdmin {
         // Rate changes beyond an order of magnitude are likely just typos
-        require(etherRate / 10 < _etherRate && _etherRate < 10 * etherRate,
+        require(etherRate / 10 < newRate && newRate < 10 * etherRate,
                 "Rate must not change by an order of magnitude or more");
 
-        if (_etherRate != etherRate) {
-            emit RateChange(etherRate, _etherRate);
+        if (newRate != etherRate) {
+            emit RateChange(etherRate, newRate);
 
-            etherRate = _etherRate;
+            etherRate = newRate;
         }
     }
 
@@ -197,6 +207,13 @@ contract MintingCrowdsale is Ownable {
         return closingTime - now;
     }
 
+    /// @dev Determine the amount of sold tokens (off-chain and on-chain)
+    /// @return Token units amount
+    function tokenSold() public view returns (uint) {
+        return (tokenCapOfPublicSale - tokenRemainingForPublicSale)
+             + (tokenCapOfPrivateSale - tokenRemainingForPrivateSale);
+    }
+
     /// @dev Purchase tokens
     function buyTokens() public payable {
         require(isOpen(), "Token purchase is not possible if sale is not open");
@@ -204,9 +221,9 @@ contract MintingCrowdsale is Ownable {
         // Units:  [1e-18*ether] * [cent/ether] / [cent/token] => [1e-18*token]
         uint amount = msg.value.mul(etherRate).div(tokenPrice);
 
-        require(amount <= tokenRemaining, "Not enough tokens for sale available");
+        require(amount <= tokenRemainingForPublicSale, "Not enough tokens available");
 
-        tokenRemaining -= amount;
+        tokenRemainingForPublicSale -= amount;
         token.mint(msg.sender, amount);
         forwardFunds();
 
@@ -223,6 +240,34 @@ contract MintingCrowdsale is Ownable {
         isFinalized = true;
 
         emit Finalization();
+    }
+
+    /// @dev Distribute tokens purchased off-chain (in Euro) to investors
+    /// @param tokenRemaining Token units available for sale
+    /// @param beneficiaries Ethereum addresses of purchasers
+    /// @param amounts Token unit amounts to deliver to each investor
+    /// @return Token units available for sale after distribution
+    function distributeTokens(uint tokenRemaining, address[] beneficiaries, uint[] amounts)
+        internal
+        onlyOwner
+        returns (uint)
+    {
+        require(!isFinalized, "Token distribution is not possible after finalization");
+        require(beneficiaries.length == amounts.length, "Arguments must have same length");
+
+        for (uint i = 0; i < beneficiaries.length; ++i) {
+            address beneficiary = beneficiaries[i];
+            uint amount = amounts[i];
+
+            require(amount <= tokenRemaining, "Not enough tokens avaliable");
+
+            tokenRemaining -= amount;
+            token.mint(beneficiary, amount);
+
+            emit TokenDistribution(beneficiary, amount);
+        }
+
+        return tokenRemaining;
     }
 
     /// @dev Forward invested ether to company wallet

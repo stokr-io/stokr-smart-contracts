@@ -23,7 +23,8 @@ contract StokrCrowdsale is MintingCrowdsale {
 
     /// @dev Constructor
     /// @param _token The token
-    /// @param _tokenCap Maximum number of token units to create
+    /// @param _tokenCapOfPublicSale Available token units for public sale
+    /// @param _tokenCapOfPrivateSale Available token units for private sale
     /// @param _tokenGoal Minimum number of sold token units to be successful
     /// @param _tokenPrice Price of a token in EUR cent
     /// @param _etherRate Price of an Ether in EUR cent
@@ -35,7 +36,8 @@ contract StokrCrowdsale is MintingCrowdsale {
     /// @param _reserveAccount An address
     constructor(
         StokrToken _token,
-        uint _tokenCap,
+        uint _tokenCapOfPublicSale,
+        uint _tokenCapOfPrivateSale,
         uint _tokenGoal,
         uint _tokenPrice,
         uint _etherRate,
@@ -49,7 +51,8 @@ contract StokrCrowdsale is MintingCrowdsale {
         public
         MintingCrowdsale(
             _token,
-            _tokenCap,
+            _tokenCapOfPublicSale,
+            _tokenCapOfPrivateSale,
             _tokenPrice,
             _etherRate,
             _rateAdmin,
@@ -60,7 +63,7 @@ contract StokrCrowdsale is MintingCrowdsale {
             _reserveAccount
         )
     {
-        require(_tokenGoal <= _tokenCap - _tokenReserve, "Token goal must be attainable");
+        require(_tokenGoal <= _tokenCapOfPublicSale + _tokenCapOfPrivateSale, "Token goal must be attainable");
 
         tokenGoal = _tokenGoal;
     }
@@ -68,7 +71,7 @@ contract StokrCrowdsale is MintingCrowdsale {
     /// @dev Wether the goal of sold tokens was reached or not
     /// @return True if the sale can be considered successful
     function goalReached() public view returns (bool) {
-        return tokenCap - tokenReserve - tokenRemaining >= tokenGoal;
+        return tokenSold() >= tokenGoal;
     }
 
     /// @dev Investors can claim refunds here if crowdsale was unsuccessful
