@@ -646,8 +646,7 @@ contract("StokrToken", ([owner,
             });
 
             it("by anyone but profit depositor via fallback function is forbidden", async () => {
-                let reason = await reject.call(
-                    web3.eth.sendTransaction({from: anyone, to: token.address, value: money.ether(1)}));
+                let reason = await reject.tx({from: anyone, to: token.address, value: money.ether(1)});
                 expect(reason).to.be.equal("restricted to profit depositor");
             });
 
