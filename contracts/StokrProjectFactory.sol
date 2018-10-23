@@ -65,7 +65,6 @@ constructor(address _whitelist) public {
                                                _wallets[1]);
   projects.push(StokrProject(currentWhitelist,token,crowdsale,_name));
   token.setMinter(crowdsale);
-  currentWhitelist.addToWhitelist([address(this)];)
   token.transferOwnership(_roles[3]);
   crowdsale.transferOwnership(_roles[4]);
 }
