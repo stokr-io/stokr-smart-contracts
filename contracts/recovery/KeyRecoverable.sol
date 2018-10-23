@@ -11,12 +11,12 @@ contract KeyRecoverable is Ownable {
 
     /// @dev Log entry on key recoverer changed
     /// @param newKeyRecoverer An Ethereum address
-    event KeyRecovererChanged(address indexed newKeyRecoverer);
+    event KeyRecovererChange(address indexed newKeyRecoverer);
 
     /// @dev Log entry on key recovered
     /// @param oldAddress An Ethereum address
     /// @param newAddress An Ethereum address
-    event KeyRecovered(address indexed oldAddress, address indexed newAddress);
+    event KeyRecovery(address indexed oldAddress, address indexed newAddress);
 
     /// @dev Ensure only key recoverer:w
     modifier onlyKeyRecoverer() {
@@ -36,7 +36,7 @@ contract KeyRecoverable is Ownable {
         require(_newKeyRecoverer != address(0x0), "New key recoverer is zero");
 
         if (keyRecoverer != address(0x0) && _newKeyRecoverer != keyRecoverer) {
-            emit KeyRecovererChanged(_newKeyRecoverer);
+            emit KeyRecovererChange(_newKeyRecoverer);
         }
         keyRecoverer = _newKeyRecoverer;
     }

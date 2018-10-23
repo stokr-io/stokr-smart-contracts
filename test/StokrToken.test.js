@@ -17,7 +17,10 @@ contract("StokrToken", ([owner,
                          investor3,
                          trustee,
                          anyone]) => {
+    const tokenName = "Stokr Token";
+    const tokenSymbol = "STOKR";
     const investors = [investor1, investor2, investor3];
+
 
     // Helper function to deploy a Whitelist and a StokrToken.
     const deployWhitelistAndToken = async () => {
@@ -26,7 +29,9 @@ contract("StokrToken", ([owner,
         await whitelist.addAdmin(owner, {from: owner});
         await whitelist.addToWhitelist(investors, {from: owner});
         // deploy token contract with keyRecoverer and minter
-        let token = await StokrToken.new(whitelist.address,
+        let token = await StokrToken.new(tokenName,
+                                         tokenSymbol,
+                                         whitelist.address,
                                          profitDepositor,
                                          keyRecoverer,
                                          {from: owner});
@@ -35,7 +40,7 @@ contract("StokrToken", ([owner,
     }
 
     // Tests of correct deployment.
-    describe("deployment", () => {
+    context("deployment", () => {
         let whitelist;
 
         before("requires a deployed Whitelist instance", async () => {
@@ -46,15 +51,33 @@ contract("StokrToken", ([owner,
         describe("with invalid parameters", () => {
 
             it("fails if whitelist is zero address", async () => {
-                await reject.deploy(StokrToken.new(0x0, profitDepositor, keyRecoverer, {from: owner}));
+                let reason = await reject.deploy(StokrToken.new(tokenName,
+                                                                tokenSymbol,
+                                                                0x0,
+                                                                profitDepositor,
+                                                                keyRecoverer,
+                                                                {from: owner}));
+                expect(reason).to.be.equal("whitelist address is zero");
             });
 
             it("fails if profitDepositor is zero address", async () => {
-                await reject.deploy(StokrToken.new(whitelist.address, 0x0, keyRecoverer, {from: owner}));
+                let reason = await reject.deploy(StokrToken.new(tokenName,
+                                                                tokenSymbol,
+                                                                whitelist.address,
+                                                                0x0,
+                                                                keyRecoverer,
+                                                                {from: owner}));
+                expect(reason).to.be.equal("new profit depositor is zero");
             });
 
             it("fails if keyRecoverer is zero address", async () => {
-                await reject.deploy(StokrToken.new(whitelist.address, profitDepositor, 0x0, {from: owner}));
+                let reason = await reject.deploy(StokrToken.new(tokenName,
+                                                                tokenSymbol,
+                                                                whitelist.address,
+                                                                profitDepositor,
+                                                                0x0,
+                                                                {from: owner}));
+                expect(reason).to.be.equal("new key recoverer is zero");
             });
         });
 
@@ -62,7 +85,9 @@ contract("StokrToken", ([owner,
             let token;
 
             it("succeeds", async () => {
-                token = await StokrToken.new(whitelist.address,
+                token = await StokrToken.new(tokenName,
+                                             tokenSymbol,
+                                             whitelist.address,
                                              profitDepositor,
                                              keyRecoverer,
                                              {from: owner});
@@ -71,6 +96,18 @@ contract("StokrToken", ([owner,
 
             it("sets correct owner", async () => {
                 expect(await token.owner()).to.be.bignumber.equal(owner);
+            });
+
+            it("sets correct name", async () => {
+                expect(await token.name()).to.be.equal(tokenName);
+            });
+
+            it("sets correct symbol", async () => {
+                expect(await token.symbol()).to.be.equal(tokenSymbol);
+            });
+
+            it("sets decimals to 18", async () => {
+                expect(await token.decimals()).to.be.bignumber.equal(18);
             });
 
             it("sets correct whitelist", async () => {
@@ -104,12 +141,14 @@ contract("StokrToken", ([owner,
     });
 
     // Tests of address changing related functions.
-    describe("change address", () => {
+    context("address change", () => {
         let whitelist, token;
 
         before("deploy contracts", async () => {
             whitelist = await Whitelist.new({from: owner});
-            token = await StokrToken.new(whitelist.address,
+            token = await StokrToken.new(tokenName,
+                                         tokenSymbol,
+                                         whitelist.address,
                                          profitDepositor,
                                          keyRecoverer,
                                          {from: owner});
@@ -118,79 +157,94 @@ contract("StokrToken", ([owner,
         describe("of whitelist", () => {
 
             it("by anyone but owner is forbidden", async () => {
-                await reject.tx(token.setWhitelist(random.address(), {from: anyone}));
-                expect(await token.whitelist()).to.be.bignumber.equal(whitelist.address);
+                let reason = await reject.call(token.setWhitelist(random.address(), {from: anyone}));
+                expect(reason).to.be.equal("restricted to owner");
             });
 
             it("to zero is forbidden", async () => {
-                await reject.tx(token.setWhitelist(0x0, {from: owner}));
-                expect(await token.whitelist()).to.be.bignumber.equal(whitelist.address);
+                let reason = await reject.call(token.setWhitelist(0x0, {from: owner}));
+                expect(reason).to.be.equal("whitelist address is zero");
             });
 
             it("is possible", async () => {
+                let newWhitelist = random.address();
+                await token.setWhitelist(newWhitelist, {from: owner});
+                expect(await token.whitelist()).to.be.bignumber.equal(newWhitelist);
+            });
+
+            it("gets logged", async () => {
                 let newWhitelist = random.address();
                 let tx = await token.setWhitelist(newWhitelist, {from: owner});
                 let entry = tx.logs.find(entry => entry.event === "WhitelistChanged");
                 expect(entry).to.exist;
                 expect(entry.args.newWhitelist).to.be.bignumber.equal(newWhitelist);
-                expect(await token.whitelist()).to.be.bignumber.equal(newWhitelist);
             });
         });
 
-        describe("of profitDepositor", () => {
+        describe("of profit depositor", () => {
 
             it("by anyone but owner is forbidden", async () => {
-                await reject.tx(token.setProfitDepositor(random.address(), {from: anyone}));
-                expect(await token.profitDepositor()).to.be.bignumber.equal(profitDepositor);
+                let reason = await reject.call(token.setProfitDepositor(random.address(), {from: anyone}));
+                expect(reason).to.be.equal("restricted to owner");
             });
 
             it("to zero is forbidden", async () => {
-                await reject.tx(token.setProfitDepositor(0x0, {from: owner}));
-                expect(await token.profitDepositor()).to.be.bignumber.equal(profitDepositor);
+                let reason = await reject.call(token.setProfitDepositor(0x0, {from: owner}));
+                expect(reason).to.be.equal("new profit depositor is zero");
             });
 
             it("is possible", async () => {
                 let newProfitDepositor = random.address();
+                await token.setProfitDepositor(newProfitDepositor, {from: owner});
+                expect(await token.profitDepositor()).to.be.bignumber.equal(newProfitDepositor);
+            });
+
+            it("gets logged", async () => {
+                let newProfitDepositor = random.address();
                 let tx = await token.setProfitDepositor(newProfitDepositor, {from: owner});
-                let entry = tx.logs.find(entry => entry.event === "ProfitDepositorChanged");
+                let entry = tx.logs.find(entry => entry.event === "ProfitDepositorChange");
                 expect(entry).to.exist;
                 expect(entry.args.newProfitDepositor).to.be.bignumber.equal(newProfitDepositor);
-                expect(await token.profitDepositor()).to.be.bignumber.equal(newProfitDepositor);
             });
         });
 
-        describe("of keyRecoverer", () => {
+        describe("of key recoverer", () => {
 
             it("by anyone but owner is forbidden", async () => {
-                await reject.tx(token.setKeyRecoverer(random.address(), {from: anyone}));
-                expect(await token.keyRecoverer()).to.be.bignumber.equal(keyRecoverer);
+                let reason = await reject.call(token.setKeyRecoverer(random.address(), {from: anyone}));
+                expect(reason).to.be.equal("restricted to owner");
             });
 
             it("to zero is forbidden", async () => {
-                await reject.tx(token.setKeyRecoverer(0x0, {from: owner}));
-                expect(await token.keyRecoverer()).to.be.bignumber.equal(keyRecoverer);
+                let reason = await reject.call(token.setKeyRecoverer(0x0, {from: owner}));
+                expect(reason).to.be.equal("new key recoverer is zero");
             });
 
             it("is possible", async () => {
                 let newKeyRecoverer = random.address();
+                await token.setKeyRecoverer(newKeyRecoverer, {from: owner});
+                expect(await token.keyRecoverer()).to.be.bignumber.equal(newKeyRecoverer);
+            });
+
+            it("gets logged", async () => {
+                let newKeyRecoverer = random.address();
                 let tx = await token.setKeyRecoverer(newKeyRecoverer, {from: owner});
-                let entry = tx.logs.find(entry => entry.event === "KeyRecovererChanged");
+                let entry = tx.logs.find(entry => entry.event === "KeyRecovererChange");
                 expect(entry).to.exist;
                 expect(entry.args.newKeyRecoverer).to.be.bignumber.equal(newKeyRecoverer);
-                expect(await token.keyRecoverer()).to.be.bignumber.equal(newKeyRecoverer);
             });
         });
 
         describe("of minter", () => {
 
             it("by anyone but owner is forbidden", async () => {
-                await reject.tx(token.setMinter(random.address(), {from: anyone}));
-                expect(await token.minter()).to.be.bignumber.zero;
+                let reason = await reject.call(token.setMinter(random.address(), {from: anyone}));
+                expect(reason).to.be.equal("restricted to owner");
             });
 
             it("to zero is forbidden", async () => {
-                await reject.tx(token.setMinter(0x0, {from: owner}));
-                expect(await token.minter()).to.be.bignumber.zero;
+                let reason = await reject.call(token.setMinter(0x0, {from: owner}));
+                expect(reason).to.be.equal("minter is zero");
             });
 
             it("is possible for the first time", async () => {
@@ -199,8 +253,8 @@ contract("StokrToken", ([owner,
             });
 
             it("is forbidden for the second time", async () => {
-                await reject.tx(token.setMinter(random.address(), {from: owner}));
-                expect(await token.minter()).to.be.bignumber.equal(minter);
+                let reason = await reject.call(token.setMinter(random.address(), {from: owner}));
+                expect(reason).to.be.equal("minter has already been set");
             });
         });
     });
@@ -209,25 +263,27 @@ contract("StokrToken", ([owner,
     describe("minting", () => {
         let whitelist, token;
 
-        describe("until finish", () => {
+        context("until finish", () => {
 
             before("deploy contracts", async () => {
                 [whitelist, token] = await deployWhitelistAndToken();
             });
 
             it("by anyone but minter is forbidden", async () => {
-                let totalSupply = await token.totalSupply();
-                await reject.tx(token.mint(investor1, 1, {from: anyone}));
-                expect(await token.totalSupply()).to.be.bignumber.equal(totalSupply);
+                let reason = await reject.call(token.mint(investor1, 1, {from: anyone}));
+                expect(reason).to.be.equal("restricted to minter");
             });
 
             it("for non-whitelisted beneficiary is forbidden", async () => {
-                let totalSupply = await token.totalSupply();
-                await reject.tx(token.mint(anyone, 1, {from: minter}));
-                expect(await token.totalSupply()).to.be.bignumber.equal(totalSupply);
+                let reason = await reject.call(token.mint(anyone, 1, {from: minter}));
+                expect(reason).to.be.equal("address is not whitelisted");
             });
 
             it("is possible", async () => {
+                await token.mint(investor1, 1000, {from: minter});
+            });
+
+            it("gets logged", async () => {
                 const amount = 1000;
                 let tx = await token.mint(investor1, amount, {from: minter});
                 let mintedEntry = tx.logs.find(entry => entry.event === "Minted");
@@ -254,32 +310,21 @@ contract("StokrToken", ([owner,
                 await token.mint(investor1, amount, {from: minter});
                 expect(await token.balanceOf(investor1)).to.be.bignumber.equal(balance.plus(amount));
             });
-        });
 
-        describe("finishing", () => {
-
-            before("deploy contracts", async () => {
-                [whitelist, token] = await deployWhitelistAndToken();
+            it("finishing by anyone but minter is forbidden", async () => {
+                let reason = await reject.call(token.finishMinting({from: anyone}));
+                expect(reason).to.be.equal("restricted to minter");
             });
 
-            it("by anyone but minter is forbidden", async () => {
-                await reject.tx(token.finishMinting({from: anyone}));
-                expect(await token.mintingFinished()).to.be.false;
-            });
-
-            it("is possible for the first time", async () => {
+            it("finishing is possible and gets logged", async () => {
                 let tx = await token.finishMinting({from: minter});
                 let entry = tx.logs.find(entry => entry.event === "MintFinished");
                 expect(entry).to.exist
                 expect(await token.mintingFinished()).to.be.true;
             });
-
-            it("is forbidden for the second time", async () => {
-                await reject.tx(token.finishMinting({from: minter}));
-            });
         });
 
-        describe("after finish", () => {
+        context("after finish", () => {
 
             before("deploy contracts", async () => {
                 [whitelist, token] = await deployWhitelistAndToken();
@@ -287,9 +332,13 @@ contract("StokrToken", ([owner,
             });
 
             it("is forbidden", async () => {
-                let totalSupply = await token.totalSupply();
-                await reject.tx(token.mint(investor1, 1, {from: minter}));
-                expect(await token.totalSupply()).to.be.bignumber.equal(totalSupply);
+                let reason = await reject.call(token.mint(investor1, 1, {from: minter}));
+                expect(reason).to.be.equal("total supply has been fixed");
+            });
+
+            it("finishing is forbidden", async () => {
+                let reason = await reject.call(token.finishMinting({from: minter}));
+                expect(reason).to.be.equal("total supply has been fixed");
             });
         });
     });
@@ -315,52 +364,53 @@ contract("StokrToken", ([owner,
             expect(sumOfBalances).to.be.bignumber.equal(totalSupply);
         });
 
-        describe("while minting", () => {
+        context("while minting", () => {
 
             it("is forbidden", async () => {
-                let balance = await token.balanceOf(debited);
-                await reject.tx(token.transfer(credited, 1, {from: debited}));
-                expect(await token.balanceOf(debited)).to.be.bignumber.equal(balance);
+                let reason = await reject.call(token.transfer(credited, 1, {from: debited}));
+                expect(reason).to.be.equal("total supply may change");
             });
         });
 
-        describe("after minting finished", () => {
+        context("after minting finished", () => {
 
             before("finish minting", async () => {
                 await token.finishMinting({from: minter});
             });
 
             it("is forbidden if debited account isn't whitelisted", async () => {
-                let balance = await token.balanceOf(debited);
                 await whitelist.removeFromWhitelist([debited], {from: owner});
-                await reject.tx(token.transfer(credited, 1, {from: debited}));
+                let reason = await reject.call(token.transfer(credited, 1, {from: debited}));
+                expect(reason).to.be.equal("address is not whitelisted");
                 await whitelist.addToWhitelist([debited], {from: owner});
-                expect(await token.balanceOf(debited)).to.be.bignumber.equal(balance);
             });
 
             it("is forbidden if credited account isn't whitelisted", async () => {
-                let balance = await token.balanceOf(debited);
                 await whitelist.removeFromWhitelist([credited], {from: owner});
-                await reject.tx(token.transfer(credited, 1, {from: debited}));
+                let reason = await reject.call(token.transfer(credited, 1, {from: debited}));
+                expect(reason).to.be.equal("address is not whitelisted");
                 await whitelist.addToWhitelist([credited], {from: owner});
-                expect(await token.balanceOf(debited)).to.be.bignumber.equal(balance);
             });
 
             it("is forbidden if amount exceed balance", async () => {
-                let balance = await token.balanceOf(debited);
-                await reject.tx(token.transfer(credited, balance.plus(1), {from: debited}));
-                expect(await token.balanceOf(debited)).to.be.bignumber.equal(balance);
+                let amount = (await token.balanceOf(debited)).plus(1);
+                let reason = await reject.call(token.transfer(credited, amount, {from: debited}));
+                expect(reason).to.be.equal("amount exceeds balance");
             });
 
             it("to zero address is forbidden", async () => {
-                let balance = await token.balanceOf(debited);
                 await whitelist.addToWhitelist([0x0], {from: owner});
-                await reject.tx(token.transfer(0x0, 0, {from: debited}));
-                expect(await token.balanceOf(debited)).to.be.bignumber.equal(balance);
+                let reason = await reject.call(token.transfer(0x0, 0, {from: debited}));
+                expect(reason).to.be.equal("recipient is zero");
             });
 
             it("is possible", async () => {
-                let amount = (await token.balanceOf(debited)).dividedToIntegerBy(2);
+                let amount = (await token.balanceOf(debited)).divToInt(2);
+                await token.transfer(credited, amount, {from: debited});
+            });
+
+            it("gets logged", async () => {
+                let amount = (await token.balanceOf(debited)).divToInt(2);
                 let tx = await token.transfer(credited, amount, {from: debited});
                 let entry = tx.logs.find(entry => entry.event === "Transfer");
                 expect(entry).to.exist;
@@ -371,14 +421,14 @@ contract("StokrToken", ([owner,
 
             it("decreases debited balance", async () => {
                 let balance = await token.balanceOf(debited);
-                let amount = balance.dividedToIntegerBy(2);
+                let amount = balance.divToInt(2);
                 await token.transfer(credited, amount, {from: debited});
                 expect(await token.balanceOf(debited)).to.be.bignumber.equal(balance.minus(amount));
             });
 
             it("increases credited balance", async () => {
                 let balance = await token.balanceOf(credited);
-                let amount = (await token.balanceOf(debited)).dividedToIntegerBy(2);
+                let amount = (await token.balanceOf(debited)).divToInt(2);
                 await token.transfer(credited, amount, {from: debited});
                 expect(await token.balanceOf(credited)).to.be.bignumber.equal(balance.plus(amount));
             });
@@ -395,30 +445,33 @@ contract("StokrToken", ([owner,
             await token.mint(approver, 1000, {from: minter});
         });
 
-        describe("while minting", () => {
+        context("while minting", () => {
 
             it("is forbidden", async () => {
-                let allowance = await token.allowance(approver, trustee);
-                await reject.tx(token.approve(trustee, 1, {from: approver}));
-                expect(await token.allowance(approver, trustee)).to.be.bignumber.equal(allowance);
+                let reason = await reject.call(token.approve(trustee, 1, {from: approver}));
+                expect(reason).to.be.equal("total supply may change");
             });
         });
 
-        describe("after minting finished", () => {
+        context("after minting finished", () => {
 
             before("finish minting", async () => {
                 await token.finishMinting({from: minter});
             });
 
             it("is forbidden if approver isn't whitelisted", async () => {
-                let allowance = await token.allowance(approver, trustee);
                 await whitelist.removeFromWhitelist([approver], {from: owner});
-                await reject.tx(token.approve(trustee, 1, {from: approver}));
+                let reason = await reject.call(token.approve(trustee, 1, {from: approver}));
+                expect(reason).to.be.equal("address is not whitelisted");
                 await whitelist.addToWhitelist([approver], {from: owner});
-                expect(await token.allowance(approver, trustee)).to.be.bignumber.equal(allowance);
             });
 
             it("is possible", async () => {
+                let amount = (await token.balanceOf(approver)).plus(1);
+                await token.approve(trustee, amount, {from: approver});
+            });
+
+            it("gets logged", async () => {
                 let amount = (await token.balanceOf(approver)).plus(1);
                 let tx = await token.approve(trustee, amount, {from: approver});
                 let entry = tx.logs.find(entry => entry.event === "Approval");
@@ -437,8 +490,7 @@ contract("StokrToken", ([owner,
             it.skip("is forbidden if allowance wasn't reset before", async () => {
                 let amount = (await token.balanceOf(approver)).plus(1);
                 await token.approve(trustee, amount, {from: approver});
-                await reject.tx(token.approve(trustee, amount.plus(1), {from: approver}));
-                expect(await token.allowance(approver, trustee)).to.be.bignumber.equal(amount);
+                let reason = await reject.call(token.approve(trustee, amount.plus(1), {from: approver}));
             });
         });
     });
@@ -464,59 +516,58 @@ contract("StokrToken", ([owner,
             expect(sumOfBalances).to.be.bignumber.equal(totalSupply);
         });
 
-        describe("while minting", () => {
+        context("while minting", () => {
 
             it("is forbidden", async () => {
-                let balance = await token.balanceOf(debited);
-                await reject.tx(token.transferFrom(debited, credited, 0, {from: trustee}));
-                expect(await token.balanceOf(debited)).to.be.bignumber.equal(balance);
+                let reason = await reject.call(token.transferFrom(debited, credited, 0, {from: trustee}));
+                expect(reason).to.be.equal("total supply may change");
             });
         });
 
-        describe("after minting finished", () => {
+        context("after minting finished", () => {
 
             before("finish minting", async () => {
                 await token.finishMinting({from: minter});
             });
 
             it("is forbidden if debited account isn't whitelisted", async () => {
-                let balance = await token.balanceOf(debited);
-                let amount = balance.dividedToIntegerBy(2);
+                let amount = (await token.balanceOf(debited)).divToInt(2);
                 await token.approve(trustee, 0, {from: debited});
                 await token.approve(trustee, amount, {from: debited});
                 await whitelist.removeFromWhitelist([debited], {from: owner});
-                await reject.tx(token.transferFrom(debited, credited, amount, {from: trustee}));
+                let reason = await reject.call(
+                    token.transferFrom(debited, credited, amount, {from: trustee}));
+                expect(reason).to.be.equal("address is not whitelisted");
                 await whitelist.addToWhitelist([debited], {from: owner});
-                expect(await token.balanceOf(debited)).to.be.bignumber.equal(balance);
             });
 
             it("is forbidden if credited account isn't whitelisted", async () => {
-                let balance = await token.balanceOf(debited);
-                let amount = balance.dividedToIntegerBy(2);
+                let amount = (await token.balanceOf(debited)).divToInt(2);
                 await token.approve(trustee, 0, {from: debited});
                 await token.approve(trustee, amount, {from: debited});
                 await whitelist.removeFromWhitelist([credited], {from: owner});
-                await reject.tx(token.transferFrom(debited, credited, amount, {from: trustee}));
+                let reason = await reject.call(
+                    token.transferFrom(debited, credited, amount, {from: trustee}));
+                expect(reason).to.be.equal("address is not whitelisted");
                 await whitelist.addToWhitelist([credited], {from: owner});
-                expect(await token.balanceOf(debited)).to.be.bignumber.equal(balance);
             });
 
             it("is forbidden if amount exceeds allowance", async () => {
-                let balance = await token.balanceOf(debited);
-                let amount = balance.dividedToIntegerBy(2);
+                let amount = (await token.balanceOf(debited)).divToInt(2);
                 await token.approve(trustee, 0, {from: debited});
                 await token.approve(trustee, amount, {from: debited});
-                await reject.tx(token.transferFrom(debited, credited, amount.plus(1), {from: trustee}));
-                expect(await token.balanceOf(debited)).to.be.bignumber.equal(balance);
+                let reason = await reject.call(
+                    token.transferFrom(debited, credited, amount.plus(1), {from: trustee}));
+                expect(reason).to.be.equal("amount exceeds allowance");
             });
 
             it("is forbidden if amount exceeds balance", async () => {
-                let balance = await token.balanceOf(debited);
-                let amount = balance.plus(1);
+                let amount = (await token.balanceOf(debited)).plus(1);
                 await token.approve(trustee, 0, {from: debited});
                 await token.approve(trustee, amount, {from: debited});
-                await reject.tx(token.transferFrom(debited, credited, amount, {from: trustee}));
-                expect(await token.balanceOf(debited)).to.be.bignumber.equal(balance);
+                let reason = await reject.call(
+                    token.transferFrom(debited, credited, amount, {from: trustee}));
+                expect(reason).to.be.equal("amount exceeds balance");
             });
 
             it("is possible", async () => {
@@ -576,200 +627,180 @@ contract("StokrToken", ([owner,
             // This invariant doesn't hold while token minting
             let mintingFinished = await token.mintingFinished();
             if (mintingFinished) {
-                let weiBalance = await web3.eth.getBalance(token.address);
-                let sumOfProfitShares = new web3.BigNumber(0);
-                for (let i = 0; i < investors.length; ++i) {
-                    let investor = investors[i];
+                let asset = await web3.eth.getBalance(token.address);
+                let shares = new web3.BigNumber(0);
+                for (let investor of investors.values()) {
                     let account = await getAccount(investor);
-                    let profitShareOwing = await token.profitShareOwing(investor);
-                    sumOfProfitShares = sumOfProfitShares.plus(account.profitShare)
-                                                         .plus(profitShareOwing);
+                    let owing = await token.profitShareOwing(investor);
+                    shares = shares.plus(account.profitShare).plus(owing);
                 }
-                expect(sumOfProfitShares).to.be.bignumber.equal(weiBalance);
+                expect(shares).to.be.bignumber.equal(asset);
             }
         });
 
         describe("depositing", () => {
 
-            it("by anyone but profitDepositor is forbidden", async () => {
-                let weiBalance = await web3.eth.getBalance(token.address);
-                await reject.tx(token.depositProfit({from: anyone, value: money.ether(1)}));
-                expect(await web3.eth.getBalance(token.address)).to.be.bignumber.equal(weiBalance);
+            it("by anyone but profit depositor is forbidden", async () => {
+                let reason = await reject.call(token.depositProfit({from: anyone, value: money.ether(1)}));
+                expect(reason).to.be.equal("restricted to profit depositor");
             });
 
-            it("by anyone but profitDepositor via fallback function is forbidden", async () => {
-                let weiBalance = await web3.eth.getBalance(token.address);
-                try {
-                    await web3.eth.sendTransaction(
-                        {from: anyone, to: token.address, value: money.ether(1)});
-                    throw new Error("Transaction should have failed but didn't");
-                }
-                catch (error) {
-                    if (!error.message.toLowerCase().includes("transaction: revert")) {
-                        throw error;
-                    }
-                }
-                expect(await web3.eth.getBalance(token.address)).to.be.bignumber.equal(weiBalance);
+            it("by anyone but profit depositor via fallback function is forbidden", async () => {
+                let reason = await reject.call(
+                    web3.eth.sendTransaction({from: anyone, to: token.address, value: money.ether(1)}));
+                expect(reason).to.be.equal("restricted to profit depositor");
             });
 
             it("is possible", async () => {
-                let weiAmount = money.ether(2);
-                let tx = await token.depositProfit({from: profitDepositor, value: weiAmount});
-                let entry = tx.logs.find(entry => entry.event === "ProfitDeposited");
+                await token.depositProfit({from: profitDepositor, value: money.ether(2)});
+            });
+
+            it("gets logged", async () => {
+                let value = money.ether(2);
+                let tx = await token.depositProfit({from: profitDepositor, value});
+                let entry = tx.logs.find(entry => entry.event === "ProfitDeposit");
                 expect(entry).to.exist;
                 expect(entry.args.depositor).to.be.bignumber.equal(profitDepositor);
-                expect(entry.args.amount).to.be.bignumber.equal(weiAmount);
+                expect(entry.args.amount).to.be.bignumber.equal(value);
             });
 
             it("via fallback function is possible", async () => {
-                let weiBalance = await web3.eth.getBalance(token.address);
-                let weiAmount = money.ether(2);
-                await web3.eth.sendTransaction(
-                    {from: profitDepositor, to: token.address, value: weiAmount});
+                let asset = await web3.eth.getBalance(token.address);
+                let value = money.ether(2);
+                await web3.eth.sendTransaction({from: profitDepositor, to: token.address, value});
                 expect(await web3.eth.getBalance(token.address))
-                    .to.be.bignumber.equal(weiBalance.plus(weiAmount));
+                    .to.be.bignumber.equal(asset.plus(value));
             });
 
             it("increases wei balance", async () => {
-                let weiBalance = await web3.eth.getBalance(token.address);
-                let weiAmount = money.ether(2);
-                await token.depositProfit({from: profitDepositor, value: weiAmount});
+                let asset = await web3.eth.getBalance(token.address);
+                let value = money.ether(2);
+                await token.depositProfit({from: profitDepositor, value});
                 expect(await web3.eth.getBalance(token.address))
-                    .to.be.bignumber.equal(weiBalance.plus(weiAmount));
+                    .to.be.bignumber.equal(asset.plus(value));
             });
 
             it("increases totalProfits", async () => {
-                let totalProfits = await token.totalProfits();
-                let weiAmount = money.ether(2);
-                await token.depositProfit({from: profitDepositor, value: weiAmount});
-                expect(await token.totalProfits()).to.be.bignumber.equal(totalProfits.plus(weiAmount));
+                let profits = await token.totalProfits();
+                let value = money.ether(2);
+                await token.depositProfit({from: profitDepositor, value});
+                expect(await token.totalProfits()).to.be.bignumber.equal(profits.plus(value));
             });
         });
 
-        describe("while minting", () => {
+        context("while minting", () => {
 
             it("is not calculated", async () => {
-                for (let i = 0; i < investors.length; ++i) {
-                    let investor = investors[i];
+                for (let investor of investors.values()) {
                     expect(await token.profitShareOwing(investor)).to.be.bignumber.zero;
                 }
             });
 
             it("updating is forbidden", async () => {
-                for (let i = 0; i < investors.length; ++i) {
-                    let investor = investors[i];
-                    await reject.tx(token.updateProfitShare(investor));
-                    let account = await getAccount(investor);
-                    expect(account.lastTotalProfits).to.be.bignumber.zero;
-                    expect(account.profitShare).to.be.bignumber.zero;
+                for (let investor of investors.values()) {
+                    let reason = await reject.call(token.updateProfitShare(investor));
+                    expect(reason).to.be.equal("total supply may change");
                 }
             });
         });
 
-        describe("after minting finished", () => {
+        context("after minting finished", () => {
 
             before("finish minting", async () => {
                 await token.finishMinting({from: minter});
             });
 
             it("is correctly calculated as share of investors' token balances", async () => {
-                let totalSupply = await token.totalSupply();
-                let totalProfits = await token.totalProfits();
-                for (let i = 0; i < investors.length; ++i) {
-                    let investor = investors[i];
+                let supply = await token.totalSupply();
+                let profits = await token.totalProfits();
+                for (let investor of investors.values()) {
                     let balance = await token.balanceOf(investor);
-                    let profitShareOwing = await token.profitShareOwing(investor);
+                    let owing = await token.profitShareOwing(investor);
                     // Prerequisite: no individual profit share was disbursed before
                     // Use equivalence:
                     //      profitShareOwing / totalProfits == balance / totalSupply
                     // <=>  profitShareOwing * totalSupply  == balance * totalProfits
-                    expect(profitShareOwing.times(totalSupply))
-                        .to.be.bignumber.equal(balance.times(totalProfits));
+                    expect(owing.times(supply)).to.be.bignumber.equal(balance.times(profits));
                 }
             });
 
             it("is correctly disbursed to investors", async () => {
-                let totalProfits = await token.totalProfits();
-                for (let i = 0; i < investors.length; ++i) {
-                    let investor = investors[i];
+                let profits = await token.totalProfits();
+                for (let investor of investors.values()) {
                     let account = await getAccount(investor);
-                    let profitShareOwing = await token.profitShareOwing(investor);
+                    let owing = await token.profitShareOwing(investor);
                     let tx = await token.updateProfitShare(investor, {from: anyone});
-                    let entry = tx.logs.find(entry => entry.event === "ProfitShareUpdated");
+                    let entry = tx.logs.find(entry => entry.event === "ProfitShareUpdate");
                     expect(entry).to.exist;
                     expect(entry.args.investor).to.be.bignumber.equal(investor);
-                    expect(entry.args.amount).to.be.bignumber.equal(profitShareOwing);
-                    expect((await getAccount(investor)).lastTotalProfits)
-                        .to.be.bignumber.equal(totalProfits);
+                    expect(entry.args.amount).to.be.bignumber.equal(owing);
+                    expect((await getAccount(investor)).lastTotalProfits).to.be.bignumber.equal(profits);
                     expect((await getAccount(investor)).profitShare)
-                          .to.be.bignumber.equal(account.profitShare.plus(profitShareOwing));
+                        .to.be.bignumber.equal(account.profitShare.plus(owing));
                 }
             });
 
             it("is correctly calculated after some more profit was deposited", async () => {
                 await token.depositProfit({from: profitDepositor, value: money.ether(8)});
-                let totalSupply = await token.totalSupply();
-                let totalProfits = await token.totalProfits();
-                for (let i = 0; i < investors.length; ++i) {
-                    let investor = investors[i];
+                let supply = await token.totalSupply();
+                let profits = await token.totalProfits();
+                for (let investor of investors.values()) {
                     let account = await getAccount(investor);
-                    let profitShareOwing = await token.profitShareOwing(investor);
+                    let owing = await token.profitShareOwing(investor);
                     // Prerequiste: no tokens were transferred before
                     // Use equivalence:
                     //      (profitShare + profitShareOwing) / totalProfits == balance / totalSupply
                     // <=>  (profitShare + profitShareOwing) * totalSupply  == balance * totalProfits
-                    expect(account.profitShare.plus(profitShareOwing).times(totalSupply))
-                          .to.be.bignumber.equal(account.balance.times(totalProfits));
+                    expect(account.profitShare.plus(owing).times(supply))
+                        .to.be.bignumber.equal(account.balance.times(profits));
                 }
             });
 
             it("is correctly calculated after some tokens transfer and profit deposit", async () => {
-                let totalSupply = await token.totalSupply();
-                let additionalProfit = money.ether(4);
+                let supply = await token.totalSupply();
+                let value = money.ether(4);
                 await token.transfer(investor2, 2000, {from: investor1});
                 let balance1 = await token.balanceOf(investor1);
                 let balance2 = await token.balanceOf(investor2);
-                await token.depositProfit({from: profitDepositor, value: additionalProfit});
+                await token.depositProfit({from: profitDepositor, value});
                 // Use equivalence:
                 //      profitShareOwing / additionalProfit == balance / totalSupply
                 // <=>  profitShareOwing * totalSupply      == balance * additionalProfits
-                expect((await token.profitShareOwing(investor1)).times(totalSupply))
-                      .to.be.bignumber.equal(balance1.times(additionalProfit));
-                expect((await token.profitShareOwing(investor2)).times(totalSupply))
-                      .to.be.bignumber.equal(balance2.times(additionalProfit));
+                expect((await token.profitShareOwing(investor1)).times(supply))
+                    .to.be.bignumber.equal(balance1.times(value));
+                expect((await token.profitShareOwing(investor2)).times(supply))
+                    .to.be.bignumber.equal(balance2.times(value));
 
             });
 
             it("can be withdrawn by investors", async () => {
-                for (let i = 0; i < investors.length; ++i) {
-                    let investor = investors[i];
+                for (let investor of investors.values()) {
                     let account = await getAccount(investor);
-                    let profitShareOwing = await token.profitShareOwing(investor);
-                    let weiBalance = await web3.eth.getBalance(token.address);
+                    let owing = await token.profitShareOwing(investor);
+                    let asset = await web3.eth.getBalance(token.address);
                     let tx = await token.withdrawProfitShare({from: investor});
-                    let entry = tx.logs.find(entry => entry.event === "ProfitShareWithdrawn");
+                    let entry = tx.logs.find(entry => entry.event === "ProfitShareWithdrawal");
                     expect(entry).to.exist;
                     expect(entry.args.investor).to.be.bignumber.equal(investor);
                     expect(entry.args.beneficiary).to.be.bignumber.equal(investor);
                     expect(entry.args.amount)
-                        .to.be.bignumber.equal(account.profitShare.plus(profitShareOwing));
-                    expect((await getAccount(investor)).profitShare).to.be.bignumber.zero
+                        .to.be.bignumber.equal(account.profitShare.plus(owing));
+                    expect((await getAccount(investor)).profitShare).to.be.bignumber.zero;
                     expect(await web3.eth.getBalance(token.address))
-                        .to.be.bignumber.equal(weiBalance.minus(account.profitShare)
-                                                         .minus(profitShareOwing));
+                        .to.be.bignumber.equal(asset.minus(account.profitShare).minus(owing));
                 }
             });
 
             it("of zero can be withdrawn by anyone", async () => {
                 await token.depositProfit({from: profitDepositor, value: money.ether(2)});
-                let weiBalance = await web3.eth.getBalance(token.address);
+                let asset = await web3.eth.getBalance(token.address);
                 let tx = await token.withdrawProfitShare({from: anyone});
-                let entry = tx.logs.find(entry => entry.event === "ProfitShareWithdrawn");
+                let entry = tx.logs.find(entry => entry.event === "ProfitShareWithdrawal");
                 expect(entry).to.exist;
                 expect(entry.args.investor).to.be.bignumber.equal(anyone);
                 expect(entry.args.beneficiary).to.be.bignumber.equal(anyone);
                 expect(entry.args.amount).to.be.bignumber.zero;
-                expect(await web3.eth.getBalance(token.address)).to.be.bignumber.equal(weiBalance);
+                expect(await web3.eth.getBalance(token.address)).to.be.bignumber.equal(asset);
             });
         });
     });
@@ -782,13 +813,6 @@ contract("StokrToken", ([owner,
         const getAccount = async (address) => {
             let [balance, lastTotalProfits, profitShare] = await token.accounts(address);
             return {balance, lastTotalProfits, profitShare};
-        };
-
-        // Helper method for testing (partial) equality of an account.
-        const expectAccountEquality = (account, expected) => {
-            expect(account.balance).to.be.bignumber.equal(expected.balance);
-            expect(account.lastTotalProfits).to.be.bignumber.equal(expected.lastTotalProfits);
-            expect(account.profitShare).to.be.bignumber.equal(expected.profitShare);
         };
 
         before("deploy contracts and add investors", async () => {
@@ -808,44 +832,45 @@ contract("StokrToken", ([owner,
             expect(await token.totalSupply()).to.be.bignumber.equal(totalSupply);
         });
 
-        it("is forbidden by anyone other than keyRecoverer", async () => {
-            let account2 = await getAccount(investor2);
-            let account3 = await getAccount(investor3);
-            await reject.tx(token.recoverKey(investor2, investor3, {from: anyone}));
-            expectAccountEquality(await getAccount(investor2), account2);
-            expectAccountEquality(await getAccount(investor3), account3);
+        it("is forbidden by anyone other than key recoverer", async () => {
+            let reason = await reject.call(token.recoverKey(investor2, investor3, {from: anyone}));
+            expect(reason).to.be.equal("restricted to key recoverer");
         });
 
-        it("is forbidden if oldAddress wasn't whitelisted before", async () => {
-            let account = await getAccount(investor3);
-            await reject.tx(token.recoverKey(anyone, investor3, {from: keyRecoverer}));
-            expectAccountEquality(await getAccount(investor3), account);
+        it("is forbidden if old address wasn't whitelisted before", async () => {
+            let reason = await reject.call(token.recoverKey(anyone, investor3, {from: keyRecoverer}));
+            expect(reason).to.be.equal("address is not whitelisted");
         });
 
-        it("is forbidden if newAddress wasn't whitelisted before", async () => {
-            let account = await getAccount(investor1);
-            await reject.tx(token.recoverKey(investor1, anyone, {from: keyRecoverer}));
-            expectAccountEquality(await getAccount(investor1), account);
+        it("is forbidden if new address wasn't whitelisted before", async () => {
+            let reason = await reject.call(token.recoverKey(investor1, anyone, {from: keyRecoverer}));
+            expect(reason).to.be.equal("address is not whitelisted");
         });
 
-        it("is forbidden if newAddress is an already used account", async () => {
-            let account1 = await getAccount(investor1);
-            let account2 = await getAccount(investor2);
-            await reject.tx(token.recoverKey(investor1, investor2, {from: keyRecoverer}));
-            expectAccountEquality(await getAccount(investor1), account1);
-            expectAccountEquality(await getAccount(investor2), account2);
+        it("is forbidden if new address is an already used account", async () => {
+            let reason = await reject.call(token.recoverKey(investor1, investor2, {from: keyRecoverer}));
+            expect(reason).to.be.equal("new address exists already");
         });
 
         it("is possible", async () => {
             let account = await getAccount(investor2);
-            let tx = await token.recoverKey(investor2, investor3, {from: keyRecoverer});
-            let entry = tx.logs.find(entry => entry.event === "KeyRecovered");
+            await token.recoverKey(investor2, investor3, {from: keyRecoverer});
+            let oldAccount = await getAccount(investor2);
+            expect(oldAccount.balance).to.be.bignumber.zero;
+            expect(oldAccount.lastTotalProfits).to.be.bignumber.zero;
+            expect(oldAccount.profitShare).to.be.bignumber.zero;
+            let newAccount = await getAccount(investor3);
+            expect(newAccount.balance).to.be.bignumber.equal(account.balance);
+            expect(newAccount.lastTotalProfits).to.be.bignumber.equal(account.lastTotalProfits);
+            expect(newAccount.profitShare).to.be.bignumber.equal(account.profitShare);
+        });
+
+        it("gets logged", async () => {
+            let tx = await token.recoverKey(investor3, investor2, {from: keyRecoverer});
+            let entry = tx.logs.find(entry => entry.event === "KeyRecovery");
             expect(entry).to.exist;
-            expect(entry.args.oldAddress).to.be.equal(investor2);
-            expect(entry.args.newAddress).to.be.equal(investor3);
-            expectAccountEquality(await getAccount(investor2),
-                {balance: 0, profitShare: 0, lastTotalProfits: 0});
-            expectAccountEquality(await getAccount(investor3), account);
+            expect(entry.args.oldAddress).to.be.equal(investor3);
+            expect(entry.args.newAddress).to.be.equal(investor2);
         });
     });
 });

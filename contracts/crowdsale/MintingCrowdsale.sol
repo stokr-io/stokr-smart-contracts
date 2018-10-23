@@ -103,6 +103,7 @@ contract MintingCrowdsale is Ownable {
         public
     {
         require(address(_token) != address(0x0), "Token address is zero");
+        require(_token.minter() == address(0x0), "Token has another minter");
         require(_tokenCapOfPublicSale > 0, "Cap of public sale is zero");
         require(_tokenCapOfPrivateSale > 0, "Cap of private sale is zero");
         require(_tokenPrice > 0, "Token price is zero");
@@ -251,14 +252,14 @@ contract MintingCrowdsale is Ownable {
         onlyOwner
         returns (uint)
     {
-        require(!isFinalized, "Sale was finalized");
+        require(!isFinalized, "Sale has been finalized");
         require(beneficiaries.length == amounts.length, "Lengths are different");
 
         for (uint i = 0; i < beneficiaries.length; ++i) {
             address beneficiary = beneficiaries[i];
             uint amount = amounts[i];
 
-            require(amount <= tokenRemaining, "Not enough tokens avaliable");
+            require(amount <= tokenRemaining, "Not enough tokens available");
 
             tokenRemaining -= amount;
             token.mint(beneficiary, amount);

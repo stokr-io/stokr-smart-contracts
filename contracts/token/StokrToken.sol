@@ -59,7 +59,7 @@ contract StokrToken is MintableToken, KeyRecoverable {
         accounts[_newAddress] = accounts[_oldAddress];
         delete accounts[_oldAddress];
 
-        emit KeyRecovered(_oldAddress, _newAddress);
+        emit KeyRecovery(_oldAddress, _newAddress);
     }
 
     /// @dev Total supply

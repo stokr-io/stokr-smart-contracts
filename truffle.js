@@ -6,7 +6,7 @@ module.exports = {
             network_id: "*",
             host: "localhost",
             port: 8545,
-            gas: 20000000,
+            gas: 8000000,
         },
 
         // Persistent Parity PoA test network (Berlin O34 office LAN)
@@ -34,9 +34,9 @@ module.exports = {
         },
     },
 
-    mocha: {
-        reporter: "eth-gas-reporter",
-    },
+    //mocha: {
+    //    reporter: "eth-gas-reporter",
+    //},
 
     coverage: {
         network_id: "*",

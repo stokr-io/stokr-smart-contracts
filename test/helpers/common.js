@@ -84,9 +84,17 @@ module.exports = (() => {
             catch (error) {
                 let message = error.toString().toLowerCase();
 
+                // That's ugly, older pre-Byzantium TestRPC just throws.
+                // Nevertheless, post-Byzantium Ganache throws, too.
                 if (message.includes("the contract code couldn't be stored")
-                 || message.includes("vm exception while processing transaction: revert")) {
-                    return;
+                 || message.includes("invalid opcode") || message.includes("invalid jump")) {
+                    return; // pre-Byzantium rejection
+                }
+
+                // A revert error may include an solidity error message.
+                const revertMessage = "error: vm exception while processing transaction: revert";
+                if (message.startsWith(revertMessage)) {
+                    return message.slice(revertMessage.length).trim();
                 }
 
                 throw error;
@@ -95,10 +103,10 @@ module.exports = (() => {
             throw new Error("Contract creation should have failed but didn't.");
         };
 
-        // Execute a single transaction (promise) and throw if
+        // Execute a call method single transaction (promise) and throw if
         // it succeeds or any not-transaction-related error occurs.
-        const tx = async promise => {
-            let reason = "unknown"; // Why do we think that the transaction succeeded.
+        const call = async promise => {
+            let successReason = "unknown"; // Why do we think that the transaction succeeded.
 
             try {
                 let tx = await promise;
@@ -122,16 +130,16 @@ module.exports = (() => {
                             return; // most likely a rejection
                         }
 
-                        reason = "gasUsed < gasSent";
+                        successReason = "gasUsed < gasSent";
                     }
                     else {
-                        reason = "status = " + receipt.status;
+                        successReason = "status = " + receipt.status;
                     }
                 }
                 else {
                     // A missing receipt may indicate a rejection,
                     // but we treat it as success to throw the error.
-                    reason = "no receipt";
+                    successReason = "no receipt";
                 }
             }
             catch (error) {
@@ -139,19 +147,82 @@ module.exports = (() => {
 
                 // That's ugly, older pre-Byzantium TestRPC just throws.
                 // Nevertheless, post-Byzantium Ganache throws, too.
-                if (message.includes("invalid opcode")
-                 || message.includes("invalid jump")
-                 || message.includes("vm exception while processing transaction: revert")) {
+                if (message.includes("invalid opcode") || message.includes("invalid jump")) {
                     return; // pre-Byzantium rejection
+                }
+
+                // A revert error may include an solidity error message.
+                const revertMessage = "error: vm exception while processing transaction: revert";
+                if (message.startsWith(revertMessage)) {
+                    return message.slice(revertMessage.length).trim();
                 }
 
                 throw error;
             }
 
-            throw new Error("Transaction should have failed but didn't (" + reason + ").");
+            throw new Error("Transaction should have failed but didn't (" + successReason + ").");
         };
 
-        return {deploy, tx};
+        // Execute a single transaction (promise) and throw if
+        // it succeeds or any not-transaction-related error occurs.
+        const tx = async options => {
+            let successReason = "unknown"; // Why do we think that the transaction succeeded.
+
+            try {
+                let tx = await web3.eth.sendTransaction(options);
+
+                if (tx.hasOwnProperty("receipt")) {
+                    let receipt = tx.receipt;
+
+                    // Unfortunately, all cases where seen in the wild.
+                    if (receipt.status === 0
+                     || receipt.status === "0x"
+                     || receipt.status === "0x0") {
+                        return; // post-Byzantium rejection
+                    }
+
+                    // Weird: Parity doesn't throw and doesn't deliver status.
+                    if (tx.receipt.status === null) {
+                        tx = await web3.eth.getTransaction(receipt.transactionHash);
+
+                        // Heuristic: compare gas provided with gas used.
+                        if (tx.gas === receipt.gasUsed) {
+                            return; // most likely a rejection
+                        }
+
+                        successReason = "gasUsed < gasSent";
+                    }
+                    else {
+                        successReason = "status = " + receipt.status;
+                    }
+                }
+                else {
+                    // A missing receipt may indicate a rejection,
+                    // but we treat it as success to throw the error.
+                    successReason = "no receipt";
+                }
+            }
+            catch (error) {
+                let message = error.toString().toLowerCase();
+
+                // That's ugly, older pre-Byzantium TestRPC just throws.
+                // Nevertheless, post-Byzantium Ganache throws, too.
+                if (message.includes("invalid opcode") || message.includes("invalid jump")) {
+                    return; // pre-Byzantium rejection
+                }
+
+                // A revert error may include an solidity error message.
+                const revertMessage = "error: vm exception while processing transaction: revert";
+                if (message.startsWith(revertMessage)) {
+                    return message.slice(revertMessage.length).trim();
+                }
+
+                throw error;
+            }
+
+            throw new Error("Transaction should have failed but didn't (" + successReason + ").");
+        };
+        return {deploy, call, tx};
     })();
 
     // Functions related to snapshots

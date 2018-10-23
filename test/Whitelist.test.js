@@ -26,17 +26,18 @@ contract("Whitelist", ([owner,
         it("sets correct owner", async () => {
             expect(await whitelist.owner()).to.be.bignumber.equal(owner);
         });
-
     });
 
     describe("admin", () => {
 
         it("cannot be added by anyone", async () => {
-            await reject.tx(whitelist.addAdmin(admin1, {from: anyone}));
+            let reason = await reject.call(whitelist.addAdmin(admin1, {from: anyone}));
+            expect(reason).to.be.equal("restricted to owner");
         });
 
         it("cannot be added if zero", async () => {
-            await reject.tx(whitelist.addAdmin(0x0, {from: owner}));
+            let reason = await reject.call(whitelist.addAdmin(0x0, {from: owner}));
+            expect(reason).to.be.equal("whitelist admin is zero");
         });
 
         it("can be added by owner", async () => {
@@ -57,11 +58,13 @@ contract("Whitelist", ([owner,
         });
 
         it("cannot be removed by anyone", async () => {
-            await reject.tx(whitelist.removeAdmin(admin1, {from: anyone}));
+            let reason = await reject.call(whitelist.removeAdmin(admin1, {from: anyone}));
+            expect(reason).to.be.equal("restricted to owner");
         });
 
         it("cannot be removed if zero", async () => {
-            await reject.tx(whitelist.removeAdmin(0x0, {from: owner}));
+            let reason = await reject.call(whitelist.removeAdmin(0x0, {from: owner}));
+            expect(reason).to.be.equal("whitelist admin is zero");
         });
 
         it("can be removed by owner", async () => {
@@ -90,7 +93,8 @@ contract("Whitelist", ([owner,
         });
 
         it("cannot be added by anyone", async () => {
-            await reject.tx(whitelist.addToWhitelist([investor1], {from: anyone}));
+            let reason = await reject.call(whitelist.addToWhitelist([investor1], {from: anyone}));
+            expect(reason).to.be.equal("restricted to whitelist admin");
         });
 
         it("can be added by admin1", async () => {
@@ -112,7 +116,8 @@ contract("Whitelist", ([owner,
         });
 
         it("cannot be removed by anyone", async () => {
-            await reject.tx(whitelist.removeFromWhitelist([investor1], {from: anyone}));
+            let reason = await reject.call(whitelist.removeFromWhitelist([investor1], {from: anyone}));
+            expect(reason).to.be.equal("restricted to whitelist admin");
         });
 
         it("can be removed by admin1", async () => {
@@ -132,7 +137,6 @@ contract("Whitelist", ([owner,
         it("is not whitelisted after remove", async () => {
             expect(await whitelist.isWhitelisted([investor1])).to.be.false;
         });
-
     });
 
     describe("multiple investors", () => {
@@ -147,33 +151,28 @@ contract("Whitelist", ([owner,
         });
 
         it("cannot be added by anyone", async () => {
-            await reject.tx(whitelist.addToWhitelist(investors, {from: anyone}));
-            for (let i = 0; i < investors.length; ++i) {
-                expect(await whitelist.isWhitelisted(investors[i])).to.be.false;
-            }
+            let reason = await reject.call(whitelist.addToWhitelist(investors, {from: anyone}));
+            expect(reason).to.be.equal("restricted to whitelist admin");
         });
 
         it("can be added at once by admin1", async () => {
             let tx = await whitelist.addToWhitelist(investors, {from: admin1});
-            for (let i = 0; i < investors.length; ++i) {
-                expect(await whitelist.isWhitelisted(investors[i])).to.be.true;
+            for (let investor of investors.values()) {
+                expect(await whitelist.isWhitelisted(investor)).to.be.true;
             }
         });
 
         it("cannot be removed by anyone", async () => {
-            await reject.tx(whitelist.removeFromWhitelist(investors, {from: anyone}));
-            for (let i = 0; i < investors.length; ++i) {
-                expect(await whitelist.isWhitelisted(investors[i])).to.be.true;
-            }
+            let reason = await reject.call(whitelist.removeFromWhitelist(investors, {from: anyone}));
+            expect(reason).to.be.equal("restricted to whitelist admin");
         });
 
         it("can be removed at once by admin2", async () => {
             let tx = await whitelist.removeFromWhitelist(investors, {from: admin2});
-            for (let i = 0; i < investors.length; ++i) {
-                expect(await whitelist.isWhitelisted(investors[i])).to.be.false;
+            for (let investor of investors.values()) {
+                expect(await whitelist.isWhitelisted(investor)).to.be.false;
             }
         });
-
     });
 
 });
