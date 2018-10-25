@@ -11,6 +11,7 @@ const {random, time, money, reject} = require("./helpers/common");
 contract("StokrToken", ([owner,
                          minter,
                          profitDepositor,
+                         profitDistributor,
                          keyRecoverer,
                          investor1,
                          investor2,
@@ -35,6 +36,7 @@ contract("StokrToken", ([owner,
                                          profitDepositor,
                                          keyRecoverer,
                                          {from: owner});
+        await token.setProfitDistributor(profitDistributor, {from: owner});
         await token.setMinter(minter, {from: owner});
         return [whitelist, token];
     }
@@ -205,6 +207,33 @@ contract("StokrToken", ([owner,
                 let entry = tx.logs.find(entry => entry.event === "ProfitDepositorChange");
                 expect(entry).to.exist;
                 expect(entry.args.newProfitDepositor).to.be.bignumber.equal(newProfitDepositor);
+            });
+        });
+
+        describe("of profit distributor", () => {
+
+            it("by anyone but owner is forbidden", async () => {
+                let reason = await reject.call(token.setProfitDistributor(random.address(), {from: anyone}));
+                expect(reason).to.be.equal("restricted to owner");
+            });
+
+            it("to zero is forbidden", async () => {
+                let reason = await reject.call(token.setProfitDistributor(0x0, {from: owner}));
+                expect(reason).to.be.equal("new profit distributor is zero");
+            });
+
+            it("is possible", async () => {
+                let newProfitDistributor = random.address();
+                await token.setProfitDistributor(newProfitDistributor, {from: owner});
+                expect(await token.profitDistributor()).to.be.bignumber.equal(newProfitDistributor);
+            });
+
+            it("gets logged", async () => {
+                let newProfitDistributor = random.address();
+                let tx = await token.setProfitDistributor(newProfitDistributor, {from: owner});
+                let entry = tx.logs.find(entry => entry.event === "ProfitDistributorChange");
+                expect(entry).to.exist;
+                expect(entry.args.newProfitDistributor).to.be.bignumber.equal(newProfitDistributor);
             });
         });
 
@@ -630,9 +659,7 @@ contract("StokrToken", ([owner,
                 let asset = await web3.eth.getBalance(token.address);
                 let shares = new web3.BigNumber(0);
                 for (let investor of investors.values()) {
-                    let account = await getAccount(investor);
-                    let owing = await token.profitShareOwing(investor);
-                    shares = shares.plus(account.profitShare).plus(owing);
+                    shares = shares.plus(await token.profitShareOwing(investor));
                 }
                 expect(shares).to.be.bignumber.equal(asset);
             }
@@ -667,22 +694,27 @@ contract("StokrToken", ([owner,
                 let asset = await web3.eth.getBalance(token.address);
                 let value = money.ether(2);
                 await web3.eth.sendTransaction({from: profitDepositor, to: token.address, value});
-                expect(await web3.eth.getBalance(token.address))
-                    .to.be.bignumber.equal(asset.plus(value));
+                expect(await web3.eth.getBalance(token.address)).to.be.bignumber.equal(asset.plus(value));
             });
 
             it("increases wei balance", async () => {
                 let asset = await web3.eth.getBalance(token.address);
                 let value = money.ether(2);
                 await token.depositProfit({from: profitDepositor, value});
-                expect(await web3.eth.getBalance(token.address))
-                    .to.be.bignumber.equal(asset.plus(value));
+                expect(await web3.eth.getBalance(token.address)).to.be.bignumber.equal(asset.plus(value));
             });
 
             it("increases totalProfits", async () => {
                 let profits = await token.totalProfits();
                 let value = money.ether(2);
                 await token.depositProfit({from: profitDepositor, value});
+                expect(await token.totalProfits()).to.be.bignumber.equal(profits.plus(value));
+            });
+
+            it("via fallback function increases totalProfits", async () => {
+                let profits = await token.totalProfits();
+                let value = money.ether(2);
+                let tx = await web3.eth.sendTransaction({from: profitDepositor, to: token.address, value});
                 expect(await token.totalProfits()).to.be.bignumber.equal(profits.plus(value));
             });
         });
@@ -701,6 +733,28 @@ contract("StokrToken", ([owner,
                     expect(reason).to.be.equal("total supply may change");
                 }
             });
+
+            it("withdrawal is forbidden", async () => {
+                for (let investor of investors.values()) {
+                    let reason = await reject.call(token.withdrawProfitShare({from: investor}));
+                    expect(reason).to.be.equal("total supply may change");
+                }
+            });
+
+            it("withdrawal to third party is forbidden", async () => {
+                let beneficiary = random.address();
+                for (let investor of investors.values()) {
+                    let reason = await reject.call(
+                        token.withdrawProfitShareTo(beneficiary, {from: investor}));
+                    expect(reason).to.be.equal("total supply may change");
+                }
+            });
+
+            it("withdrawal for many is forbidden", async () => {
+                let reason = await reject.call(
+                    token.withdrawProfitShares(investors, {from: profitDistributor}));
+                expect(reason).to.be.equal("total supply may change");
+            });
         });
 
         context("after minting finished", () => {
@@ -715,11 +769,12 @@ contract("StokrToken", ([owner,
                 for (let investor of investors.values()) {
                     let balance = await token.balanceOf(investor);
                     let owing = await token.profitShareOwing(investor);
+                    let share = (await getAccount(investor)).profitShare;
                     // Prerequisite: no individual profit share was disbursed before
                     // Use equivalence:
-                    //      profitShareOwing / totalProfits == balance / totalSupply
-                    // <=>  profitShareOwing * totalSupply  == balance * totalProfits
-                    expect(owing.times(supply)).to.be.bignumber.equal(balance.times(profits));
+                    //      (profitShareOwing - profitShare) / totalProfits == balance / totalSupply
+                    // <=>  (profitShareOwing - profitShare) * totalSupply  == balance * totalProfits
+                    expect(owing.minus(share).times(supply)).to.be.bignumber.equal(balance.times(profits));
                 }
             });
 
@@ -744,14 +799,13 @@ contract("StokrToken", ([owner,
                 let supply = await token.totalSupply();
                 let profits = await token.totalProfits();
                 for (let investor of investors.values()) {
-                    let account = await getAccount(investor);
+                    let balance = await token.balanceOf(investor);
                     let owing = await token.profitShareOwing(investor);
                     // Prerequiste: no tokens were transferred before
                     // Use equivalence:
-                    //      (profitShare + profitShareOwing) / totalProfits == balance / totalSupply
-                    // <=>  (profitShare + profitShareOwing) * totalSupply  == balance * totalProfits
-                    expect(account.profitShare.plus(owing).times(supply))
-                        .to.be.bignumber.equal(account.balance.times(profits));
+                    //      profitShareOwing / totalProfits == balance / totalSupply
+                    // <=>  profitShareOwing * totalSupply  == balance * totalProfits
+                    expect(owing.times(supply)).to.be.bignumber.equal(balance.times(profits));
                 }
             });
 
@@ -762,32 +816,29 @@ contract("StokrToken", ([owner,
                 let balance1 = await token.balanceOf(investor1);
                 let balance2 = await token.balanceOf(investor2);
                 await token.depositProfit({from: profitDepositor, value});
+                let owing1 = await token.profitShareOwing(investor1);
+                let owing2 = await token.profitShareOwing(investor2);
+                let share1 = (await getAccount(investor1)).profitShare;
+                let share2 = (await getAccount(investor2)).profitShare;
                 // Use equivalence:
-                //      profitShareOwing / additionalProfit == balance / totalSupply
-                // <=>  profitShareOwing * totalSupply      == balance * additionalProfits
-                expect((await token.profitShareOwing(investor1)).times(supply))
-                    .to.be.bignumber.equal(balance1.times(value));
-                expect((await token.profitShareOwing(investor2)).times(supply))
-                    .to.be.bignumber.equal(balance2.times(value));
-
+                //      (profitShareOwing - profitShare) / additionalProfit == balance / totalSupply
+                // <=>  (profitShareOwing - profitShare) * totalSupply      == balance * additionalProfits
+                expect(owing1.minus(share1).times(supply)).to.be.bignumber.equal(balance1.times(value));
+                expect(owing2.minus(share2).times(supply)).to.be.bignumber.equal(balance2.times(value));
             });
 
-            it("can be withdrawn by investors", async () => {
-                for (let investor of investors.values()) {
-                    let account = await getAccount(investor);
-                    let owing = await token.profitShareOwing(investor);
-                    let asset = await web3.eth.getBalance(token.address);
-                    let tx = await token.withdrawProfitShare({from: investor});
-                    let entry = tx.logs.find(entry => entry.event === "ProfitShareWithdrawal");
-                    expect(entry).to.exist;
-                    expect(entry.args.investor).to.be.bignumber.equal(investor);
-                    expect(entry.args.beneficiary).to.be.bignumber.equal(investor);
-                    expect(entry.args.amount)
-                        .to.be.bignumber.equal(account.profitShare.plus(owing));
-                    expect((await getAccount(investor)).profitShare).to.be.bignumber.zero;
-                    expect(await web3.eth.getBalance(token.address))
-                        .to.be.bignumber.equal(asset.minus(account.profitShare).minus(owing));
-                }
+            it("can be withdrawn", async () => {
+                let owing = await token.profitShareOwing(investor1);
+                let asset = await web3.eth.getBalance(token.address);
+                let tx = await token.withdrawProfitShare({from: investor1});
+                let entry = tx.logs.find(entry => entry.event === "ProfitShareWithdrawal");
+                expect(entry).to.exist;
+                expect(entry.args.investor).to.be.bignumber.equal(investor1);
+                expect(entry.args.beneficiary).to.be.bignumber.equal(investor1);
+                expect(entry.args.amount).to.be.bignumber.equal(owing);
+                expect((await getAccount(investor1)).profitShare).to.be.bignumber.zero;
+                expect(await web3.eth.getBalance(token.address))
+                    .to.be.bignumber.equal(asset.minus(owing));
             });
 
             it("of zero can be withdrawn by anyone", async () => {
@@ -800,6 +851,39 @@ contract("StokrToken", ([owner,
                 expect(entry.args.beneficiary).to.be.bignumber.equal(anyone);
                 expect(entry.args.amount).to.be.bignumber.zero;
                 expect(await web3.eth.getBalance(token.address)).to.be.bignumber.equal(asset);
+            });
+
+            it("can be withdrawn to third party", async () => {
+                let beneficiary = anyone;
+                let owing = await token.profitShareOwing(investor2);
+                let asset = await web3.eth.getBalance(beneficiary);
+                let tx = await token.withdrawProfitShareTo(beneficiary, {from: investor2});
+                let entry = tx.logs.find(entry => entry.event === "ProfitShareWithdrawal");
+                expect(entry).to.exist;
+                expect(entry.args.investor).to.be.bignumber.equal(investor2);
+                expect(entry.args.beneficiary).to.be.bignumber.equal(beneficiary);
+                expect(entry.args.amount).to.be.bignumber.equal(owing);
+                expect((await getAccount(investor2)).profitShare).to.be.bignumber.zero;
+                expect(await web3.eth.getBalance(beneficiary)).to.be.bignumber.equal(asset.plus(owing));
+            });
+
+            it("withdrawal to many by anyone is forbidden", async () => {
+                let reason = await reject.call(token.withdrawProfitShares(investors, {from: anyone}));
+                expect(reason).to.be.equal("restricted to profit distributor");
+            });
+
+            it("can be withdrawn for many", async () => {
+                let owing = await token.profitShareOwing(investor3);
+                let asset = await web3.eth.getBalance(investor3);
+                let tx = await token.withdrawProfitShares(investors, {from: profitDistributor});
+                let entries = tx.logs.filter(entry => entry.event === "ProfitShareWithdrawal");
+                expect(entries).to.have.lengthOf(investors.length);
+                let entry = entries.find(entry => (new BN(entry.args.investor)).equals(investor3));
+                expect(entry).to.exist;
+                expect(entry.args.beneficiary).to.be.bignumber.equal(investor3);
+                expect((await getAccount(investor3)).profitShare).to.be.bignumber.zero;
+                expect(await web3.eth.getBalance(investor3))
+                    .to.be.bignumber.equal(asset.plus(owing));
             });
         });
     });

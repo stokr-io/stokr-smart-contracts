@@ -1,0 +1,899 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for contracts/crowdsale/MintingCrowdsale.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../prettify.css" />
+    <link rel="stylesheet" href="../../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../../index.html">all files</a> / <a href="index.html">contracts/crowdsale/</a> MintingCrowdsale.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>61/61</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>48/48</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>15/15</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>68/68</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">21×</span>
+<span class="cline-any cline-yes">20×</span>
+<span class="cline-any cline-yes">19×</span>
+<span class="cline-any cline-yes">18×</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-yes">14×</span>
+<span class="cline-any cline-yes">13×</span>
+<span class="cline-any cline-yes">12×</span>
+<span class="cline-any cline-yes">11×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">57×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">38×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">71×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">32×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">27×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">27×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">26×</span>
+<span class="cline-any cline-yes">26×</span>
+<span class="cline-any cline-yes">25×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">25×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">30×</span>
+<span class="cline-any cline-yes">26×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">22×</span>
+<span class="cline-any cline-yes">34×</span>
+<span class="cline-any cline-yes">34×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">34×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">32×</span>
+<span class="cline-any cline-yes">32×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">32×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">20×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">pragma solidity 0.4.24;
+&nbsp;
+import "../math/SafeMath.sol";
+import "../ownership/Ownable.sol";
+import "../token/MintableToken.sol";
+&nbsp;
+&nbsp;
+/// @title MintingCrowdsale
+/// @author SICOS
+contract MintingCrowdsale is Ownable {
+    using SafeMath for uint;
+&nbsp;
+    // Ethereum address of rate setting authority
+    address public rateAdmin;
+&nbsp;
+    // The token to be sold
+    // In the following, the term "token unit" always refers to the smallest
+    // and non-divisible quantum. Thus, token unit amounts are always integers.
+    // One token is expected to consist of 10^18 token units.
+    MintableToken public token;
+&nbsp;
+    // Token amounts in token units
+    // The public and the private sale are both capped (i.e. two distinct token pools)
+    // The tokenRemaining variables keep track of how many token units are available
+    // for the respective type of sale
+    uint public tokenCapOfPublicSale;
+    uint public tokenCapOfPrivateSale;
+    uint public tokenRemainingForPublicSale;
+    uint public tokenRemainingForPrivateSale;
+&nbsp;
+    // Prices are in Euro cents (i.e. 1/100 EUR)
+    // The ether rate is actually a price, too, but it is called a rate here, because it
+    // may deviate from the current Ether price since it won't get updated at real time
+    // but at regular intervals by the rate admin authority
+    uint public tokenPrice;
+    uint public etherRate;
+&nbsp;
+    // Public sale period
+    uint public openingTime;
+    uint public closingTime;
+&nbsp;
+    // Ethereum address where invested funds will be transferred to
+    address public companyWallet;
+&nbsp;
+    // Amount and receiver of reserved tokens
+    uint public tokenReserve;
+    address public reserveAccount;
+&nbsp;
+    // Wether this crowdsale was finalized or not
+    bool public isFinalized = false;
+&nbsp;
+&nbsp;
+    /// @dev Log entry upon token distribution event
+    /// @param beneficiary Ethereum address of token recipient
+    /// @param amount Number of token units
+    event TokenDistribution(address indexed beneficiary, uint amount);
+&nbsp;
+    /// @dev Log entry upon rate admin change event
+    /// @param previous Previous Ethereum address of rate admin
+    /// @param current Current Ethereum address of rate admin
+    event RateAdminChange(address indexed previous, address indexed current);
+&nbsp;
+    /// @dev Log entry upon rate change event
+    /// @param previous Previous rate in EUR cent per Ether
+    /// @param current Current rate in EUR cent per Ether
+    event RateChange(uint previous, uint current);
+&nbsp;
+    /// @dev Log entry upon token purchase event
+    /// @param buyer Ethereum address of token purchaser
+    /// @param value Worth in wei of purchased token amount
+    /// @param amount Number of token units
+    event TokenPurchase(address indexed buyer, uint value, uint amount);
+&nbsp;
+    /// @dev Log entry upon finalization event
+    event Finalization();
+&nbsp;
+&nbsp;
+    /// @dev Constructor
+    /// @param _token The token to be sold
+    /// @param _tokenCapOfPublicSale Maximum number of token units to mint in public sale
+    /// @param _tokenCapOfPrivateSale Maximum number of token units to mint in private sale
+    /// @param _tokenPrice Price of a token in EUR cent
+    /// @param _etherRate Rate of an Ether in EUR cent
+    /// @param _rateAdmin Ethereum address of ether rate setting authority
+    /// @param _openingTime Block (Unix) timestamp of sale opening time
+    /// @param _closingTime Block (Unix) timestamp of sale closing time
+    /// @param _companyWallet Ethereum account who will receive sent ether
+    /// @param _tokenReserve Number of token units to mint for the benefit of reserve account
+    /// @param _reserveAccount Ethereum address of reserve tokens recipient
+    constructor(
+        MintableToken _token,
+        uint _tokenCapOfPublicSale,
+        uint _tokenCapOfPrivateSale,
+        uint _tokenPrice,
+        uint _etherRate,
+        address _rateAdmin,
+        uint _openingTime,
+        uint _closingTime,
+        address _companyWallet,
+        uint _tokenReserve,
+        address _reserveAccount
+    )
+        public
+    {
+        require(address(_token) != address(0x0), "Token address is zero");
+        require(_token.minter() == address(0x0), "Token has another minter");
+        require(_tokenCapOfPublicSale &gt; 0, "Cap of public sale is zero");
+        require(_tokenCapOfPrivateSale &gt; 0, "Cap of private sale is zero");
+        require(_tokenPrice &gt; 0, "Token price is zero");
+        require(_etherRate &gt; 0, "Ether price is zero");
+        require(_rateAdmin != address(0x0), "Rate admin is zero");
+        require(_openingTime &gt;= now, "Opening lies in the past");
+        require(_closingTime &gt;= _openingTime, "Closing lies before opening");
+        require(_companyWallet != address(0x0), "Company wallet is zero");
+        require(_reserveAccount != address(0x0), "Reserve account is zero");
+&nbsp;
+        // Utilize safe math to ensure the sum of three token pools does't overflow
+        _tokenReserve.add(_tokenCapOfPublicSale).add(_tokenCapOfPrivateSale);
+&nbsp;
+        token = _token;
+        tokenCapOfPublicSale = _tokenCapOfPublicSale;
+        tokenCapOfPrivateSale = _tokenCapOfPrivateSale;
+        tokenPrice = _tokenPrice;
+        etherRate = _etherRate;
+        rateAdmin = _rateAdmin;
+        openingTime = _openingTime;
+        closingTime = _closingTime;
+        companyWallet = _companyWallet;
+        tokenReserve = _tokenReserve;
+        reserveAccount = _reserveAccount;
+&nbsp;
+        tokenRemainingForPublicSale = _tokenCapOfPublicSale;
+        tokenRemainingForPrivateSale = _tokenCapOfPrivateSale;
+    }
+&nbsp;
+    /// @dev Restrict operation to rate setting authority
+    modifier onlyRateAdmin() {
+        require(msg.sender == rateAdmin, "Restricted to rate admin");
+        _;
+    }
+&nbsp;
+    /// @dev Fallback function: buys tokens
+    function () public payable {
+        buyTokens();
+    }
+&nbsp;
+    /// @dev Distribute tokens purchased off-chain via public sale
+    /// @param beneficiaries List of recipients' Ethereum addresses
+    /// @param amounts List of token units each recipient will receive
+    function distributeTokensViaPublicSale(address[] beneficiaries, uint[] amounts) public {
+        tokenRemainingForPublicSale =
+            distributeTokens(tokenRemainingForPublicSale, beneficiaries, amounts);
+    }
+&nbsp;
+    /// @dev Distribute tokens purchased off-chain via private sale
+    /// @param beneficiaries List of recipients' Ethereum addresses
+    /// @param amounts List of token units each recipient will receive
+    function distributeTokensViaPrivateSale(address[] beneficiaries, uint[] amounts) public {
+        tokenRemainingForPrivateSale =
+            distributeTokens(tokenRemainingForPrivateSale, beneficiaries, amounts);
+    }
+&nbsp;
+    /// @dev Set rate admin, i.e. the ether rate setting authority
+    /// @param _rateAdmin Ethereum address of new rate admin
+    function setRateAdmin(address _rateAdmin) public onlyOwner {
+        require(_rateAdmin != address(0x0), "New rate admin is zero");
+&nbsp;
+        if (_rateAdmin != rateAdmin) {
+            emit RateAdminChange(rateAdmin, _rateAdmin);
+&nbsp;
+            rateAdmin = _rateAdmin;
+        }
+    }
+&nbsp;
+    /// @dev Set rate, i.e. adjust to changes of EUR/ether exchange rate
+    /// @param newRate Rate in Euro cent per ether
+    function setRate(uint newRate) public onlyRateAdmin {
+        // Rate changes beyond an order of magnitude are likely just typos
+        require(etherRate / 10 &lt; newRate &amp;&amp; newRate &lt; 10 * etherRate, "Rate change too big");
+&nbsp;
+        if (newRate != etherRate) {
+            emit RateChange(etherRate, newRate);
+&nbsp;
+            etherRate = newRate;
+        }
+    }
+&nbsp;
+    /// @dev Check whether the sale has closed
+    /// @return True iff sale closing time has passed
+    function hasClosed() public view returns (bool) {
+        return now &gt;= closingTime;
+    }
+&nbsp;
+    /// @dev Check wether the sale is open
+    /// @return True iff sale opening time has passed and sale is not closed yet
+    function isOpen() public view returns (bool) {
+        return now &gt;= openingTime &amp;&amp; !hasClosed();
+    }
+&nbsp;
+    /// @dev Determine the remaining open time of sale
+    /// @return Time in seconds until sale gets closed, or 0 if sale was closed
+    function timeRemaining() public view returns (uint) {
+        if (hasClosed()) {
+            return 0;
+        }
+&nbsp;
+        return closingTime - now;
+    }
+&nbsp;
+    /// @dev Determine the amount of sold tokens (off-chain and on-chain)
+    /// @return Token units amount
+    function tokenSold() public view returns (uint) {
+        return (tokenCapOfPublicSale - tokenRemainingForPublicSale)
+             + (tokenCapOfPrivateSale - tokenRemainingForPrivateSale);
+    }
+&nbsp;
+    /// @dev Purchase tokens
+    function buyTokens() public payable {
+        require(isOpen(), "Sale is not open");
+&nbsp;
+        // Units:  [1e-18*ether] * [cent/ether] / [cent/token] =&gt; [1e-18*token]
+        uint amount = msg.value.mul(etherRate).div(tokenPrice);
+&nbsp;
+        require(amount &lt;= tokenRemainingForPublicSale, "Not enough tokens available");
+&nbsp;
+        tokenRemainingForPublicSale -= amount;
+        token.mint(msg.sender, amount);
+        forwardFunds();
+&nbsp;
+        emit TokenPurchase(msg.sender, msg.value, amount);
+    }
+&nbsp;
+    /// @dev Finalize, i.e. end token minting phase and enable token trading
+    function finalize() public onlyOwner {
+        require(!isFinalized, "Sale has already been finalized");
+        require(hasClosed(), "Sale has not closed");
+&nbsp;
+        token.mint(reserveAccount, tokenReserve);
+        token.finishMinting();
+        isFinalized = true;
+&nbsp;
+        emit Finalization();
+    }
+&nbsp;
+    /// @dev Distribute tokens purchased off-chain (in Euro) to investors
+    /// @param tokenRemaining Token units available for sale
+    /// @param beneficiaries Ethereum addresses of purchasers
+    /// @param amounts Token unit amounts to deliver to each investor
+    /// @return Token units available for sale after distribution
+    function distributeTokens(uint tokenRemaining, address[] beneficiaries, uint[] amounts)
+        internal
+        onlyOwner
+        returns (uint)
+    {
+        require(!isFinalized, "Sale has been finalized");
+        require(beneficiaries.length == amounts.length, "Lengths are different");
+&nbsp;
+        for (uint i = 0; i &lt; beneficiaries.length; ++i) {
+            address beneficiary = beneficiaries[i];
+            uint amount = amounts[i];
+&nbsp;
+            require(amount &lt;= tokenRemaining, "Not enough tokens available");
+&nbsp;
+            tokenRemaining -= amount;
+            token.mint(beneficiary, amount);
+&nbsp;
+            emit TokenDistribution(beneficiary, amount);
+        }
+&nbsp;
+        return tokenRemaining;
+    }
+&nbsp;
+    /// @dev Forward invested ether to company wallet
+    function forwardFunds() internal {
+        companyWallet.transfer(msg.value);
+    }
+&nbsp;
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Wed Oct 24 2018 16:58:51 GMT+0200 (Mitteleuropäische Sommerzeit)
+</div>
+</div>
+<script src="../../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../../sorter.js"></script>
+</body>
+</html>

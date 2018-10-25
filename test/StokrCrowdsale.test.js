@@ -662,8 +662,10 @@ contract("StokrCrowdsale", ([owner,
 
             it("via fallback function is possible", async () => {
                 let balance = await token.balanceOf(investor1);
-                await web3.eth.sendTransaction({from: investor1, to: sale.address, value: money.ether(1)});
-                //expect(await token.balanceOf(investor1)).to.be.bignumber.above(balance);
+                let options = {from: investor1, to: sale.address, value: money.ether(1)}
+                options.gas = await web3.eth.estimateGas(options);
+                await web3.eth.sendTransaction(options);
+                expect(await token.balanceOf(investor1)).to.be.bignumber.above(balance);
             });
 
             it("increases investor's balance", async () => {
@@ -1109,7 +1111,7 @@ contract("StokrCrowdsale", ([owner,
 
             it("distribution by anyone but owner is forbidden", async () => {
                 let reason = await reject.call(
-                    sale.distributeRefunds([investor1, investor2, anyone], {from: owner}));
+                    sale.distributeRefunds([investor1, investor2, anyone], {from: anyone}));
                 expect(reason).to.be.equal("restricted to owner");
             });
 

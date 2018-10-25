@@ -12,6 +12,7 @@ const ether = wei => 1e18 * wei;
 
 
 module.exports = function(deployer, network, accounts) {
+    /*
     const owner = accounts[0];
     const profitDepositor = owner;
     const keyRecoverer = owner;
@@ -65,6 +66,6 @@ module.exports = function(deployer, network, accounts) {
     }).then(sale => {
         console.log("  ==> at address " + sale.address);
     });
-
+    */
 };
 

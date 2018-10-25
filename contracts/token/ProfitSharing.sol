@@ -82,7 +82,7 @@ contract ProfitSharing is Ownable {
 
     /// @dev Restrict operation to profit distribution authority only
     modifier onlyProfitDistributor() {
-        require(msg.sender == profitDepositor, "Restricted to profit distributor");
+        require(msg.sender == profitDistributor, "Restricted to profit distributor");
         _;
     }
 
@@ -93,7 +93,7 @@ contract ProfitSharing is Ownable {
     }
 
     /// @dev Profit deposit if possible via fallback function
-    function() public payable {
+    function () public payable {
         depositProfit();
     }
 
@@ -162,7 +162,7 @@ contract ProfitSharing is Ownable {
         _withdrawProfitShare(msg.sender, msg.sender);
     }
 
-    function withdrawProfitShare(address _beneficiary) public {
+    function withdrawProfitShareTo(address _beneficiary) public {
         _withdrawProfitShare(msg.sender, _beneficiary);
     }
 
