@@ -55,11 +55,6 @@ contract MintingCrowdsale is Ownable {
     /// @param amount Number of token units
     event TokenDistribution(address indexed beneficiary, uint amount);
 
-    /// @dev Log entry upon rate admin change event
-    /// @param previous Previous Ethereum address of rate admin
-    /// @param current Current Ethereum address of rate admin
-    event RateAdminChange(address indexed previous, address indexed current);
-
     /// @dev Log entry upon rate change event
     /// @param previous Previous rate in EUR cent per Ether
     /// @param current Current rate in EUR cent per Ether
@@ -158,18 +153,6 @@ contract MintingCrowdsale is Ownable {
     function distributeTokensViaPrivateSale(address[] beneficiaries, uint[] amounts) public {
         tokenRemainingForPrivateSale =
             distributeTokens(tokenRemainingForPrivateSale, beneficiaries, amounts);
-    }
-
-    /// @dev Set rate admin, i.e. the ether rate setting authority
-    /// @param _rateAdmin Ethereum address of new rate admin
-    function setRateAdmin(address _rateAdmin) public onlyOwner {
-        require(_rateAdmin != address(0x0), "New rate admin is zero");
-
-        if (_rateAdmin != rateAdmin) {
-            emit RateAdminChange(rateAdmin, _rateAdmin);
-
-            rateAdmin = _rateAdmin;
-        }
     }
 
     /// @dev Set rate, i.e. adjust to changes of EUR/ether exchange rate

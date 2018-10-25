@@ -34,9 +34,9 @@ module.exports = {
         },
     },
 
-    //mocha: {
-    //    reporter: "eth-gas-reporter",
-    //},
+    mocha: {
+        reporter: "eth-gas-reporter",
+    },
 
     coverage: {
         network_id: "*",
