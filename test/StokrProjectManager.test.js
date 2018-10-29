@@ -37,7 +37,7 @@ contract("StokrProjectManager", ([owner,
 
     let projectManager, whitelist, tokenFactory, crowdsaleFactory;
 
-    it("deploy project factory", async () => {
+    it("deploy project manager", async () => {
         projectManager = await StokrProjectManager.new(etherRate, {from: owner});
         projectManager.setRateAdmin(rateAdmin, {from: owner});
     });
