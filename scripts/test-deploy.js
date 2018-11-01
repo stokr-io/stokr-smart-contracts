@@ -100,7 +100,7 @@ const run = async () => {
 };
 
 
-module.exports = callback => {
+module.exports = callback =>
     (async () => {
         try {
             await run();
@@ -110,5 +110,4 @@ module.exports = callback => {
             callback(error);
         }
     })();
-};
 

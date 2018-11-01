@@ -104,6 +104,14 @@ contract StokrProjectManager is Ownable {
         activeCrowdsales.push(crowdsale);
     }
 
+    function projectsCount() public view returns (uint) {
+        return projects.length;
+    }
+
+    function activeCrowdsalesCount() public view returns (uint) {
+        return activeCrowdsales.length;
+    }
+
     function setRate(uint newRate) public onlyRateAdmin {
         for ((uint i, uint n) = (0, activeCrowdsales.length); i < n;) {
             if (activeCrowdsales[i].hasClosed()) {
