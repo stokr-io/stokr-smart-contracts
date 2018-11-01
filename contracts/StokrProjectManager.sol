@@ -18,12 +18,12 @@ contract StokrProjectManager is Ownable {
     }
 
 
-    address rateAdmin;
-    uint etherRate;
+    address public rateAdmin;
+    uint public etherRate;
 
-    Whitelist currentWhitelist;
-    StokrTokenFactory tokenFactory;
-    StokrCrowdsaleFactory crowdsaleFactory;
+    Whitelist public currentWhitelist;
+    StokrTokenFactory public tokenFactory;
+    StokrCrowdsaleFactory public crowdsaleFactory;
 
     StokrProject[] public projects;
     StokrCrowdsale[] public activeCrowdsales;
