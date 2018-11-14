@@ -26,26 +26,28 @@ contract StokrCrowdsale is MintingCrowdsale {
     /// @param _tokenCapOfPublicSale Available token units for public sale
     /// @param _tokenCapOfPrivateSale Available token units for private sale
     /// @param _tokenGoal Minimum number of sold token units to be successful
+    /// @param _tokenPurchaseMinimum Minimum amount of tokens an investor has to buy at once
+    /// @param _tokenReservePerMill Additional reserve tokens in per mill of sold tokens
     /// @param _tokenPrice Price of a token in EUR cent
     /// @param _etherRate Price of an Ether in EUR cent
     /// @param _rateAdmin Ethereum address of ether rate setting authority
     /// @param _openingTime Block (Unix) timestamp of sale opening time
     /// @param _closingTime Block (Unix) timestamp of sale closing time
     /// @param _companyWallet Ethereum account who will receive sent ether
-    /// @param _tokenReserve A number
     /// @param _reserveAccount An address
     constructor(
         StokrToken _token,
         uint _tokenCapOfPublicSale,
         uint _tokenCapOfPrivateSale,
         uint _tokenGoal,
+        uint _tokenPurchaseMinimum,
+        uint _tokenReservePerMill,
         uint _tokenPrice,
         uint _etherRate,
         address _rateAdmin,
         uint _openingTime,
         uint _closingTime,
         address _companyWallet,
-        uint _tokenReserve,
         address _reserveAccount
     )
         public
@@ -53,13 +55,14 @@ contract StokrCrowdsale is MintingCrowdsale {
             _token,
             _tokenCapOfPublicSale,
             _tokenCapOfPrivateSale,
+            _tokenPurchaseMinimum,
+            _tokenReservePerMill,
             _tokenPrice,
             _etherRate,
             _rateAdmin,
             _openingTime,
             _closingTime,
             _companyWallet,
-            _tokenReserve,
             _reserveAccount
         )
     {

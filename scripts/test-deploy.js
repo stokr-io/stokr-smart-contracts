@@ -16,6 +16,7 @@ const days = n => 24 * hours(n);
 const ether = wei => new BN(web3.toWei(wei, "ether"));
 
 
+const tokenReservePerMill = new BN(200);  // Add 20% of sold tokens to reserve account
 const tokenPrice = new BN(100);  // A token costs one Euro
 const etherRate = new BN(16321);  // Realistic rate is something in [1e5..2e5]
 
@@ -23,7 +24,7 @@ const tokensFor = value => value.times(etherRate).divToInt(tokenPrice);
 
 const tokenCapOfPublicSale = tokensFor(ether(40));
 const tokenCapOfPrivateSale = tokensFor(ether(30));
-const tokenReserve = tokensFor(ether(10));
+const tokenPurchaseMinimum = tokensFor(ether(1));
 const tokenGoal = tokensFor(ether(8));
 
 const openingTime = now() + days(7);
@@ -35,7 +36,7 @@ let projectManager, whitelist, tokenFactory, crowdsaleFactory;
 
 const deployProjectManager = async owner => {
     let rateAdmin = owner;
-    console.log("Deploy New Project Manager");
+    console.log("Deploy new Project Manager");
     projectManager = await StokrProjectManager.new(etherRate, {from: owner});
     console.log("==> at", projectManager.address);
     projectManager.setRateAdmin(rateAdmin, {from: owner});
@@ -43,7 +44,7 @@ const deployProjectManager = async owner => {
 
 
 const deployWhitelist = async owner => {
-    console.log("Deploy New Whitelist");
+    console.log("Deploy new Whitelist");
     whitelist = await Whitelist.new({from: owner});
     console.log("==> at", whitelist.address);
     projectManager.setWhitelist(whitelist.address, {from: owner});
@@ -51,7 +52,7 @@ const deployWhitelist = async owner => {
 
 
 const deployTokenFactory = async owner => {
-    console.log("Deploy New Token Factory");
+    console.log("Deploy new Token Factory");
     tokenFactory = await StokrTokenFactory.new(projectManager.address, {from: owner});
     console.log("==> at", tokenFactory.address);
     projectManager.setTokenFactory(tokenFactory.address, {from: owner});
@@ -59,7 +60,7 @@ const deployTokenFactory = async owner => {
 
 
 const deployCrowdsaleFactory = async owner => {
-    console.log("Deploy New Crowdsale Factory");
+    console.log("Deploy new Crowdsale Factory");
     crowdsaleFactory = await StokrCrowdsaleFactory.new(projectManager.address, {from: owner});
     console.log("==> at", crowdsaleFactory.address);
     projectManager.setCrowdsaleFactory(crowdsaleFactory.address, {from: owner});
@@ -79,13 +80,42 @@ const createNewProject = async owner => {
             "STKR",
             tokenPrice,
             [profitDepositor, keyRecoverer, tokenOwner, crowdsaleOwner],
-            [tokenCapOfPublicSale, tokenCapOfPrivateSale, tokenGoal, tokenReserve],
+            [tokenCapOfPublicSale, tokenCapOfPrivateSale, tokenGoal,
+             tokenPurchaseMinimum, tokenReservePerMill],
             [openingTime, closingTime],
             [companyWallet, reserveAccount],
             {from: owner});
     let project = await projectManager.projects(0);
     console.log("==> Token at", project[2]);
     console.log("==> Crowdsale at", project[3]);
+};
+
+
+const checkProject = async () => {
+    let [name, whitelistAddress, tokenAddress, saleAddress] = await projectManager.projects(0);
+    let whitelist = await Whitelist.at(whitelistAddress);
+    let token = await StokrToken.at(tokenAddress);
+    let sale = await StokrCrowdsale.at(saleAddress);
+
+    let logAttributes = async contract => {
+        for (let name of contract.abi
+                                 .filter(node => node.type === "function"
+                                              && node.constant
+                                              && node.inputs.length == 0)
+                                 .map(method => method.name)
+                                 .sort()) {
+            console.log(`    ${name}`, (await contract[name]()).toString());
+        }
+    };
+
+    console.log("Project #0", name);
+    await logAttributes(projectManager);
+    console.log("==> Whitelist at ", whitelist.address);
+    await logAttributes(whitelist);
+    console.log("==> Token at", token.address);
+    await logAttributes(token);
+    console.log("==> Crowdsale at", sale.address);
+    await logAttributes(sale);
 };
 
 
@@ -97,6 +127,7 @@ const run = async () => {
     await deployTokenFactory(owner);
     await deployCrowdsaleFactory(owner);
     await createNewProject(owner);
+    await checkProject();
 };
 
 

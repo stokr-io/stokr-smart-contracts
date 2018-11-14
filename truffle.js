@@ -34,10 +34,13 @@ module.exports = {
         },
     },
 
+    /*
     mocha: {
         reporter: "eth-gas-reporter",
     },
+    */
 
+    /*
     coverage: {
         network_id: "*",
         host: "localhost",
@@ -45,5 +48,6 @@ module.exports = {
         gas: 0xfffffffffff,
         gasPrice: 0x01,
     },
+    */
 
 };

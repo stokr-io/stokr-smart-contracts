@@ -29,51 +29,57 @@ contract("StokrProjectManager", ([owner,
     let tokensFor = value => value.mul(etherRate).divToInt(tokenPrice);
     let tokenCapOfPublicSale = tokensFor(money.ether(40));
     let tokenCapOfPrivateSale = tokensFor(money.ether(30));
-    let tokenReserve = tokensFor(money.ether(10));
+    let tokenPurchaseMinimum = tokensFor(money.ether(1));
     let tokenGoal = tokensFor(money.ether(8));
+    let tokenReservePerMill = new BN(200);
 
     let openingTime = time.now() + time.days(7);
     let closingTime = openingTime + time.days(7);
 
-    let projectManager, whitelist, tokenFactory, crowdsaleFactory;
+    context("Deployment", () => {
+        let projectManager, whitelist, tokenFactory, crowdsaleFactory;
 
-    it("deploy project manager", async () => {
-        projectManager = await StokrProjectManager.new(etherRate, {from: owner});
-        projectManager.setRateAdmin(rateAdmin, {from: owner});
-    });
+        it("deploy project manager", async () => {
+            projectManager = await StokrProjectManager.new(etherRate, {from: owner});
+            await projectManager.setRateAdmin(rateAdmin, {from: owner});
+        });
 
-    it("deploy whitelist", async () => {
-        whitelist = await Whitelist.new({from: owner});
-        projectManager.setWhitelist(whitelist.address, {from: owner});
-    });
+        it("deploy whitelist", async () => {
+            whitelist = await Whitelist.new({from: owner});
+            await projectManager.setWhitelist(whitelist.address, {from: owner});
+        });
 
-    it("deploy token factory", async () => {
-        tokenFactory = await StokrTokenFactory.new(projectManager.address, {from: owner});
-        projectManager.setTokenFactory(tokenFactory.address, {from: owner});
-    });
+        it("deploy token factory", async () => {
+            tokenFactory = await StokrTokenFactory.new(projectManager.address, {from: owner});
+            await projectManager.setTokenFactory(tokenFactory.address, {from: owner});
+        });
 
-    it("deploy crowdsale factory", async () => {
-        crowdsaleFactory = await StokrCrowdsaleFactory.new(projectManager.address, {from: owner});
-        projectManager.setCrowdsaleFactory(crowdsaleFactory.address, {from: owner});
-    });
+        it("deploy crowdsale factory", async () => {
+            crowdsaleFactory = await StokrCrowdsaleFactory.new(projectManager.address, {from: owner});
+            await projectManager.setCrowdsaleFactory(crowdsaleFactory.address, {from: owner});
+        });
 
-    it("create a project", async () => {
-        await projectManager.createNewProject(
-            "Stokr Sample Project",
-            "STKR",
-            tokenPrice,
-            [profitDepositor, keyRecoverer, tokenOwner, crowdsaleOwner],
-            [tokenCapOfPublicSale, tokenCapOfPrivateSale, tokenGoal, tokenReserve],
-            [openingTime, closingTime],
-            [companyWallet, reserveAccount],
-            {from: owner});
-    });
+        it("create a project", async () => {
+            let projectsCount = await projectManager.projectsCount();
+            await projectManager.createNewProject(
+                "Stokr Sample Project",
+                "STKR",
+                tokenPrice,
+                [profitDepositor, keyRecoverer, tokenOwner, crowdsaleOwner],
+                [tokenCapOfPublicSale, tokenCapOfPrivateSale, tokenGoal,
+                 tokenPurchaseMinimum, tokenReservePerMill],
+                [openingTime, closingTime],
+                [companyWallet, reserveAccount],
+                {from: owner});
+            expect(await projectManager.projectsCount()).to.be.bignumber.equal(projectsCount.plus(1));
+        });
 
-    it("set rate", async () => {
-        let newRate = etherRate.plus(1);
-        let crowdsale = await StokrCrowdsale.at(await projectManager.activeCrowdsales(0));
-        await projectManager.setRate(newRate, {from: rateAdmin});
-        expect(await crowdsale.etherRate()).to.be.bignumber.equal(newRate);
+        it("set rate", async () => {
+            let newRate = etherRate.plus(1);
+            let crowdsale = await StokrCrowdsale.at(await projectManager.activeCrowdsales(0));
+            await projectManager.setRate(newRate, {from: rateAdmin});
+            expect(await crowdsale.etherRate()).to.be.bignumber.equal(newRate);
+        });
     });
 
 });

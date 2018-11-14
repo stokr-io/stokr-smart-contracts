@@ -19,26 +19,30 @@ contract("StokrCrowdsale", ([owner,
 
     // Helper function: default deployment parameters
     const defaultParams = () => {
-        let tokenPrice = new BN("100");  // A token costs one Euro
-        let etherRate = new BN("16321");  // Realistic rate is something in [1e5..2e5]
+        let tokenPrice = new BN(100);  // A token costs one Euro
+        let etherRate = new BN(16321);  // Realistic rate is something in [1e5..2e5]
+
+        let tokensFor = value => value.mul(etherRate).divToInt(tokenPrice);
 
         // Set the caps so that a single investor can easily reach them
-        let tokenCapOfPublicSale = money.ether(30).mul(etherRate).divToInt(tokenPrice);  // ~30 ETH
-        let tokenCapOfPrivateSale = tokenCapOfPublicSale.divToInt(2);  // ~15 ETH
-        let tokenGoal = tokenCapOfPublicSale.divToInt(6);  // ~5 ETH
-        let tokenReserve = tokenCapOfPublicSale.divToInt(10);  // ~3 ETH
+        let tokenCapOfPublicSale = tokensFor(money.ether(30));
+        let tokenCapOfPrivateSale = tokensFor(money.ether(20));
+        let tokenGoal = tokensFor(money.ether(10));
+        let tokenPurchaseMinimum = tokensFor(money.ether(1));
+        let tokenReservePerMill = new BN(200);  // 20%
 
         return {
             tokenCapOfPublicSale,
             tokenCapOfPrivateSale,
             tokenGoal,
+            tokenReservePerMill,
+            tokenPurchaseMinimum,
             tokenPrice,
             etherRate,
             rateAdmin,
             openingTime: time.now() + time.days(1),
             closingTime: time.now() + time.days(2),
             companyWallet,
-            tokenReserve,
             reserveAccount
         };
     };
@@ -69,13 +73,14 @@ contract("StokrCrowdsale", ([owner,
                                   deployParams.tokenCapOfPublicSale,
                                   deployParams.tokenCapOfPrivateSale,
                                   deployParams.tokenGoal,
+                                  deployParams.tokenPurchaseMinimum,
+                                  deployParams.tokenReservePerMill,
                                   deployParams.tokenPrice,
                                   deployParams.etherRate,
                                   deployParams.rateAdmin,
                                   deployParams.openingTime,
                                   deployParams.closingTime,
                                   deployParams.companyWallet,
-                                  deployParams.tokenReserve,
                                   deployParams.reserveAccount,
                                   {from: owner});
     };
@@ -134,6 +139,20 @@ contract("StokrCrowdsale", ([owner,
                 expect(reason).to.be.equal("goal is not attainable");
             });
 
+            it("fails if token purchase minimum exceeds public sale cap", async () => {
+                let {tokenCapOfPublicSale} = defaultParams();
+                let tokenPurchaseMinimum = tokenCapOfPublicSale.plus(1);
+                let reason = await reject.deploy(deploySale({tokenPurchaseMinimum}));
+                expect(reason).to.be.equal("purchase minimum exceeds cap");
+            });
+
+            it("fails if token purchase minimum exceeds private sale cap", async () => {
+                let {tokenCapOfPrivateSale} = defaultParams();
+                let tokenPurchaseMinimum = tokenCapOfPrivateSale.plus(1);
+                let reason = await reject.deploy(deploySale({tokenPurchaseMinimum}));
+                expect(reason).to.be.equal("purchase minimum exceeds cap");
+            });
+
             it("fails if token price is zero", async () => {
                 let reason = await reject.deploy(deploySale({tokenPrice: 0}));
                 expect(reason).to.be.equal("token price is zero");
@@ -172,12 +191,12 @@ contract("StokrCrowdsale", ([owner,
                 expect(reason).to.be.equal("reserve account is zero");
             });
 
-            it("fails if sum of token pools overflows", async () => {
-                let tokenCapOfPublicSale = (new BN(2)).pow(255);
-                let tokenCapOfPrivateSale = tokenCapOfPublicSale.minus(1);
+            it("fails if sum of token caps and reserve overflows", async () => {
+                let tokenCapOfPublicSale = (new BN(2)).pow(254);
+                let tokenCapOfPrivateSale = (new BN(2)).pow(254);
                 await reject.deploy(deploySale({tokenCapOfPublicSale,
                                                 tokenCapOfPrivateSale,
-                                                tokenReserve: 1}));
+                                                tokenReservePerMill: 2}));
             });
         });
 
@@ -219,6 +238,14 @@ contract("StokrCrowdsale", ([owner,
                 expect(await sale.tokenGoal()).to.be.bignumber.equal(params.tokenGoal);
             });
 
+            it("sets correct token purchase minimum", async () => {
+                expect(await sale.tokenPurchaseMinimum()).to.be.bignumber.equal(params.tokenPurchaseMinimum);
+            });
+
+            it("sets correct token reserve per mill", async () => {
+                expect(await sale.tokenReservePerMill()).to.be.bignumber.equal(params.tokenReservePerMill);
+            });
+
             it("sets correct token price", async () => {
                 expect(await sale.tokenPrice()).to.be.bignumber.equal(params.tokenPrice);
             })
@@ -241,10 +268,6 @@ contract("StokrCrowdsale", ([owner,
 
             it("sets correct company wallet address", async () => {
                 expect(await sale.companyWallet()).to.be.bignumber.equal(params.companyWallet);
-            });
-
-            it("sets correct token reserve", async () => {
-                expect(await sale.tokenReserve()).to.be.bignumber.equal(params.tokenReserve);
             });
 
             it("sets correct reserve account address", async () => {
@@ -311,7 +334,7 @@ contract("StokrCrowdsale", ([owner,
             });
         });
 
-        describe("rate admin change", () => {
+        describe.skip("rate admin change", () => {
 
             it("is forbidden by anyone but owner", async () => {
                 let reason = await reject.call(sale.setRateAdmin(random.address(), {from: anyone}));
@@ -612,7 +635,7 @@ contract("StokrCrowdsale", ([owner,
             });
         });
 
-        describe("rate admin change", () => {
+        describe.skip("rate admin change", () => {
 
             it("is possible", async () => {
                 await sale.setRateAdmin(random.address(), {from: owner});
@@ -829,7 +852,7 @@ contract("StokrCrowdsale", ([owner,
             });
         });
 
-        describe("rate admin change", () => {
+        describe.skip("rate admin change", () => {
 
             it("is possible", async () => {
                 await sale.setRateAdmin(random.address(), {from: owner});
@@ -992,6 +1015,16 @@ contract("StokrCrowdsale", ([owner,
                 let tx = await sale.finalize({from: owner});
                 let entry = tx.logs.find(entry => entry.event === "Finalization");
                 expect(entry).to.exist;
+            });
+
+            it("mints the correct amount of reserve tokens", async () => {
+                let account = await sale.reserveAccount();
+                let balance = await token.balanceOf(account);
+                let sold = await sale.tokenSold();
+                let perMill = await sale.tokenReservePerMill();
+                await sale.finalize({from: owner});
+                expect(await token.balanceOf(account)).to.be.bignumber.equal(
+                    balance.plus(sold.times(perMill).divToInt(1000)));
             });
         });
     });
@@ -1256,4 +1289,5 @@ contract("StokrCrowdsale", ([owner,
     });
 
 });
+
 

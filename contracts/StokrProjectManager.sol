@@ -18,6 +18,8 @@ contract StokrProjectManager is Ownable {
     }
 
 
+    uint public deploymentBlockNumber;
+
     address public rateAdmin;
     uint public etherRate;
 
@@ -38,6 +40,7 @@ contract StokrProjectManager is Ownable {
     constructor(uint initialRate) public {
         require(initialRate > 0, "Initial rate is zero");
 
+        deploymentBlockNumber = block.number;
         etherRate = initialRate;
     }
 
@@ -71,8 +74,9 @@ contract StokrProjectManager is Ownable {
         string symbol,
         uint tokenPrice,
         address[4] roles,  // [profitDepositor, keyRecoverer, tokenOwner, crowdsaleOwner]
-        uint[4] caps,  // [tokenCapOfPublicSale, tokenCapOfPrivateSale, tokenGoal, tokenReserve]
-        uint[2] times,  // [openingTime, closingTime]
+        uint[5] amounts,  // [tokenCapOfPublicSale, tokenCapOfPrivateSale, tokenGoal,
+                          //  tokenPurchaseMinimum, tokenReservePerMill]
+        uint[2] period,  // [openingTime, closingTime]
         address[2] wallets  // [companyWallet, reserveAccount]
     )
         public onlyOwner
@@ -92,8 +96,8 @@ contract StokrProjectManager is Ownable {
             token,
             tokenPrice,
             etherRate,
-            caps,
-            times,
+            amounts,
+            period,
             wallets);
 
         token.setMinter(crowdsale);

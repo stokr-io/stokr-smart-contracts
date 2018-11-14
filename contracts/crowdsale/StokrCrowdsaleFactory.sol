@@ -10,8 +10,9 @@ contract StokrCrowdsaleFactory {
         StokrToken token,
         uint tokenPrice,
         uint etherRate,
-        uint[4] caps,  // [tokenCapOfPublicSale, tokenCapOfPrivateSale, tokenGoal, tokenReserve]
-        uint[2] times,  // [tokenPrice, etherRate]
+        uint[5] amounts,  // [tokenCapOfPublicSale, tokenCapOfPrivateSale, tokenGoal,
+                          //  tokenPurchaseMinimum, tokenReservePerMill]
+        uint[2] period,  // [openingTime, closingTime]
         address[2] wallets  // [companyWallet, reserveAccount]
     )
         public
@@ -19,16 +20,17 @@ contract StokrCrowdsaleFactory {
     {
         StokrCrowdsale crowdsale = new StokrCrowdsale(
             token,
-            caps[0],  // tokenCapOfPublicSale
-            caps[1],  // tokenCapOfPrivateSale
-            caps[2],  // tokenGoal
+            amounts[0],  // tokenCapOfPublicSale
+            amounts[1],  // tokenCapOfPrivateSale
+            amounts[2],  // tokenGoal
+            amounts[3],  // tokenPurchaseMinimum
+            amounts[4],  // tokenReservePerMill
             tokenPrice,  // tokenPrice
             etherRate,  // etherRate
             msg.sender,  // rateAdmin
-            times[0],  // openingTime
-            times[1],  // closingTime
+            period[0],  // openingTime
+            period[1],  // closingTime
             wallets[0],  // companyWallet
-            caps[3],  // tokenReserve
             wallets[1]);  // reserveAccount
 
         crowdsale.transferOwnership(msg.sender);

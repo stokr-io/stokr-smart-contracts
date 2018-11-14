@@ -35,6 +35,9 @@ contract MintingCrowdsale is Ownable {
     uint public tokenPrice;
     uint public etherRate;
 
+    //
+    uint public tokenPurchaseMinimum;
+
     // Public sale period
     uint public openingTime;
     uint public closingTime;
@@ -43,7 +46,7 @@ contract MintingCrowdsale is Ownable {
     address public companyWallet;
 
     // Amount and receiver of reserved tokens
-    uint public tokenReserve;
+    uint public tokenReservePerMill;
     address public reserveAccount;
 
     // Wether this crowdsale was finalized or not
@@ -74,25 +77,27 @@ contract MintingCrowdsale is Ownable {
     /// @param _token The token to be sold
     /// @param _tokenCapOfPublicSale Maximum number of token units to mint in public sale
     /// @param _tokenCapOfPrivateSale Maximum number of token units to mint in private sale
+    /// @param _tokenPurchaseMinimum Minimum amount of tokens an investor has to buy at once
     /// @param _tokenPrice Price of a token in EUR cent
     /// @param _etherRate Rate of an Ether in EUR cent
     /// @param _rateAdmin Ethereum address of ether rate setting authority
     /// @param _openingTime Block (Unix) timestamp of sale opening time
     /// @param _closingTime Block (Unix) timestamp of sale closing time
     /// @param _companyWallet Ethereum account who will receive sent ether
-    /// @param _tokenReserve Number of token units to mint for the benefit of reserve account
+    /// @param _tokenReservePerMill Per mill amount of sold tokens to mint for reserve account
     /// @param _reserveAccount Ethereum address of reserve tokens recipient
     constructor(
         MintableToken _token,
         uint _tokenCapOfPublicSale,
         uint _tokenCapOfPrivateSale,
+        uint _tokenPurchaseMinimum,
+        uint _tokenReservePerMill,
         uint _tokenPrice,
         uint _etherRate,
         address _rateAdmin,
         uint _openingTime,
         uint _closingTime,
         address _companyWallet,
-        uint _tokenReserve,
         address _reserveAccount
     )
         public
@@ -101,6 +106,9 @@ contract MintingCrowdsale is Ownable {
         require(_token.minter() == address(0x0), "Token has another minter");
         require(_tokenCapOfPublicSale > 0, "Cap of public sale is zero");
         require(_tokenCapOfPrivateSale > 0, "Cap of private sale is zero");
+        require(_tokenPurchaseMinimum <= _tokenCapOfPublicSale
+                && _tokenPurchaseMinimum <= _tokenCapOfPrivateSale,
+                "Purchase minimum exceeds cap");
         require(_tokenPrice > 0, "Token price is zero");
         require(_etherRate > 0, "Ether price is zero");
         require(_rateAdmin != address(0x0), "Rate admin is zero");
@@ -110,18 +118,19 @@ contract MintingCrowdsale is Ownable {
         require(_reserveAccount != address(0x0), "Reserve account is zero");
 
         // Utilize safe math to ensure the sum of three token pools does't overflow
-        _tokenReserve.add(_tokenCapOfPublicSale).add(_tokenCapOfPrivateSale);
+        _tokenCapOfPublicSale.add(_tokenCapOfPrivateSale).mul(_tokenReservePerMill);
 
         token = _token;
         tokenCapOfPublicSale = _tokenCapOfPublicSale;
         tokenCapOfPrivateSale = _tokenCapOfPrivateSale;
+        tokenPurchaseMinimum = _tokenPurchaseMinimum;
+        tokenReservePerMill = _tokenReservePerMill;
         tokenPrice = _tokenPrice;
         etherRate = _etherRate;
         rateAdmin = _rateAdmin;
         openingTime = _openingTime;
         closingTime = _closingTime;
         companyWallet = _companyWallet;
-        tokenReserve = _tokenReserve;
         reserveAccount = _reserveAccount;
 
         tokenRemainingForPublicSale = _tokenCapOfPublicSale;
@@ -205,6 +214,7 @@ contract MintingCrowdsale is Ownable {
         uint amount = msg.value.mul(etherRate).div(tokenPrice);
 
         require(amount <= tokenRemainingForPublicSale, "Not enough tokens available");
+        require(amount >= tokenPurchaseMinimum, "Investment too low");
 
         tokenRemainingForPublicSale -= amount;
         token.mint(msg.sender, amount);
@@ -218,7 +228,9 @@ contract MintingCrowdsale is Ownable {
         require(!isFinalized, "Sale has already been finalized");
         require(hasClosed(), "Sale has not closed");
 
-        token.mint(reserveAccount, tokenReserve);
+        if (tokenReservePerMill > 0) {
+            token.mint(reserveAccount, tokenSold().mul(tokenReservePerMill).div(1000));
+        }
         token.finishMinting();
         isFinalized = true;
 
