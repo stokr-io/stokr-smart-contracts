@@ -667,6 +667,13 @@ contract("StokrCrowdsale", ([owner,
                 expect(reason).to.be.equal("address is not whitelisted");
             });
 
+            it("below purchase minimum is forbidden", async () => {
+                let minimum = await sale.tokenPurchaseMinimum();
+                let value = (await valueOf(sale, minimum)).minus(money.wei(1));
+                let reason = await reject.call(sale.buyTokens({from: investor1, value}));
+                expect(reason).to.be.equal("investment is too low");
+            });
+
             it("is possible", async () => {
                 let balance = await token.balanceOf(investor1);
                 await sale.buyTokens({from: investor1, value: money.ether(1)});

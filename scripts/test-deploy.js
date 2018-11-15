@@ -39,7 +39,7 @@ const deployProjectManager = async owner => {
     console.log("Deploy new Project Manager");
     projectManager = await StokrProjectManager.new(etherRate, {from: owner});
     console.log("==> at", projectManager.address);
-    projectManager.setRateAdmin(rateAdmin, {from: owner});
+    await projectManager.setRateAdmin(rateAdmin, {from: owner});
 };
 
 
@@ -47,7 +47,7 @@ const deployWhitelist = async owner => {
     console.log("Deploy new Whitelist");
     whitelist = await Whitelist.new({from: owner});
     console.log("==> at", whitelist.address);
-    projectManager.setWhitelist(whitelist.address, {from: owner});
+    await projectManager.setWhitelist(whitelist.address, {from: owner});
 };
 
 
@@ -55,7 +55,7 @@ const deployTokenFactory = async owner => {
     console.log("Deploy new Token Factory");
     tokenFactory = await StokrTokenFactory.new(projectManager.address, {from: owner});
     console.log("==> at", tokenFactory.address);
-    projectManager.setTokenFactory(tokenFactory.address, {from: owner});
+    await projectManager.setTokenFactory(tokenFactory.address, {from: owner});
 };
 
 
@@ -63,7 +63,7 @@ const deployCrowdsaleFactory = async owner => {
     console.log("Deploy new Crowdsale Factory");
     crowdsaleFactory = await StokrCrowdsaleFactory.new(projectManager.address, {from: owner});
     console.log("==> at", crowdsaleFactory.address);
-    projectManager.setCrowdsaleFactory(crowdsaleFactory.address, {from: owner});
+    await projectManager.setCrowdsaleFactory(crowdsaleFactory.address, {from: owner});
 };
 
 
@@ -75,6 +75,24 @@ const createNewProject = async owner => {
     let companyWallet = owner;
     let reserveAccount = owner;
     console.log("Create new Project");
+    console.log(`
+project_name ............. WURSCHT
+token_symbol ............. WRT
+token_price .............. ${tokenPrice}
+[ profit_depositor ....... ${profitDepositor}
+  key_recoverer .......... ${keyRecoverer}
+  token_owner ............ ${tokenOwner}
+  crowdsale_owner ........ ${crowdsaleOwner} ]
+[ token_cap_public ....... ${tokenCapOfPublicSale}
+  token_cap_private ...... ${tokenCapOfPrivateSale}
+  token_goal ............. ${tokenGoal}
+  token_purchase_minimum . ${tokenPurchaseMinimum}
+  token_reserve_per_mill . ${tokenReservePerMill} ]
+[ opening_time ........... ${openingTime}
+  closing_time ........... ${closingTime} ]
+[ company_wallet ......... ${companyWallet}
+  reserve_account ........ ${reserveAccount} ]
+    `);
     await projectManager.createNewProject(
             "Stokr Sample Project",
             "STKR",
