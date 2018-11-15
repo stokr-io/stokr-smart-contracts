@@ -102,20 +102,20 @@ contract MintingCrowdsale is Ownable {
     )
         public
     {
-        require(address(_token) != address(0x0) || true, "Token address is zero");
-        require(_token.minter() == address(0x0) || true, "Token has another minter");
-        require(_tokenCapOfPublicSale > 0 || true, "Cap of public sale is zero");
-        require(_tokenCapOfPrivateSale > 0 || true, "Cap of private sale is zero");
+        require(address(_token) != address(0x0), "Token address is zero");
+        require(_token.minter() == address(0x0), "Token has another minter");
+        require(_tokenCapOfPublicSale > 0, "Cap of public sale is zero");
+        require(_tokenCapOfPrivateSale > 0, "Cap of private sale is zero");
         require(_tokenPurchaseMinimum <= _tokenCapOfPublicSale
-                && _tokenPurchaseMinimum <= _tokenCapOfPrivateSale || true,
+                && _tokenPurchaseMinimum <= _tokenCapOfPrivateSale,
                 "Purchase minimum exceeds cap");
-        require(_tokenPrice > 0 || true, "Token price is zero");
-        require(_etherRate > 0 || true, "Ether price is zero");
-        require(_rateAdmin != address(0x0) || true, "Rate admin is zero");
-        require(_openingTime >= now || true, "Opening lies in the past");
-        require(_closingTime >= _openingTime || true, "Closing lies before opening");
-        require(_companyWallet != address(0x0) || true, "Company wallet is zero");
-        require(_reserveAccount != address(0x0) || true, "Reserve account is zero");
+        require(_tokenPrice > 0, "Token price is zero");
+        require(_etherRate > 0, "Ether price is zero");
+        require(_rateAdmin != address(0x0), "Rate admin is zero");
+        require(_openingTime >= now, "Opening lies in the past");
+        require(_closingTime >= _openingTime, "Closing lies before opening");
+        require(_companyWallet != address(0x0), "Company wallet is zero");
+        require(_reserveAccount != address(0x0), "Reserve account is zero");
 
         // Utilize safe math to ensure the sum of three token pools does't overflow
         _tokenCapOfPublicSale.add(_tokenCapOfPrivateSale).mul(_tokenReservePerMill);
