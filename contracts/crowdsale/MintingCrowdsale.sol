@@ -11,8 +11,8 @@ import "./RateSourceInterface.sol";
 contract MintingCrowdsale is Ownable {
     using SafeMath for uint;
 
-    // Ethereum address of rate setting authority
-    address public rateSource;
+    // Ether rate oracle contract providing the price of an Ether in EUR cents
+    RateSource public rateSource;
 
     // The token to be sold
     // In the following, the term "token unit" always refers to the smallest
@@ -66,25 +66,25 @@ contract MintingCrowdsale is Ownable {
 
 
     /// @dev Constructor
+    /// @param _rateSource Ether rate oracle contract
     /// @param _token The token to be sold
     /// @param _tokenCapOfPublicSale Maximum number of token units to mint in public sale
     /// @param _tokenCapOfPrivateSale Maximum number of token units to mint in private sale
     /// @param _tokenPurchaseMinimum Minimum amount of tokens an investor has to buy at once
     /// @param _tokenPrice Price of a token in EUR cent
-    /// @param _rateSource Ethereum address of ether rate setting authority
     /// @param _openingTime Block (Unix) timestamp of sale opening time
     /// @param _closingTime Block (Unix) timestamp of sale closing time
     /// @param _companyWallet Ethereum account who will receive sent ether
     /// @param _tokenReservePerMill Per mill amount of sold tokens to mint for reserve account
     /// @param _reserveAccount Ethereum address of reserve tokens recipient
     constructor(
+        RateSource _rateSource,
         MintableToken _token,
         uint _tokenCapOfPublicSale,
         uint _tokenCapOfPrivateSale,
         uint _tokenPurchaseMinimum,
         uint _tokenReservePerMill,
         uint _tokenPrice,
-        address _rateSource,
         uint _openingTime,
         uint _closingTime,
         address _companyWallet,
@@ -92,6 +92,7 @@ contract MintingCrowdsale is Ownable {
     )
         public
     {
+        require(address(_rateSource) != address(0x0), "Rate source is zero");
         require(address(_token) != address(0x0), "Token address is zero");
         require(_token.minter() == address(0x0), "Token has another minter");
         require(_tokenCapOfPublicSale > 0, "Cap of public sale is zero");
@@ -100,7 +101,6 @@ contract MintingCrowdsale is Ownable {
                 && _tokenPurchaseMinimum <= _tokenCapOfPrivateSale,
                 "Purchase minimum exceeds cap");
         require(_tokenPrice > 0, "Token price is zero");
-        require(_rateSource != address(0x0), "Rate source is zero");
         require(_openingTime >= now, "Opening lies in the past");
         require(_closingTime >= _openingTime, "Closing lies before opening");
         require(_companyWallet != address(0x0), "Company wallet is zero");
@@ -109,13 +109,13 @@ contract MintingCrowdsale is Ownable {
         // Utilize safe math to ensure the sum of three token pools does't overflow
         _tokenCapOfPublicSale.add(_tokenCapOfPrivateSale).mul(_tokenReservePerMill);
 
+        rateSource = _rateSource;
         token = _token;
         tokenCapOfPublicSale = _tokenCapOfPublicSale;
         tokenCapOfPrivateSale = _tokenCapOfPrivateSale;
         tokenPurchaseMinimum = _tokenPurchaseMinimum;
         tokenReservePerMill = _tokenReservePerMill;
         tokenPrice = _tokenPrice;
-        rateSource = _rateSource;
         openingTime = _openingTime;
         closingTime = _closingTime;
         companyWallet = _companyWallet;
@@ -181,8 +181,12 @@ contract MintingCrowdsale is Ownable {
     function buyTokens() public payable {
         require(isOpen(), "Sale is not open");
 
+        uint etherRate = rateSource.etherRate();
+
+        require(etherRate > 0, "Ether rate is zero");
+
         // Units:  [1e-18*ether] * [cent/ether] / [cent/token] => [1e-18*token]
-        uint amount = msg.value.mul(RateSource(rateSource).etherRate()).div(tokenPrice);
+        uint amount = msg.value.mul(etherRate).div(tokenPrice);
 
         require(amount <= tokenRemainingForPublicSale, "Not enough tokens available");
         require(amount >= tokenPurchaseMinimum, "Investment is too low");

@@ -1,6 +1,7 @@
 pragma solidity 0.4.24;
 
 import "../token/StokrToken.sol";
+import "./RateSourceInterface.sol";
 import "./StokrCrowdsale.sol";
 
 
@@ -18,6 +19,7 @@ contract StokrCrowdsaleFactory {
         returns (StokrCrowdsale)
     {
         StokrCrowdsale crowdsale = new StokrCrowdsale(
+            RateSource(msg.sender),  // rateSource
             token,
             amounts[0],  // tokenCapOfPublicSale
             amounts[1],  // tokenCapOfPrivateSale
@@ -25,7 +27,6 @@ contract StokrCrowdsaleFactory {
             amounts[3],  // tokenPurchaseMinimum
             amounts[4],  // tokenReservePerMill
             tokenPrice,  // tokenPrice
-            msg.sender,  // rateSource
             period[0],  // openingTime
             period[1],  // closingTime
             wallets[0],  // companyWallet

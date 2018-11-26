@@ -1,6 +1,7 @@
 pragma solidity 0.4.24;
 
 import "./MintingCrowdsale.sol";
+import "./RateSourceInterface.sol";
 import "../token/StokrToken.sol";
 
 /// @title StokrCrowdsale
@@ -34,6 +35,7 @@ contract StokrCrowdsale is MintingCrowdsale {
     /// @param _companyWallet Ethereum account who will receive sent ether
     /// @param _reserveAccount An address
     constructor(
+        RateSource _rateSource,
         StokrToken _token,
         uint _tokenCapOfPublicSale,
         uint _tokenCapOfPrivateSale,
@@ -41,7 +43,6 @@ contract StokrCrowdsale is MintingCrowdsale {
         uint _tokenPurchaseMinimum,
         uint _tokenReservePerMill,
         uint _tokenPrice,
-        address _rateSource,
         uint _openingTime,
         uint _closingTime,
         address _companyWallet,
@@ -49,13 +50,13 @@ contract StokrCrowdsale is MintingCrowdsale {
     )
         public
         MintingCrowdsale(
+            _rateSource,
             _token,
             _tokenCapOfPublicSale,
             _tokenCapOfPrivateSale,
             _tokenPurchaseMinimum,
             _tokenReservePerMill,
             _tokenPrice,
-            _rateSource,
             _openingTime,
             _closingTime,
             _companyWallet,

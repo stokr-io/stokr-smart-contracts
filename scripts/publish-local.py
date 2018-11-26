@@ -10,7 +10,7 @@ import requests
 import sys
 
 
-DB_ENDPOINT = "http://88.198.129.43:8080/contracts/"
+DB_ENDPOINT = "http://localhost:8080/contracts/"
 CONTRACTS = ["StokrProjectManager",
              "Whitelist",
              "StokrToken",

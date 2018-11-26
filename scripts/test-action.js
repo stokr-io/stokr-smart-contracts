@@ -14,19 +14,21 @@ const mins = n => 60 * n;
 const hours = n => 60 * mins(n);
 const days = n => 24 * hours(n);
 const ether = wei => new BN(web3.toWei(wei, "ether"));
+const sleep = secs => new Promise(resolve => setTimeout(resolve, 1000 * secs));
 
 
 const run = async () => {
-    let owner = await web3.eth.accounts[0];
-    let projectManager = await StokrProjectManager.at("0x87a02197a0555bE7194fCdFC1197C8c6b4CF2F16");
-    let whitelist = await Whitelist.at(await projectManager.currentWhitelist());
+    for (;;) {
+        let owner = await web3.eth.accounts[0];
+        let projectManager = await StokrProjectManager.at("0xADFE51FdD91bea54999160B39B2667080cc873fc");
 
-    let $ = console.log;
-    $("removeAdmin");
-    await whitelist.removeAdmin(owner, {from: owner});
-    $("addAdmin");
-    await whitelist.addAdmin(owner, {from: owner});
-    $("done");
+        let etherRate = await projectManager.etherRate();
+        await projectManager.setRate(etherRate.plus(1), {from: owner});
+
+        console.log((await projectManager.activeCrowdsalesCount()).toPrecision());
+        console.log((await projectManager.etherRate()).toPrecision());
+        await sleep(5);
+    }
 };
 
 
