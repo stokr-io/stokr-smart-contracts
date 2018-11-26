@@ -6,9 +6,9 @@ import "./token/StokrToken.sol";
 import "./token/StokrTokenFactory.sol";
 import "./crowdsale/StokrCrowdsale.sol";
 import "./crowdsale/StokrCrowdsaleFactory.sol";
+import "./crowdsale/RateSourceInterface.sol";
 
-
-contract StokrProjectManager is Ownable {
+contract StokrProjectManager is Ownable, RateSource {
 
     struct StokrProject {
         string name;
@@ -28,7 +28,13 @@ contract StokrProjectManager is Ownable {
     StokrCrowdsaleFactory public crowdsaleFactory;
 
     StokrProject[] public projects;
-    StokrCrowdsale[] public activeCrowdsales;
+
+
+    /// @dev Log entry upon rate change event
+    /// @param previous Previous rate in EUR cent per Ether
+    /// @param current Current rate in EUR cent per Ether
+    event RateChange(uint previous, uint current);
+
 
 
     modifier onlyRateAdmin() {
@@ -37,11 +43,11 @@ contract StokrProjectManager is Ownable {
     }
 
 
-    constructor(uint initialRate) public {
-        require(initialRate > 0, "Initial rate is zero");
+    constructor(uint _etherRate) public {
+        require(_etherRate > 0, "Initial rate is zero");
 
         deploymentBlockNumber = block.number;
-        etherRate = initialRate;
+        etherRate = _etherRate;
     }
 
 
@@ -95,7 +101,6 @@ contract StokrProjectManager is Ownable {
         StokrCrowdsale crowdsale = crowdsaleFactory.createNewCrowdsale(
             token,
             tokenPrice,
-            etherRate,
             amounts,
             period,
             wallets);
@@ -105,31 +110,23 @@ contract StokrProjectManager is Ownable {
         crowdsale.transferOwnership(roles[3]);  // to crowdsaleOwner
 
         projects.push(StokrProject(name, currentWhitelist, token, crowdsale));
-        activeCrowdsales.push(crowdsale);
     }
 
     function projectsCount() public view returns (uint) {
         return projects.length;
     }
 
-    function activeCrowdsalesCount() public view returns (uint) {
-        return activeCrowdsales.length;
-    }
-
+    /// @dev Set rate, i.e. adjust to changes of EUR/ether exchange rate
+    /// @param newRate Rate in Euro cent per ether
     function setRate(uint newRate) public onlyRateAdmin {
-        for ((uint i, uint n) = (0, activeCrowdsales.length); i < n;) {
-            if (activeCrowdsales[i].hasClosed()) {
-                --n;
-                activeCrowdsales[i] = activeCrowdsales[n];
-                activeCrowdsales.length = n;
-            }
-            else {
-                activeCrowdsales[i].setRate(newRate);
-                ++i;
-            }
-        }
+        // Rate changes beyond an order of magnitude are likely just typos
+        require(etherRate / 10 < newRate && newRate < 10 * etherRate, "Rate change too big");
 
-        etherRate = newRate;
+        if (newRate != etherRate) {
+            emit RateChange(etherRate, newRate);
+
+            etherRate = newRate;
+        }
     }
 
 }

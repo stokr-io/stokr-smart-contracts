@@ -45,8 +45,7 @@ contract StokrToken is MintableToken, KeyRecoverable {
     function recoverKey(address _oldAddress, address _newAddress)
         public
         onlyKeyRecoverer
-        onlyWhitelisted(_oldAddress)
-        onlyWhitelisted(_newAddress)
+        
     {
         // Ensure that new address is *not* an existing account.
         // Check for account.profitShare is not needed because of following implication:

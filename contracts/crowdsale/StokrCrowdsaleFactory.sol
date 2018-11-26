@@ -9,7 +9,6 @@ contract StokrCrowdsaleFactory {
     function createNewCrowdsale(
         StokrToken token,
         uint tokenPrice,
-        uint etherRate,
         uint[5] amounts,  // [tokenCapOfPublicSale, tokenCapOfPrivateSale, tokenGoal,
                           //  tokenPurchaseMinimum, tokenReservePerMill]
         uint[2] period,  // [openingTime, closingTime]
@@ -26,8 +25,7 @@ contract StokrCrowdsaleFactory {
             amounts[3],  // tokenPurchaseMinimum
             amounts[4],  // tokenReservePerMill
             tokenPrice,  // tokenPrice
-            etherRate,  // etherRate
-            msg.sender,  // rateAdmin
+            msg.sender,  // rateSource
             period[0],  // openingTime
             period[1],  // closingTime
             wallets[0],  // companyWallet
@@ -39,4 +37,3 @@ contract StokrCrowdsaleFactory {
     }
 
 }
-

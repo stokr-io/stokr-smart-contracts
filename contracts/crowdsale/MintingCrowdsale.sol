@@ -3,6 +3,7 @@ pragma solidity 0.4.24;
 import "../math/SafeMath.sol";
 import "../ownership/Ownable.sol";
 import "../token/MintableToken.sol";
+import "./RateSourceInterface.sol";
 
 
 /// @title MintingCrowdsale
@@ -11,7 +12,7 @@ contract MintingCrowdsale is Ownable {
     using SafeMath for uint;
 
     // Ethereum address of rate setting authority
-    address public rateAdmin;
+    address public rateSource;
 
     // The token to be sold
     // In the following, the term "token unit" always refers to the smallest
@@ -29,11 +30,7 @@ contract MintingCrowdsale is Ownable {
     uint public tokenRemainingForPrivateSale;
 
     // Prices are in Euro cents (i.e. 1/100 EUR)
-    // The ether rate is actually a price, too, but it is called a rate here, because it
-    // may deviate from the current Ether price since it won't get updated at real time
-    // but at regular intervals by the rate admin authority
     uint public tokenPrice;
-    uint public etherRate;
 
     //
     uint public tokenPurchaseMinimum;
@@ -58,11 +55,6 @@ contract MintingCrowdsale is Ownable {
     /// @param amount Number of token units
     event TokenDistribution(address indexed beneficiary, uint amount);
 
-    /// @dev Log entry upon rate change event
-    /// @param previous Previous rate in EUR cent per Ether
-    /// @param current Current rate in EUR cent per Ether
-    event RateChange(uint previous, uint current);
-
     /// @dev Log entry upon token purchase event
     /// @param buyer Ethereum address of token purchaser
     /// @param value Worth in wei of purchased token amount
@@ -79,8 +71,7 @@ contract MintingCrowdsale is Ownable {
     /// @param _tokenCapOfPrivateSale Maximum number of token units to mint in private sale
     /// @param _tokenPurchaseMinimum Minimum amount of tokens an investor has to buy at once
     /// @param _tokenPrice Price of a token in EUR cent
-    /// @param _etherRate Rate of an Ether in EUR cent
-    /// @param _rateAdmin Ethereum address of ether rate setting authority
+    /// @param _rateSource Ethereum address of ether rate setting authority
     /// @param _openingTime Block (Unix) timestamp of sale opening time
     /// @param _closingTime Block (Unix) timestamp of sale closing time
     /// @param _companyWallet Ethereum account who will receive sent ether
@@ -93,8 +84,7 @@ contract MintingCrowdsale is Ownable {
         uint _tokenPurchaseMinimum,
         uint _tokenReservePerMill,
         uint _tokenPrice,
-        uint _etherRate,
-        address _rateAdmin,
+        address _rateSource,
         uint _openingTime,
         uint _closingTime,
         address _companyWallet,
@@ -110,8 +100,7 @@ contract MintingCrowdsale is Ownable {
                 && _tokenPurchaseMinimum <= _tokenCapOfPrivateSale,
                 "Purchase minimum exceeds cap");
         require(_tokenPrice > 0, "Token price is zero");
-        require(_etherRate > 0, "Ether price is zero");
-        require(_rateAdmin != address(0x0), "Rate admin is zero");
+        require(_rateSource != address(0x0), "Rate source is zero");
         require(_openingTime >= now, "Opening lies in the past");
         require(_closingTime >= _openingTime, "Closing lies before opening");
         require(_companyWallet != address(0x0), "Company wallet is zero");
@@ -126,8 +115,7 @@ contract MintingCrowdsale is Ownable {
         tokenPurchaseMinimum = _tokenPurchaseMinimum;
         tokenReservePerMill = _tokenReservePerMill;
         tokenPrice = _tokenPrice;
-        etherRate = _etherRate;
-        rateAdmin = _rateAdmin;
+        rateSource = _rateSource;
         openingTime = _openingTime;
         closingTime = _closingTime;
         companyWallet = _companyWallet;
@@ -137,11 +125,7 @@ contract MintingCrowdsale is Ownable {
         tokenRemainingForPrivateSale = _tokenCapOfPrivateSale;
     }
 
-    /// @dev Restrict operation to rate setting authority
-    modifier onlyRateAdmin() {
-        require(msg.sender == rateAdmin, "Restricted to rate admin");
-        _;
-    }
+
 
     /// @dev Fallback function: buys tokens
     function () public payable {
@@ -162,19 +146,6 @@ contract MintingCrowdsale is Ownable {
     function distributeTokensViaPrivateSale(address[] beneficiaries, uint[] amounts) public {
         tokenRemainingForPrivateSale =
             distributeTokens(tokenRemainingForPrivateSale, beneficiaries, amounts);
-    }
-
-    /// @dev Set rate, i.e. adjust to changes of EUR/ether exchange rate
-    /// @param newRate Rate in Euro cent per ether
-    function setRate(uint newRate) public onlyRateAdmin {
-        // Rate changes beyond an order of magnitude are likely just typos
-        require(etherRate / 10 < newRate && newRate < 10 * etherRate, "Rate change too big");
-
-        if (newRate != etherRate) {
-            emit RateChange(etherRate, newRate);
-
-            etherRate = newRate;
-        }
     }
 
     /// @dev Check whether the sale has closed
@@ -211,12 +182,12 @@ contract MintingCrowdsale is Ownable {
         require(isOpen(), "Sale is not open");
 
         // Units:  [1e-18*ether] * [cent/ether] / [cent/token] => [1e-18*token]
-        uint amount = msg.value.mul(etherRate).div(tokenPrice);
+        uint amount = msg.value.mul(RateSource(rateSource).etherRate()).div(tokenPrice);
 
         require(amount <= tokenRemainingForPublicSale, "Not enough tokens available");
         require(amount >= tokenPurchaseMinimum, "Investment is too low");
 
-        tokenRemainingForPublicSale -= amount;
+        tokenRemainingForPublicSale = tokenRemainingForPublicSale.sub(amount);
         token.mint(msg.sender, amount);
         forwardFunds();
 
@@ -256,7 +227,7 @@ contract MintingCrowdsale is Ownable {
 
             require(amount <= tokenRemaining, "Not enough tokens available");
 
-            tokenRemaining -= amount;
+            tokenRemaining= tokenRemaining.sub(amount);
             token.mint(beneficiary, amount);
 
             emit TokenDistribution(beneficiary, amount);
@@ -267,7 +238,7 @@ contract MintingCrowdsale is Ownable {
 
     /// @dev Forward invested ether to company wallet
     function forwardFunds() internal {
-        companyWallet.transfer(msg.value);
+        companyWallet.transfer(address(this).balance);
     }
 
 }
