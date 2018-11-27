@@ -920,16 +920,6 @@ contract("StokrToken", ([owner,
             expect(reason).to.be.equal("restricted to key recoverer");
         });
 
-        it("is forbidden if old address wasn't whitelisted before", async () => {
-            let reason = await reject.call(token.recoverKey(anyone, investor3, {from: keyRecoverer}));
-            expect(reason).to.be.equal("address is not whitelisted");
-        });
-
-        it("is forbidden if new address wasn't whitelisted before", async () => {
-            let reason = await reject.call(token.recoverKey(investor1, anyone, {from: keyRecoverer}));
-            expect(reason).to.be.equal("address is not whitelisted");
-        });
-
         it("is forbidden if new address is an already used account", async () => {
             let reason = await reject.call(token.recoverKey(investor1, investor2, {from: keyRecoverer}));
             expect(reason).to.be.equal("new address exists already");

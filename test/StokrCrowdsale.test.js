@@ -584,17 +584,18 @@ contract("StokrCrowdsale", ([owner,
 
             it("gets logged", async () => {
                 let value = money.ether(2);
-                let tx = await sale.buyTokens({from: investor1, value: value});
+                let amount = await tokenAmountOf(sale, value);
+                let tx = await sale.buyTokens({from: investor1, value});
                 let entry = tx.logs.find(entry => entry.event === "TokenPurchase");
                 expect(entry).to.exist;
                 expect(entry.args.buyer).to.be.bignumber.equal(investor1);
                 expect(entry.args.value).to.be.bignumber.equal(value);
-                expect(entry.args.amount).to.be.bignumber.above(0);
+                expect(entry.args.amount).to.be.bignumber.equal(amount);
             });
 
             it("via fallback function is possible", async () => {
                 let balance = await token.balanceOf(investor1);
-                let options = {from: investor1, to: sale.address, value: money.ether(1)}
+                let options = {from: investor1, to: sale.address, value: money.ether(1)};
                 options.gas = await web3.eth.estimateGas(options);
                 await web3.eth.sendTransaction(options);
                 expect(await token.balanceOf(investor1)).to.be.bignumber.above(balance);

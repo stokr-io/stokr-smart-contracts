@@ -182,7 +182,7 @@ module.exports = (() => {
     // Functions related to snapshots
     const snapshot = (() => {
         // Create an EVM snapshot and return its id
-        const create = async () =>
+        const create = () =>
             new Promise((resolve, reject) => {
                     web3.currentProvider.sendAsync(
                         {jsonrpc: "2.0", method: "evm_snapshot", id: time.now() + 1},
@@ -193,7 +193,7 @@ module.exports = (() => {
                 });
 
         // Revert to EVM state just before snapshot with the given id was created
-        const revert = async id =>
+        const revert = id =>
             new Promise((resolve, reject) => {
                     web3.currentProvider.sendAsync(
                         {jsonrpc: "2.0", method: "evm_revert", params: [id], id: time.now() + 1},
@@ -204,7 +204,7 @@ module.exports = (() => {
                 });
 
         // Snapshot object
-        const $ = async () => {
+        const obj = async () => {
             let id = await create();
             return {
                 // Revert to EVM state just before this is snapshot was created
@@ -219,7 +219,7 @@ module.exports = (() => {
             };
         };
 
-        return {create, revert, new: $};
+        return {create, revert, new: obj};
     })();
 
     // Logging colors.
