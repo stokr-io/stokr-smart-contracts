@@ -87,7 +87,7 @@ Permissions
 
 Authority which manages the whitelist.
 
-Inititally
+Initially
 ~ none
 
 Number
@@ -535,7 +535,7 @@ considered a failure and [investors](#crowdsale-role-investor) who
 [purchased](#crowdsale-func-purchase) tokens by sending Ether directly
 to the crowdsale instance can claim a refund.
 
-#### Distriute Refunds
+#### Distribute Refunds
 
 The [owner](#crowdsale-role-owner) may distribute the refunds to investors,
 so that the latter don't need to withdraw them by themselves.
@@ -580,7 +580,7 @@ End time
 
 ### Public Sale Phase
 
-The pulic sale is open for [investors](#whitelist-role-investor) who want
+The public sale is open for [investors](#whitelist-role-investor) who want
 to [buy token with Ether](#crowdsale-func-purchase) from opening time till
 closing time given as Ethereum block timestamps (UNIX epoch) to constructor
 upon deployment (parameters `openingTime` and `closingTime`)
@@ -879,7 +879,7 @@ the following authorities (roles):
 ### Whitelist Checks  {#token-func-whitelist}
 
 Prior to being able to send or receive any amount of tokens, both---the token
-sender and the token receipient---have to be
+sender and the token recipient---have to be
 [whitelisted investors](#whitelist-role-investor) in the
 [Whitelist](#whitelist) instance that is assigned to the
 [token contract](#token).
@@ -945,7 +945,7 @@ Functions
   * `payable` fallback function
 
 Restrictions
-~ only by [profit depositor] (#token-role-depositor)
+~ only by [profit depositor](#token-role-depositor)
 
 Emitted events
 ~ `ProfitDeposit(address, uint)`
@@ -1133,7 +1133,7 @@ Emitted events
 
 If the token sale wasn't successful, that is the total amount of tokens sold
 in both (public and private) sales of the [crowdsale](#crowdsale) hasn't
-reached the predefined goal, the token contract instance get's destructed,
+reached the predefined goal, the token contract instance gets destructed,
 i.e. removed from the Ethereum ledger.
 
 Any profits deposited in the token instance will be transferred to the
@@ -1219,28 +1219,10 @@ Assignment
 
 Permissions
 ~ * [transfer ownership](#ownable-func-transfer) to another account
-  * assign [minter](#token-role-minter), but only once
-  * assign [profit depositor](#token-role-depositor)
-  * assign [profit distributor](#token-role-distributor)
-  * assign [key recoverer](#token-role-recoverer)
-
-
-### Rate Admin  {#manager-role-rateadmin}
-
-Authority who adjusts the ether rate to the current Ether price
-in Euro cents.
-
-Initially
-~ none
-
-Number
-~ zero or one
-
-Assignment
-~ only by [project manager owner](#manager-role-owner)
-
-Permissions
-~ update current Ether rate
+  * set [current whitelist](#manager-role-whitelist)
+  * set [token factory](#manager-role-tokenfactory)
+  * set [crowdsale factory](#manager-role-crowdsalefactory)
+  * set [rate admin](#manager-role-rateadmin)
 
 
 ### Whitelist  {#manager-role-whitelist}
@@ -1260,6 +1242,7 @@ Assignment
 Permissions
 ~ update current Ether rate
 
+
 ### Token Factory  {#manager-role-tokenfactory}
 
 A helper contract to deploy new [token contracts](#token).
@@ -1276,9 +1259,28 @@ Assignment
 Permissions
 ~ update current Ether rate
 
+
 ### Crowdsale Factory  {#manager-role-crowdsalefactory}
 
 A helper contract to deploy new [crowdsale contracts](#crowdsale).
+
+Initially
+~ none
+
+Number
+~ zero or one
+
+Assignment
+~ only by [project manager owner](#manager-role-owner)
+
+Permissions
+~ update current Ether rate
+
+
+### Rate Admin  {#manager-role-rateadmin}
+
+Authority who adjusts the ether rate to the current Ether price
+in Euro cents.
 
 Initially
 ~ none
