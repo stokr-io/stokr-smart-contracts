@@ -493,16 +493,20 @@ After the crowdsale has ended, it has to be finalized manually by the
 crowdsale [owner](#crowdsale-role-owner).
 Depending on whether the [sale goal](#crowdsale-func-goal) was reached, this
 will either
+
 * if the goal was reached:
+
   #. mint additional tokens, i.e. a predefined percentage of total amount of
      sold tokens, for the benefit of the
      [reserve account](#crowdsale-role-reserveaccount)
   #. [finish minting](#token-func-minting) of the token, thus fixing its
      total supply
+
 * if the goal was missed:
+
   #. destroy the [token](#token) instance
   #. enable the [refunding](#token-func-refunding) of investors who
-     (paid by sending Ether directly)[#crowdsale-func-purchase] to the
+     [paid by sending Ether directly](#crowdsale-func-purchase) to the
      crowdsale instance.
 
 Function
