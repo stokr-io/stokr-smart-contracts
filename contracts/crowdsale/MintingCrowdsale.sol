@@ -32,7 +32,7 @@ contract MintingCrowdsale is Ownable {
     // Prices are in Euro cents (i.e. 1/100 EUR)
     uint public tokenPrice;
 
-    //
+    // The minimum amount of tokens a purchaser has to buy via one transaction.
     uint public tokenPurchaseMinimum;
 
     // Public sale period
