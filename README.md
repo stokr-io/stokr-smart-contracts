@@ -1,7 +1,7 @@
 # STOKR Smart contracts
 
-Abstract
-========
+## Abstract
+
 
 *STOKR* is as crowd-investing platform based on smart contracts on the
 [Ethereum] blockchain.
