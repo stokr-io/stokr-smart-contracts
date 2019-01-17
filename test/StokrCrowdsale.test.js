@@ -301,7 +301,7 @@ contract("StokrCrowdsale", ([owner,
         });
     });
 
-    context.only("before sale opening", () => {
+    context("before sale opening", () => {
         let startState;
         let sale, token, whitelist;
 

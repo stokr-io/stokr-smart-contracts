@@ -45,7 +45,7 @@ contract StokrToken is MintableToken, KeyRecoverable {
     function recoverKey(address _oldAddress, address _newAddress)
         public
         onlyKeyRecoverer
-        
+
     {
         // Ensure that new address is *not* an existing account.
         // Check for account.profitShare is not needed because of following implication:
@@ -59,6 +59,7 @@ contract StokrToken is MintableToken, KeyRecoverable {
         delete accounts[_oldAddress];
 
         emit KeyRecovery(_oldAddress, _newAddress);
+        emit Transfer(_oldAddress, _newAddress, accounts[_newAddress].balance);
     }
 
     /// @dev Total supply
