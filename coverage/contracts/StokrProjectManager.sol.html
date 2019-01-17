@@ -1,14 +1,14 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>Code coverage report for contracts/token/ProfitSharing.sol</title>
+    <title>Code coverage report for contracts/StokrProjectManager.sol</title>
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="../../prettify.css" />
-    <link rel="stylesheet" href="../../base.css" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style type='text/css'>
         .coverage-summary .sorter {
-            background-image: url(../../sort-arrow-sprite.png);
+            background-image: url(../sort-arrow-sprite.png);
         }
     </style>
 </head>
@@ -16,28 +16,28 @@
 <div class='wrapper'>
   <div class='pad1'>
     <h1>
-      <a href="../../index.html">all files</a> / <a href="index.html">contracts/token/</a> ProfitSharing.sol
+      <a href="../index.html">all files</a> / <a href="index.html">contracts/</a> StokrProjectManager.sol
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>31/31</span>
+        <span class='fraction'>25/25</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">100% </span>
+        <span class="strong">87.5% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>16/16</span>
+        <span class='fraction'>21/24</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>13/13</span>
+        <span class='fraction'>10/10</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>34/34</span>
+        <span class='fraction'>30/30</span>
       </div>
     </div>
   </div>
@@ -223,15 +223,7 @@
 178
 179
 180
-181
-182
-183
-184
-185
-186
-187
-188
-189</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+181</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -282,331 +274,315 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">12×</span>
-<span class="cline-any cline-yes">10×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3×</span>
-<span class="cline-any cline-yes">2×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">38×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">41×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">39×</span>
-<span class="cline-any cline-yes">2×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">39×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">10×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">9×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">10×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">10×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">59×</span>
-<span class="cline-any cline-yes">3×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">56×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">56×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">19×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">15×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">15×</span>
-<span class="cline-any cline-yes">15×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">15×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">9×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">6×</span>
 <span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">pragma solidity 0.4.24;
 &nbsp;
-import "../math/SafeMath.sol";
-import "../ownership/Ownable.sol";
+import "./ownership/Ownable.sol";
+import "./whitelist/Whitelist.sol";
+import "./token/StokrToken.sol";
+import "./token/StokrTokenFactory.sol";
+import "./crowdsale/StokrCrowdsale.sol";
+import "./crowdsale/StokrCrowdsaleFactory.sol";
+import "./crowdsale/RateSourceInterface.sol";
 &nbsp;
 &nbsp;
-/// @title ProfitSharing
-/// @author STOKR
-contract ProfitSharing is Ownable {
+contract StokrProjectManager is Ownable, RateSource {
 &nbsp;
-    using SafeMath for uint;
-&nbsp;
-&nbsp;
-    // An InvestorAccount object keeps track of the investor's
-    // - balance: amount of tokens he/she holds (always up-to-date)
-    // - profitShare: amount of wei this token owed him/her at the last update
-    // - lastTotalProfits: determines when his/her profitShare was updated
-    // Note, this construction requires:
-    // - totalProfits to never decrease
-    // - totalSupply to be fixed
-    // - profitShare of all involved parties to get updated prior to any token transfer
-    // - lastTotalProfits to be set to current totalProfits upon profitShare update
-    struct InvestorAccount {
-        uint balance;           // token balance
-        uint lastTotalProfits;  // totalProfits [wei] at the time of last profit share update
-        uint profitShare;       // profit share [wei] of last update
+    // Project structure
+    struct StokrProject {
+        string name;
+        Whitelist whitelist;
+        StokrToken token;
+        StokrCrowdsale crowdsale;
     }
 &nbsp;
 &nbsp;
-    // Investor account database
-    mapping(address =&gt; InvestorAccount) public accounts;
+    // Block number where this contract instance was deployed
+    uint public deploymentBlockNumber;
 &nbsp;
-    // Authority who is allowed to deposit profits [wei] on this
-    address public profitDepositor;
+    // Ethereum address of the Ether prize setting authority
+    address public rateAdmin;
 &nbsp;
-    // Authority who is allowed to distribute profit shares [wei] to investors
-    // (so, that they don't need to withdraw it by themselves)
-    address public profitDistributor;
+    // Current price of an Ether in EUR cents
+    uint private rate;
 &nbsp;
-    // Amount of total profits [wei] stored to this token
-    // In contrast to the wei balance (which may be reduced due to profit share withdrawal)
-    // this value will never decrease
-    uint public totalProfits;
+    // Current whitelist and token factory and crowdsale factory instances
+    Whitelist public currentWhitelist;
+    StokrTokenFactory public tokenFactory;
+    StokrCrowdsaleFactory public crowdsaleFactory;
 &nbsp;
-    // As long as the total supply isn't fixed, i.e. new tokens can appear out of thin air,
-    // the investors' profit shares aren't determined
-    bool public totalSupplyIsFixed;
-&nbsp;
-    // Total amount of tokens
-    uint internal totalSupply_;
+    // List of projects
+    StokrProject[] public projects;
 &nbsp;
 &nbsp;
-    /// @dev Log entry on change of profit deposit authority
-    /// @param newProfitDepositor New authority's address
-    event ProfitDepositorChange(address indexed newProfitDepositor);
+    /// @dev Log entry upon rate change event
+    /// @param previous Previous rate in EUR cent per Ether
+    /// @param current Current rate in EUR cent per Ether
+    event RateChange(uint previous, uint current);
 &nbsp;
-    /// @dev Log entry on change of profit distribution authority
-    /// @param newProfitDistributor New authority's address
-    event ProfitDistributorChange(address indexed newProfitDistributor);
-&nbsp;
-    /// @dev Log entry on profit deposit
-    /// @param depositor Profit depositor's address
-    /// @param amount Deposited profits in wei
-    event ProfitDeposit(address indexed depositor, uint amount);
-&nbsp;
-    /// @dev Log entry on profit share update
-    /// @param investor Investor's address
-    /// @param amount New wei amount the token owes the investor
-    event ProfitShareUpdate(address indexed investor, uint amount);
-&nbsp;
-    /// @dev Log entry on profit withdrawal
-    /// @param investor Investor's address
-    /// @param amount Wei amount the investor withdrew from this token
-    event ProfitShareWithdrawal(address indexed investor, address indexed beneficiary, uint amount);
+    /// @dev Log entry upon rate admin change event
+    /// @param previous Ethereum address of previous rate admin
+    /// @param current Ethereum address of current rate admin
+    event RateAdminChange(address previous, address current);
 &nbsp;
 &nbsp;
-    /// @dev Restrict operation to profit deposit authority only
-    modifier onlyProfitDepositor() {
-        require(msg.sender == profitDepositor, "Restricted to profit depositor");
+    /// @dev Restrict operation to rate admin role
+    modifier onlyRateAdmin() {
+        require(msg.sender == rateAdmin, "Restricted to rate admin");
         _;
     }
 &nbsp;
-    /// @dev Restrict operation to profit distribution authority only
-    modifier onlyProfitDistributor() {
-        require(msg.sender == profitDistributor, "Restricted to profit distributor");
-        _;
-    }
 &nbsp;
     /// @dev Constructor
-    /// @param _profitDepositor Profit deposit authority
-    constructor(address _profitDepositor) public {
-        setProfitDepositor(_profitDepositor);
+    /// @param etherRate Initial price of an Ether in EUR cents
+    constructor(uint etherRate) public {
+        require(etherRate &gt; 0, "Ether rate is zero");
+&nbsp;
+        deploymentBlockNumber = block.number;
+        rate = etherRate;
     }
 &nbsp;
-    /// @dev Profit deposit if possible via fallback function
-    function () public payable {
-        depositProfit();
+    /// @dev Set the current whitelist contract instance
+    /// @param newWhitelist Whitelist instance
+    function setWhitelist(Whitelist newWhitelist) public onlyOwner {
+        require(address(newWhitelist) != address(0x0), "Whitelist is zero");
+&nbsp;
+        currentWhitelist = newWhitelist;
     }
 &nbsp;
-    /// @dev Change profit depositor
-    /// @param _newProfitDepositor An Ethereum address
-    function setProfitDepositor(address _newProfitDepositor) public onlyOwner {
-        require(_newProfitDepositor != address(0x0), "New profit depositor is zero");
+    /// @dev Set the current token factory contract instance
+    /// @param newTokenFactory StokrTokenFactory instance
+    function setTokenFactory(StokrTokenFactory newTokenFactory) public onlyOwner {
+        require(address(newTokenFactory) != address(0x0), "Token factory is zero");
 &nbsp;
-        // Don't emit event if set for first time or to the same value again
-        if (profitDepositor != address(0x0) &amp;&amp; _newProfitDepositor != profitDepositor) {
-            emit ProfitDepositorChange(_newProfitDepositor);
-        }
-        profitDepositor = _newProfitDepositor;
+        tokenFactory = newTokenFactory;
     }
 &nbsp;
-    /// @dev Change profit distributor
-    /// @param _newProfitDistributor An Ethereum address
-    function setProfitDistributor(address _newProfitDistributor) public onlyOwner {
-        require(_newProfitDistributor != address(0x0), "New profit distributor is zero");
+    /// @dev Set the current crowdsale factory contract instance
+    /// @param newCrowdsaleFactory StokrCrowdsaleFactory instance
+    function setCrowdsaleFactory(StokrCrowdsaleFactory newCrowdsaleFactory) public onlyOwner {
+        require(address(newCrowdsaleFactory) != address(0x0), "Crowdsale factory is zero");
 &nbsp;
-        // Don't emit event if set for first time or to the same value again
-        if (profitDistributor != address(0x0) &amp;&amp; _newProfitDistributor != profitDistributor) {
-            emit ProfitDistributorChange(_newProfitDistributor);
-        }
-        profitDistributor = _newProfitDistributor;
+        crowdsaleFactory = newCrowdsaleFactory;
     }
 &nbsp;
-    /// @dev Deposit profit
-    function depositProfit() public payable onlyProfitDepositor {
-        totalProfits = totalProfits.add(msg.value);
+    /// @dev Set rate admin, i.e. the ether rate setting authority
+    /// @param newRateAdmin Ethereum address of rate admin
+    function setRateAdmin(address newRateAdmin) public onlyOwner {
+        require(newRateAdmin != address(0x0), "New rate admin is zero");
 &nbsp;
-        emit ProfitDeposit(msg.sender, msg.value);
-    }
+        if (newRateAdmin != rateAdmin) {
+            emit RateAdminChange(rateAdmin, newRateAdmin);
 &nbsp;
-    /// @dev Profit share owing
-    /// @param _investor An Ethereum address
-    /// @return A positive number
-    function profitShareOwing(address _investor) public view returns (uint) {
-        if (!totalSupplyIsFixed || totalSupply_ == 0) {
-            return 0;
-        }
-&nbsp;
-        InvestorAccount memory account = accounts[_investor];
-&nbsp;
-        return totalProfits.sub(account.lastTotalProfits)
-                           .mul(account.balance)
-                           .div(totalSupply_)
-                           .add(account.profitShare);
-    }
-&nbsp;
-    /// @dev Update profit share
-    /// @param _investor An Ethereum address
-    function updateProfitShare(address _investor) public {
-        require(totalSupplyIsFixed, "Total supply may change");
-&nbsp;
-        uint newProfitShare = profitShareOwing(_investor);
-&nbsp;
-        accounts[_investor].lastTotalProfits = totalProfits;
-        accounts[_investor].profitShare = newProfitShare;
-&nbsp;
-        emit ProfitShareUpdate(_investor, newProfitShare);
-    }
-&nbsp;
-    /// @dev Withdraw profit share
-    function withdrawProfitShare() public {
-        _withdrawProfitShare(msg.sender, msg.sender);
-    }
-&nbsp;
-    function withdrawProfitShareTo(address _beneficiary) public {
-        _withdrawProfitShare(msg.sender, _beneficiary);
-    }
-&nbsp;
-    /// @dev Withdraw profit share
-    function withdrawProfitShares(address[] _investors) public onlyProfitDistributor {
-        for (uint i = 0; i &lt; _investors.length; ++i) {
-            _withdrawProfitShare(_investors[i], _investors[i]);
+            rateAdmin = newRateAdmin;
         }
     }
 &nbsp;
-    /// @dev Withdraw profit share
-    function _withdrawProfitShare(address _investor, address _beneficiary) internal {
-        updateProfitShare(_investor);
+    /// @dev Set rate, i.e. adjust to changes of EUR/ether exchange rate
+    /// @param newRate Rate in Euro cent per ether
+    function setRate(uint newRate) public onlyRateAdmin {
+        // Rate changes beyond an order of magnitude are likely just typos
+        require(rate / 10 &lt; newRate &amp;&amp; newRate &lt; 10 * rate, "Rate change too big");
 &nbsp;
-        uint withdrawnProfitShare = accounts[_investor].profitShare;
+        if (newRate != rate) {
+            emit RateChange(rate, newRate);
 &nbsp;
-        accounts[_investor].profitShare = 0;
-        _beneficiary.transfer(withdrawnProfitShare);
+            rate = newRate;
+        }
+    }
 &nbsp;
-        emit ProfitShareWithdrawal(_investor, _beneficiary, withdrawnProfitShare);
+    /// @dev Return the current price of an Ether in EUR cents
+    /// @return Current Ether rate
+    function etherRate() public view returns (uint) {
+        return rate;
+    }
+&nbsp;
+    /// @dev Return the number of projects deployed by this instance
+    /// @return Projects count
+    function projectsCount() public view returns (uint) {
+        return projects.length;
+    }
+&nbsp;
+    /// @dev Create a new project,
+    ///      i.e. deploy a new token and crowdsale and store their address into projects
+    function createNewProject(
+        string name,
+        string symbol,
+        uint tokenPrice,
+        address[4] roles,  // [profitDepositor, keyRecoverer, tokenOwner, crowdsaleOwner]
+        uint[5] amounts,  // [tokenCapOfPublicSale, tokenCapOfPrivateSale, tokenGoal,
+                          //  tokenPurchaseMinimum, tokenReservePerMill]
+        uint[2] period,  // [openingTime, closingTime]
+        address[2] wallets  // [companyWallet, reserveAccount]
+    )
+        public onlyOwner
+    {
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(address(currentWhitelist) != address(0x0), "Whitelist is zero");
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(address(tokenFactory) != address(0x0), "Token factory is zero");
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(address(crowdsaleFactory) != address(0x0), "Crowdsale factory is zero");
+&nbsp;
+        // Parameters are given as arrays to avoid the "stack too deep" complaints of the
+        // Solidity compiler.
+        // Furthermore the deployment of the tokens and the crowdsale contract is done via
+        // factory contracts whose only purpose is to deploy an instance of the respective
+        // contract. This construction avoids the problem of limited bytecode length when
+        // deploying contracts (see EIP170). As a side effect, it also enables the change
+        // of one of the factories by an updated version.
+&nbsp;
+        // Utilize the token factory to deploy a new token contract instance
+        StokrToken token = tokenFactory.createNewToken(
+            name,
+            symbol,
+            currentWhitelist,
+            roles[0],  // profitDepositor
+            roles[1]);  // keyRecoverer
+&nbsp;
+        // Utilize the crowdsale factory to deploy a new crowdsale contract instance
+        StokrCrowdsale crowdsale = crowdsaleFactory.createNewCrowdsale(
+            token,
+            tokenPrice,
+            amounts,
+            period,
+            wallets);
+&nbsp;
+        token.setMinter(crowdsale);  // The crowdsale should be the minter of the token
+        token.transferOwnership(roles[2]);  // to tokenOwner
+        crowdsale.transferOwnership(roles[3]);  // to crowdsaleOwner
+&nbsp;
+        // Store the created project into the projects array state variable
+        projects.push(StokrProject(name, currentWhitelist, token, crowdsale));
     }
 &nbsp;
 }
+&nbsp;
 &nbsp;</pre></td></tr>
 </table></pre>
 <div class='push'></div><!-- for sticky footer -->
@@ -616,7 +592,7 @@ contract ProfitSharing is Ownable {
   generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Thu Jan 17 2019 15:02:50 GMT+0100 (GMT+01:00)
 </div>
 </div>
-<script src="../../prettify.js"></script>
+<script src="../prettify.js"></script>
 <script>
 window.onload = function () {
         if (typeof prettyPrint === 'function') {
@@ -624,6 +600,6 @@ window.onload = function () {
         }
 };
 </script>
-<script src="../../sorter.js"></script>
+<script src="../sorter.js"></script>
 </body>
 </html>

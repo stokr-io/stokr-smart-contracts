@@ -3,6 +3,7 @@ pragma solidity 0.4.24;
 import "../whitelist/Whitelist.sol";
 import "./StokrToken.sol";
 
+// Helper contract to deploy a new StokrToken contract
 
 contract StokrTokenFactory {
 
@@ -29,4 +30,3 @@ contract StokrTokenFactory {
     }
 
 }
-

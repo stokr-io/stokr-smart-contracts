@@ -6,7 +6,7 @@ import "./ProfitSharing.sol";
 
 
 /// @title MintableToken
-/// @author SICOS
+/// @author STOKR
 /// @dev Extension of the ERC20 compliant ProfitSharing Token
 ///      that allows the creation of tokens via minting for a
 ///      limited time period (until minting gets finished).
@@ -23,7 +23,7 @@ contract MintableToken is ERC20, ProfitSharing, Whitelisted {
     /// @dev Log entry on mint finished
     event MintFinished();
 
-    /// @dev Restrict an operation to be callable only by the minter authority
+    /// @dev Restrict an operation to be callable only by the minter 
     modifier onlyMinter() {
         require(msg.sender == minter, "Restricted to minter");
         _;
@@ -79,4 +79,3 @@ contract MintableToken is ERC20, ProfitSharing, Whitelisted {
     }
 
 }
-

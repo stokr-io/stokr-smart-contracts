@@ -2,7 +2,7 @@ pragma solidity 0.4.24;
 
 
 /// @title RateSource
-/// @author SICOS
+/// @author STOKR
 interface RateSource {
 
     /// @dev The current price of an Ether in EUR cents
@@ -10,4 +10,3 @@ interface RateSource {
     function etherRate() external returns(uint);
 
 }
-

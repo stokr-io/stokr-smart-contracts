@@ -7,7 +7,7 @@ import "./RateSourceInterface.sol";
 
 
 /// @title MintingCrowdsale
-/// @author SICOS
+/// @author STOKR
 contract MintingCrowdsale is Ownable {
     using SafeMath for uint;
 
@@ -198,7 +198,7 @@ contract MintingCrowdsale is Ownable {
         emit TokenPurchase(msg.sender, msg.value, amount);
     }
 
-    /// @dev Finalize, i.e. end token minting phase and enable token trading
+    /// @dev Finalize, i.e. end token minting phase and enable token transfers
     function finalize() public onlyOwner {
         require(!isFinalized, "Sale has already been finalized");
         require(hasClosed(), "Sale has not closed");

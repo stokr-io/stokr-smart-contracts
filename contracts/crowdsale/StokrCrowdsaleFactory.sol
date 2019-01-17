@@ -4,6 +4,7 @@ import "../token/StokrToken.sol";
 import "./RateSourceInterface.sol";
 import "./StokrCrowdsale.sol";
 
+// Helper contract to deploy a new StokrCrowdsale contract
 
 contract StokrCrowdsaleFactory {
 
