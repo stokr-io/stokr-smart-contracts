@@ -48,6 +48,13 @@ contract StokrProjectManager is Ownable, RateSource {
     /// @param current Ethereum address of current rate admin
     event RateAdminChange(address previous, address current);
 
+    /// @dev Log entry upon project creation event
+    /// @param whitelist  Ethereum address of Whitelist contract
+    /// @param token  Ethereum address of StokrToken contract
+    /// @param crowdsale  Ethereum address of StokrCrowdsale contract
+    /// @param index  Index of the project within projects list
+    event ProjectCreation(uint index, address whitelist, address token, address crowdsale);
+
 
     /// @dev Restrict operation to rate admin role
     modifier onlyRateAdmin() {
@@ -174,6 +181,8 @@ contract StokrProjectManager is Ownable, RateSource {
 
         // Store the created project into the projects array state variable
         projects.push(StokrProject(name, currentWhitelist, token, crowdsale));
+
+        emit ProjectCreation(projects.length - 1, currentWhitelist, token, crowdsale);
     }
 
 }

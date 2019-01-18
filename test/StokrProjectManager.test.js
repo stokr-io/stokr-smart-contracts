@@ -262,6 +262,15 @@ contract("StokrProjectManager", ([owner,
             await createProject(owner);
         });
 
+        it("gets logged", async () => {
+            let index = await projectManager.projectsCount();
+            let tx = await createProject(owner);
+            let entry = tx.logs.find(entry => entry.event === "ProjectCreation");
+            expect(entry).to.exist;
+            expect(entry.args.index).to.be.bignumber.equal(index);
+            expect(entry.args.whitelist).to.be.bignumber.equal(await projectManager.currentWhitelist());
+        });
+
         it("increases the projects count", async () => {
             let projectsCount = await projectManager.projectsCount();
             await createProject(owner);
