@@ -75,7 +75,7 @@ contract StokrCrowdsale is MintingCrowdsale {
     }
 
     /// @dev Investors can claim refunds here if crowdsale was unsuccessful
-    function distributeRefunds(address[] _investors) public onlyOwner {
+    function distributeRefunds(address[] _investors) public {
         for (uint i = 0; i < _investors.length; ++i) {
             refundInvestor(_investors[i]);
         }

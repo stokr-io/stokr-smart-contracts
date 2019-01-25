@@ -1038,19 +1038,13 @@ contract("StokrCrowdsale", ([owner,
                     .to.be.bignumber.above(asset.plus(investment).minus(txCostEst));
             });
 
-            it("distribution by anyone but owner is forbidden", async () => {
-                let reason = await reject.call(
-                    sale.distributeRefunds([investor1, investor2, anyone], {from: anyone}));
-                expect(reason).to.be.equal("restricted to owner");
-            });
-
             it("distribution is possible", async () => {
-                await sale.distributeRefunds([investor1, investor2, anyone], {from: owner});
+                await sale.distributeRefunds([investor1, investor2, anyone], {from: anyone});
             });
 
             it("distribution gets logged", async () => {
                 let investment = await sale.investments(investor1);
-                let tx = await sale.distributeRefunds([investor1], {from: owner});
+                let tx = await sale.distributeRefunds([investor1], {from: anyone});
                 let entry = tx.logs.find(entry => entry.event === "InvestorRefund");
                 expect(entry).to.exist;
                 expect(entry.args.investor).to.be.bignumber.equal(investor1);
@@ -1058,14 +1052,14 @@ contract("StokrCrowdsale", ([owner,
             });
 
             it("distribution sets investment to zero", async () => {
-                await sale.distributeRefunds([investor1], {from: owner});
+                await sale.distributeRefunds([investor1], {from: anyone});
                 expect(await sale.investments(investor1)).to.be.bignumber.zero;
             });
 
             it("distribution increases investor's balance", async () => {
                 let asset = await web3.eth.getBalance(investor1);
                 let investment = await sale.investments(investor1);
-                await sale.distributeRefunds([investor1], {from: owner});
+                await sale.distributeRefunds([investor1], {from: anyone});
                 expect(await web3.eth.getBalance(investor1))
                     .to.be.bignumber.equal(asset.plus(investment));
             });
