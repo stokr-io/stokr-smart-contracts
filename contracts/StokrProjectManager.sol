@@ -72,6 +72,7 @@ contract StokrProjectManager is Ownable, RateSource {
         rate = etherRate;
     }
 
+
     /// @dev Set the current whitelist contract instance
     /// @param newWhitelist Whitelist instance
     function setWhitelist(Whitelist newWhitelist) public onlyOwner {

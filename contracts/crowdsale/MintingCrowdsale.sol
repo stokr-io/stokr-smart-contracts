@@ -231,7 +231,7 @@ contract MintingCrowdsale is Ownable {
 
             require(amount <= tokenRemaining, "Not enough tokens available");
 
-            tokenRemaining= tokenRemaining.sub(amount);
+            tokenRemaining = tokenRemaining.sub(amount);
             token.mint(beneficiary, amount);
 
             emit TokenDistribution(beneficiary, amount);

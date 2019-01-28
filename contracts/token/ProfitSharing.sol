@@ -123,6 +123,8 @@ contract ProfitSharing is Ownable {
 
     /// @dev Deposit profit
     function depositProfit() public payable onlyProfitDepositor {
+        require(totalSupply_ > 0, "Total supply is zero");
+
         totalProfits = totalProfits.add(msg.value);
 
         emit ProfitDeposit(msg.sender, msg.value);
