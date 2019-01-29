@@ -40,10 +40,9 @@ contract("StokrProjectManager", ([owner,
     let openingTime = time.now() + time.days(7);
     let closingTime = openingTime + time.days(7);
 
-    let projectManager, whitelist, tokenFactory, crowdsaleFactory;
-
 
     describe("Deployment", () => {
+        let projectManager;
 
         it("fails if initial ether rate is zero", async () => {
             let reason = await reject.deploy(StokrProjectManager.new(0x0, {from: owner}));
@@ -52,7 +51,6 @@ contract("StokrProjectManager", ([owner,
 
         it("succeeds", async () => {
             projectManager = await StokrProjectManager.new(etherRate, {from: owner});
-            await projectManager.setRateAdmin(rateAdmin, {from: owner});
         });
 
         it("sets correct owner", async () => {
@@ -65,9 +63,10 @@ contract("StokrProjectManager", ([owner,
     });
 
     describe("Rate admin change", () => {
+        let projectManager;
 
-        after("reset rate admin", async () => {
-            await projectManager.setRateAdmin(rateAdmin, {from: owner});
+        before("deploy", async () => {
+            projectManager = await StokrProjectManager.new(etherRate, {from: owner});
         });
 
         it("is forbidden by anyone but owner", async () => {
@@ -105,20 +104,22 @@ contract("StokrProjectManager", ([owner,
     });
 
     describe("Rate change", () => {
+        let projectManager;
 
-        after("reset rate", async () => {
-            await projectManager.setRate(etherRate, {from: rateAdmin});
+        before("deploy", async () => {
+            projectManager = await StokrProjectManager.new(etherRate, {from: owner});
+            await projectManager.setRateAdmin(rateAdmin, {from: owner});
         });
 
         it("by owner not being rate admin is forbidden", async () => {
-            let reason = await reject.call(projectManager.setRate((await projectManager.etherRate()).plus(1),
-                                                                  {from: owner}));
+            let newRate = (await projectManager.etherRate()).plus(1);
+            let reason = await reject.call(projectManager.setRate(newRate, {from: owner}));
             expect(reason).to.be.equal("restricted to rate admin");
         });
 
         it("by anyone but rate admin is forbidden", async () => {
-            let reason = await reject.call(projectManager.setRate((await projectManager.etherRate()).plus(1),
-                                                                  {from: anyone}));
+            let newRate = (await projectManager.etherRate()).plus(1);
+            let reason = await reject.call(projectManager.setRate(newRate, {from: anyone}));
             expect(reason).to.be.equal("restricted to rate admin");
         });
 
@@ -128,14 +129,14 @@ contract("StokrProjectManager", ([owner,
         });
 
         it("lowering by an order of magnitude is forbidden", async () => {
-            let reason = await reject.call(projectManager.setRate((await projectManager.etherRate()).divToInt(10),
-                                                                  {from: rateAdmin}));
+            let newRate = (await projectManager.etherRate()).divToInt(10);
+            let reason = await reject.call(projectManager.setRate(newRate, {from: rateAdmin}));
             expect(reason).to.be.equal("rate change too big");
         });
 
         it("raising by an order of magnitude is forbidden", async () => {
-            let reason = await reject.call(projectManager.setRate((await projectManager.etherRate()).times(10),
-                                                                  {from: rateAdmin}));
+            let newRate = (await projectManager.etherRate()).times(10);
+            let reason = await reject.call(projectManager.setRate(newRate, {from: rateAdmin}));
             expect(reason).to.be.equal("rate change too big");
         });
 
@@ -164,10 +165,10 @@ contract("StokrProjectManager", ([owner,
     });
 
     describe("Whitelist change", () => {
+        let projectManager;
 
-        after("reset whitelist", async () => {
-            whitelist = await Whitelist.new({from: owner});
-            await projectManager.setWhitelist(whitelist.address, {from: owner});
+        before("deploy", async () => {
+            projectManager = await StokrProjectManager.new(etherRate, {from: owner});
         });
 
         it("by anyone but owner is forbidden", async () => {
@@ -189,10 +190,10 @@ contract("StokrProjectManager", ([owner,
     });
 
     describe("Token factory change", () => {
+        let projectManager;
 
-        after("reset token factory", async () => {
-            tokenFactory = await StokrTokenFactory.new({from: owner});
-            await projectManager.setTokenFactory(tokenFactory.address, {from: owner});
+        before("deploy", async () => {
+            projectManager = await StokrProjectManager.new(etherRate, {from: owner});
         });
 
         it("by anyone but owner is forbidden", async () => {
@@ -215,10 +216,10 @@ contract("StokrProjectManager", ([owner,
     });
 
     describe("Crowdsale factory change", () => {
+        let projectManager;
 
-        after("reset crowdsale factory", async () => {
-            crowdsaleFactory = await StokrCrowdsaleFactory.new({from: owner});
-            await projectManager.setCrowdsaleFactory(crowdsaleFactory.address, {from: owner});
+        before("deploy", async () => {
+            projectManager = await StokrProjectManager.new(etherRate, {from: owner});
         });
 
         it("by anyone but owner is forbidden", async () => {
@@ -241,7 +242,7 @@ contract("StokrProjectManager", ([owner,
     });
 
     describe("Project creation", () => {
-
+        let projectManager;
         const createProject = from => projectManager.createNewProject(
             tokenName,
             tokenSymbol,
@@ -252,6 +253,31 @@ contract("StokrProjectManager", ([owner,
             [openingTime, closingTime],
             [companyWallet, reserveAccount],
             {from});
+
+        before("deploy", async () => {
+            projectManager = await StokrProjectManager.new(etherRate, {from: owner});
+        });
+
+        it("fails if whitelist wasn't set", async () => {
+            let reason = await reject.call(createProject(owner));
+            let whitelist = await Whitelist.new({from: owner});
+            await projectManager.setWhitelist(whitelist.address, {from: owner});
+            expect(reason).to.be.equal("whitelist is zero");
+        });
+
+        it("fails if token factory wasn't set", async () => {
+            let reason = await reject.call(createProject(owner));
+            let tokenFactory = await StokrTokenFactory.new({from: owner});
+            await projectManager.setTokenFactory(tokenFactory.address, {from: owner});
+            expect(reason).to.be.equal("token factory is zero");
+        });
+
+        it("fails if crowdsale factory wasn't set", async () => {
+            let reason = await reject.call(createProject(owner));
+            let crowdsaleFactory = await StokrCrowdsaleFactory.new({from: owner});
+            await projectManager.setCrowdsaleFactory(crowdsaleFactory.address, {from: owner});
+            expect(reason).to.be.equal("crowdsale factory is zero");
+        });
 
         it("from anyone but owner is forbidden", async () => {
             let reason = await reject.call(createProject(anyone));

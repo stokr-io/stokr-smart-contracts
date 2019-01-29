@@ -1,4 +1,4 @@
-pragma solidity 0.4.24;
+pragma solidity 0.4.25;
 
 /// @title Ownable
 /// @dev Provide a simple access control with a single authority: the owner
@@ -31,9 +31,11 @@ contract Ownable {
     function transferOwnership(address _newOwner) public onlyOwner {
         require(_newOwner != address(0x0), "New owner is zero");
 
-        owner = _newOwner;
+        if (owner != _newOwner) {
+            emit OwnershipTransferred(owner, _newOwner);
 
-        emit OwnershipTransferred(owner, _newOwner);
+            owner = _newOwner;
+        }
     }
 
 }

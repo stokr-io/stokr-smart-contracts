@@ -713,7 +713,35 @@ contract("StokrCrowdsale", ([owner,
         });
     });
 
-    context("after sale which missed goal", () => {
+    context("while sale is open (edge case: invalid rate source)", () => {
+        let startState;
+        let sale, token, whitelist;
+
+        before("deploy", async () => {
+            await initialState.restore();
+            let rateSource = await RateSource.new(0, {from: owner});
+            sale = await deploySale({rateSource: rateSource.address});
+            token = await StokrToken.at(await sale.token());
+            whitelist = await Whitelist.at(await token.whitelist());
+            await token.setMinter(sale.address, {from: owner});
+            await time.increaseTo(await sale.openingTime());
+            startState = await snapshot.new();
+        });
+
+        afterEach("restore start state", async () => {
+            await startState.restore();
+        });
+
+        describe("token purchase", () => {
+
+            it("is forbidden if rate source delivers zero rate", async () => {
+                let reason = await reject.call(sale.buyTokens({from: investor1, value: money.ether(1)}));
+                expect(reason).to.be.equal("ether rate is zero");
+            });
+        });
+    });
+
+    context("after sale (goal missed)", () => {
         let startState;
         let sale, token, whitelist;
 
@@ -814,7 +842,7 @@ contract("StokrCrowdsale", ([owner,
         });
     });
 
-    context("after sale which reached goal", () => {
+    context("after sale (goal reached)", () => {
         let startState;
         let sale, token, whitelist;
 
@@ -925,7 +953,40 @@ contract("StokrCrowdsale", ([owner,
         });
     });
 
-    context("after finalization of missed goal", () => {
+    context("after sale (edge case: token reserve is zero)", () => {
+        let startState;
+        let sale, token, whitelist;
+
+        before("deploy", async () => {
+            await initialState.restore();
+            sale = await deploySale({tokenReservePerMill: 0});
+            token = await StokrToken.at(await sale.token());
+            whitelist = await Whitelist.at(await token.whitelist());
+            await token.setMinter(sale.address, {from: owner});
+            await time.increaseTo(await sale.openingTime());
+            let value = (await tokenValueOf(sale, await sale.tokenGoal()));
+            await sale.buyTokens({from: investor1, value});
+            await time.increaseTo(await sale.closingTime());
+            startState = await snapshot.new();
+        });
+
+        afterEach("restore start state", async () => {
+            await startState.restore();
+        });
+
+        describe("finalization", () => {
+
+            it("doesn't mint reserve tokens", async () => {
+                let account = await sale.reserveAccount();
+                let balance = await token.balanceOf(account);
+                await sale.finalize({from: owner});
+                expect(await token.balanceOf(account)).to.be.bignumber.equal(balance);
+            });
+
+        });
+    });
+
+    context("after finalization (goal missed)", () => {
         let startState;
         let sale, token, whitelist;
 
@@ -1074,7 +1135,7 @@ contract("StokrCrowdsale", ([owner,
         });
     });
 
-    context("after finalization of reached goal", () => {
+    context("after finalization (goal reached)", () => {
         let startState;
         let sale, token, whitelist;
 

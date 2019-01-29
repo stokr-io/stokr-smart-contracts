@@ -1,4 +1,4 @@
-pragma solidity 0.4.24;
+pragma solidity 0.4.25;
 
 import "../recovery/KeyRecoverable.sol";
 import "../whitelist/Whitelisted.sol";
@@ -91,7 +91,7 @@ contract StokrToken is MintableToken, KeyRecoverable {
     function approve(address _spender, uint _value)
         public
         onlyWhitelisted(msg.sender)
-        notMinting
+        onlyWhenTotalSupplyIsFixed
         returns (bool)
     {
         allowance_[msg.sender][_spender] = _value;
@@ -131,7 +131,7 @@ contract StokrToken is MintableToken, KeyRecoverable {
         internal
         onlyWhitelisted(_from)
         onlyWhitelisted(_to)
-        notMinting
+        onlyWhenTotalSupplyIsFixed
         returns (bool)
     {
         require(_to != address(0x0), "Recipient is zero");

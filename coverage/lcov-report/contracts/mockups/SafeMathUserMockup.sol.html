@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>Code coverage report for contracts/crowdsale/StokrCrowdsaleFactory.sol</title>
+    <title>Code coverage report for contracts/mockups/SafeMathUserMockup.sol</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../prettify.css" />
     <link rel="stylesheet" href="../../base.css" />
@@ -16,13 +16,13 @@
 <div class='wrapper'>
   <div class='pad1'>
     <h1>
-      <a href="../../index.html">all files</a> / <a href="index.html">contracts/crowdsale/</a> StokrCrowdsaleFactory.sol
+      <a href="../../index.html">all files</a> / <a href="index.html">contracts/mockups/</a> SafeMathUserMockup.sol
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>2/2</span>
+        <span class='fraction'>4/4</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
@@ -32,12 +32,12 @@
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>1/1</span>
+        <span class='fraction'>4/4</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>3/3</span>
+        <span class='fraction'>4/4</span>
       </div>
     </div>
   </div>
@@ -69,22 +69,7 @@
 24
 25
 26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+27</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -93,79 +78,49 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">pragma solidity 0.4.25;
 &nbsp;
-import "../token/StokrToken.sol";
-import "./RateSourceInterface.sol";
-import "./StokrCrowdsale.sol";
+import "../math/SafeMath.sol";
 &nbsp;
-// Helper contract to deploy a new StokrCrowdsale contract
 &nbsp;
-contract StokrCrowdsaleFactory {
+contract SafeMathUserMockup {
+    using SafeMath for uint;
 &nbsp;
-    function createNewCrowdsale(
-        StokrToken token,
-        uint tokenPrice,
-        uint[5] amounts,  // [tokenCapOfPublicSale, tokenCapOfPrivateSale, tokenGoal,
-                          //  tokenPurchaseMinimum, tokenReservePerMill]
-        uint[2] period,  // [openingTime, closingTime]
-        address[2] wallets  // [companyWallet, reserveAccount]
-    )
-        public
-        returns (StokrCrowdsale)
-    {
-        StokrCrowdsale crowdsale = new StokrCrowdsale(
-            RateSource(msg.sender),  // rateSource
-            token,
-            amounts[0],  // tokenCapOfPublicSale
-            amounts[1],  // tokenCapOfPrivateSale
-            amounts[2],  // tokenGoal
-            amounts[3],  // tokenPurchaseMinimum
-            amounts[4],  // tokenReservePerMill
-            tokenPrice,  // tokenPrice
-            period[0],  // openingTime
-            period[1],  // closingTime
-            wallets[0],  // companyWallet
-            wallets[1]);  // reserveAccount
+    function sum(uint x, uint y) public pure returns (uint) {
+        return x.add(y);
+    }
 &nbsp;
-        crowdsale.transferOwnership(msg.sender);
+    function diff(uint x, uint y) public pure returns (uint) {
+        return x.sub(y);
+    }
 &nbsp;
-        return crowdsale;
+    function prod(uint x, uint y) public pure returns (uint) {
+        return x.mul(y);
+    }
+&nbsp;
+    function quot(uint x, uint y) public pure returns (uint) {
+        return x.div(y);
     }
 &nbsp;
 }
+&nbsp;
 &nbsp;</pre></td></tr>
 </table></pre>
 <div class='push'></div><!-- for sticky footer -->

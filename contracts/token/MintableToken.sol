@@ -1,4 +1,4 @@
-pragma solidity 0.4.24;
+pragma solidity 0.4.25;
 
 import "../whitelist/Whitelisted.sol";
 import "./ERC20.sol";
@@ -23,7 +23,7 @@ contract MintableToken is ERC20, ProfitSharing, Whitelisted {
     /// @dev Log entry on mint finished
     event MintFinished();
 
-    /// @dev Restrict an operation to be callable only by the minter 
+    /// @dev Restrict an operation to be callable only by the minter
     modifier onlyMinter() {
         require(msg.sender == minter, "Restricted to minter");
         _;
@@ -32,12 +32,6 @@ contract MintableToken is ERC20, ProfitSharing, Whitelisted {
     /// @dev Restrict an operation to be executable only while minting was not finished
     modifier canMint() {
         require(!totalSupplyIsFixed, "Total supply has been fixed");
-        _;
-    }
-
-    /// @dev Restrict an operation to be executable only if minting was finished
-    modifier notMinting() {
-        require(totalSupplyIsFixed, "Total supply may change");
         _;
     }
 

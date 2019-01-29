@@ -1,4 +1,4 @@
-pragma solidity 0.4.24;
+pragma solidity 0.4.25;
 
 import "../math/SafeMath.sol";
 import "../ownership/Ownable.sol";
@@ -86,6 +86,12 @@ contract ProfitSharing is Ownable {
         _;
     }
 
+    /// @dev Restrict operation to when total supply doesn't change anymore
+    modifier onlyWhenTotalSupplyIsFixed() {
+        require(totalSupplyIsFixed, "Total supply may change");
+        _;
+    }
+
     /// @dev Constructor
     /// @param _profitDepositor Profit deposit authority
     constructor(address _profitDepositor) public {
@@ -122,7 +128,7 @@ contract ProfitSharing is Ownable {
     }
 
     /// @dev Deposit profit
-    function depositProfit() public payable onlyProfitDepositor {
+    function depositProfit() public payable onlyProfitDepositor onlyWhenTotalSupplyIsFixed {
         require(totalSupply_ > 0, "Total supply is zero");
 
         totalProfits = totalProfits.add(msg.value);
@@ -148,9 +154,7 @@ contract ProfitSharing is Ownable {
 
     /// @dev Update profit share
     /// @param _investor An Ethereum address
-    function updateProfitShare(address _investor) public {
-        require(totalSupplyIsFixed, "Total supply may change");
-
+    function updateProfitShare(address _investor) public onlyWhenTotalSupplyIsFixed {
         uint newProfitShare = profitShareOwing(_investor);
 
         accounts[_investor].lastTotalProfits = totalProfits;

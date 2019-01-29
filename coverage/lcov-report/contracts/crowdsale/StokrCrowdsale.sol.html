@@ -232,15 +232,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-yes">18×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">14×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">53×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">55×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -253,6 +253,25 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">11×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">26×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">20×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -272,26 +291,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">11×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7×</span>
-<span class="cline-any cline-yes">3×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">25×</span>
-<span class="cline-any cline-yes">5×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">20×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">pragma solidity 0.4.24;
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">pragma solidity 0.4.25;
 &nbsp;
 import "./MintingCrowdsale.sol";
 import "./RateSourceInterface.sol";
@@ -368,7 +368,7 @@ contract StokrCrowdsale is MintingCrowdsale {
     }
 &nbsp;
     /// @dev Investors can claim refunds here if crowdsale was unsuccessful
-    function distributeRefunds(address[] _investors) public onlyOwner {
+    function distributeRefunds(address[] _investors) public {
         for (uint i = 0; i &lt; _investors.length; ++i) {
             refundInvestor(_investors[i]);
         }
@@ -377,22 +377,6 @@ contract StokrCrowdsale is MintingCrowdsale {
     /// @dev Investors can claim refunds here if crowdsale was unsuccessful
     function claimRefund() public {
         refundInvestor(msg.sender);
-    }
-&nbsp;
-    /// @dev Refund an investor if the sale was not successful
-    /// @param _investor Ethereum address of investor
-    function refundInvestor(address _investor) internal {
-        require(isFinalized, "Sale has not been finalized");
-        require(!goalReached(), "Goal was reached");
-&nbsp;
-        uint investment = investments[_investor];
-&nbsp;
-        if (investment &gt; 0) {
-            investments[_investor] = 0;
-            _investor.transfer(investment);
-&nbsp;
-            emit InvestorRefund(_investor, investment);
-        }
     }
 &nbsp;
     /// @dev Overwritten. Kill the token if goal was missed
@@ -414,6 +398,22 @@ contract StokrCrowdsale is MintingCrowdsale {
         }
     }
 &nbsp;
+    /// @dev Refund an investor if the sale was not successful
+    /// @param _investor Ethereum address of investor
+    function refundInvestor(address _investor) internal {
+        require(isFinalized, "Sale has not been finalized");
+        require(!goalReached(), "Goal was reached");
+&nbsp;
+        uint investment = investments[_investor];
+&nbsp;
+        if (investment &gt; 0) {
+            investments[_investor] = 0;
+            _investor.transfer(investment);
+&nbsp;
+            emit InvestorRefund(_investor, investment);
+        }
+    }
+&nbsp;
 }
 &nbsp;</pre></td></tr>
 </table></pre>
@@ -421,7 +421,7 @@ contract StokrCrowdsale is MintingCrowdsale {
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Thu Jan 17 2019 15:02:50 GMT+0100 (GMT+01:00)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Tue Jan 29 2019 22:35:06 GMT+0100 (Mitteleuropäische Normalzeit)
 </div>
 </div>
 <script src="../../prettify.js"></script>

@@ -1,5 +1,6 @@
 "use strict";
 
+const ERC20 = artifacts.require("./token/ERC20.sol");
 const Whitelist = artifacts.require("./whitelist/Whitelist.sol");
 const StokrToken = artifacts.require("./token/StokrToken.sol");
 
@@ -40,6 +41,27 @@ contract("StokrToken", ([owner,
         await token.setMinter(minter, {from: owner});
         return [whitelist, token];
     }
+
+    describe("interface", () => {
+        const adheresTo = (node, definition) =>
+            node.type === "function" && definition.type === "function"
+            && node.name === definition.name
+            && node.inputs.length === definition.inputs.length
+            && node.inputs.every((param, i) => param.type === definition.inputs[i].type)
+            && node.payable === definition.payable
+            && node.stateMutability === definition.stateMutability
+            && (node.outputs === undefined && definition.outputs === undefined
+                || node.outputs.length === definition.outputs.length
+                && node.outputs.every((param, i) => param.type === definition.outputs[i].type));
+
+        it("adheres to ERC20", async () => {
+            for (let definition of ERC20.abi.filter(node => node.type === "function").values()) {
+                let node = StokrToken.abi.find(node => adheresTo(node, definition));
+
+                expect(node,`function ${definition.name}`).to.exist;
+            }
+        });
+    });
 
     // Tests of correct deployment.
     context("deployment", () => {
@@ -410,15 +432,15 @@ contract("StokrToken", ([owner,
             it("is forbidden if debited account isn't whitelisted", async () => {
                 await whitelist.removeFromWhitelist([debited], {from: owner});
                 let reason = await reject.call(token.transfer(credited, 1, {from: debited}));
-                expect(reason).to.be.equal("address is not whitelisted");
                 await whitelist.addToWhitelist([debited], {from: owner});
+                expect(reason).to.be.equal("address is not whitelisted");
             });
 
             it("is forbidden if credited account isn't whitelisted", async () => {
                 await whitelist.removeFromWhitelist([credited], {from: owner});
                 let reason = await reject.call(token.transfer(credited, 1, {from: debited}));
-                expect(reason).to.be.equal("address is not whitelisted");
                 await whitelist.addToWhitelist([credited], {from: owner});
+                expect(reason).to.be.equal("address is not whitelisted");
             });
 
             it("is forbidden if amount exceed balance", async () => {
@@ -491,8 +513,8 @@ contract("StokrToken", ([owner,
             it("is forbidden if approver isn't whitelisted", async () => {
                 await whitelist.removeFromWhitelist([approver], {from: owner});
                 let reason = await reject.call(token.approve(trustee, 1, {from: approver}));
-                expect(reason).to.be.equal("address is not whitelisted");
                 await whitelist.addToWhitelist([approver], {from: owner});
+                expect(reason).to.be.equal("address is not whitelisted");
             });
 
             it("is possible", async () => {
@@ -566,8 +588,8 @@ contract("StokrToken", ([owner,
                 await whitelist.removeFromWhitelist([debited], {from: owner});
                 let reason = await reject.call(
                     token.transferFrom(debited, credited, amount, {from: trustee}));
-                expect(reason).to.be.equal("address is not whitelisted");
                 await whitelist.addToWhitelist([debited], {from: owner});
+                expect(reason).to.be.equal("address is not whitelisted");
             });
 
             it("is forbidden if credited account isn't whitelisted", async () => {
@@ -577,8 +599,18 @@ contract("StokrToken", ([owner,
                 await whitelist.removeFromWhitelist([credited], {from: owner});
                 let reason = await reject.call(
                     token.transferFrom(debited, credited, amount, {from: trustee}));
-                expect(reason).to.be.equal("address is not whitelisted");
                 await whitelist.addToWhitelist([credited], {from: owner});
+                expect(reason).to.be.equal("address is not whitelisted");
+            });
+
+            it("is forbidden if credited account is zero", async () => {
+                let amount = (await token.balanceOf(debited)).divToInt(2);
+                await token.approve(trustee, 0, {from: debited});
+                await token.approve(trustee, amount, {from: debited});
+                await whitelist.addToWhitelist([0x0], {from: owner});
+                let reason = await reject.call(
+                    token.transferFrom(debited, 0x0, amount, {from: trustee}));
+                expect(reason).to.be.equal("recipient is zero");
             });
 
             it("is forbidden if amount exceeds allowance", async () => {
@@ -631,41 +663,29 @@ contract("StokrToken", ([owner,
         });
     });
 
-    // Tests of profit sharing related functions.
-    describe("profit share", () => {
+    // Tests of profit deposit related functions.
+    describe("profit deposit", () => {
         let whitelist, token;
-
-        // Helper function to read an account.
-        const getAccount = async (address) => {
-            let [balance, lastTotalProfits, profitShare] = await token.accounts(address);
-            return {balance, lastTotalProfits, profitShare};
-        };
 
         before("deploy contracts", async () => {
             [whitelist, token] = await deployWhitelistAndToken();
-            // mint some tokens for the benefit of investors
-            // Note: in order to make the tests working correctly, ensure that in
-            //       all test scenarios the individual tokens share is a finite
-            //       binary fraction of total token supply.
-            await token.mint(investor1, 4000, {from: minter});  // 1/2
-            await token.mint(investor2, 3000, {from: minter});  // 3/8
-            await token.mint(investor3, 1000, {from: minter});  // 1/8
+            token.mint(investor1, 1, {from: minter});
         });
 
-        afterEach("invariant: sum of individual profits equals token wei balance", async () => {
-            // This invariant doesn't hold while token minting
-            let mintingFinished = await token.mintingFinished();
-            if (mintingFinished) {
-                let asset = await web3.eth.getBalance(token.address);
-                let shares = new web3.BigNumber(0);
-                for (let investor of investors.values()) {
-                    shares = shares.plus(await token.profitShareOwing(investor));
-                }
-                expect(shares).to.be.bignumber.equal(asset);
-            }
+        context("while minting", () => {
+
+            it("is forbidden", async () => {
+                let reason = await reject.call(token.depositProfit({from: profitDepositor,
+                                                                    value: money.ether(1)}));
+                expect(reason).to.be.equal("total supply may change");
+            });
         });
 
-        describe("depositing", () => {
+        context("after minting finished", () => {
+
+            before("finish minting", async () => {
+                await token.finishMinting({from: minter});
+            });
 
             it("by anyone but profit depositor is forbidden", async () => {
                 let reason = await reject.call(token.depositProfit({from: anyone, value: money.ether(1)}));
@@ -717,6 +737,58 @@ contract("StokrToken", ([owner,
                 let tx = await web3.eth.sendTransaction({from: profitDepositor, to: token.address, value});
                 expect(await token.totalProfits()).to.be.bignumber.equal(profits.plus(value));
             });
+        });
+    });
+    // Tests of profit deposit related functions.
+    describe("profit deposit (edge case: no tokens minted)", () => {
+        let whitelist, token;
+
+        before("deploy contracts", async () => {
+            [whitelist, token] = await deployWhitelistAndToken();
+        });
+
+        context("after minting finished", () => {
+
+            before("finish minting", async () => {
+                await token.finishMinting({from: minter});
+            });
+
+            it("is forbidden if no tokens were minted", async () => {
+                let reason = await reject.call(token.depositProfit({from: profitDepositor,
+                                                                    value: money.ether(1)}));
+                expect(reason).to.be.equal("total supply is zero");
+            });
+        });
+    });
+
+    // Tests of profit sharing related functions.
+    describe("profit share", () => {
+        let whitelist, token;
+
+        // Helper function to read an account.
+        const getAccount = async (address) => {
+            let [balance, lastTotalProfits, profitShare] = await token.accounts(address);
+            return {balance, lastTotalProfits, profitShare};
+        };
+
+        before("deploy contracts", async () => {
+            [whitelist, token] = await deployWhitelistAndToken();
+            // mint some tokens for the benefit of investors
+            // Note: in order to make the tests working correctly, ensure that in
+            //       all test scenarios the individual tokens share is a finite
+            //       binary fraction of total token supply.
+            await token.mint(investor1, 4000, {from: minter});  // 1/2
+            await token.mint(investor2, 3000, {from: minter});  // 3/8
+            await token.mint(investor3, 1000, {from: minter});  // 1/8
+        });
+
+        afterEach("invariant: sum of individual profits equals token wei balance", async () => {
+            let asset = await web3.eth.getBalance(token.address);
+            let shares = new web3.BigNumber(0);
+            for (let investor of investors.values()) {
+                shares = shares.plus(await token.profitShareOwing(investor));
+            }
+            expect(shares).to.be.bignumber.equal(asset);
         });
 
         context("while minting", () => {

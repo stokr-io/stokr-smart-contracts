@@ -1,4 +1,4 @@
-pragma solidity 0.4.24;
+pragma solidity 0.4.25;
 
 import "./MintingCrowdsale.sol";
 import "./RateSourceInterface.sol";
@@ -86,22 +86,6 @@ contract StokrCrowdsale is MintingCrowdsale {
         refundInvestor(msg.sender);
     }
 
-    /// @dev Refund an investor if the sale was not successful
-    /// @param _investor Ethereum address of investor
-    function refundInvestor(address _investor) internal {
-        require(isFinalized, "Sale has not been finalized");
-        require(!goalReached(), "Goal was reached");
-
-        uint investment = investments[_investor];
-
-        if (investment > 0) {
-            investments[_investor] = 0;
-            _investor.transfer(investment);
-
-            emit InvestorRefund(_investor, investment);
-        }
-    }
-
     /// @dev Overwritten. Kill the token if goal was missed
     function finalize() public onlyOwner {
         super.finalize();
@@ -118,6 +102,22 @@ contract StokrCrowdsale is MintingCrowdsale {
         }
         else {
             investments[msg.sender] = investments[msg.sender].add(msg.value);
+        }
+    }
+
+    /// @dev Refund an investor if the sale was not successful
+    /// @param _investor Ethereum address of investor
+    function refundInvestor(address _investor) internal {
+        require(isFinalized, "Sale has not been finalized");
+        require(!goalReached(), "Goal was reached");
+
+        uint investment = investments[_investor];
+
+        if (investment > 0) {
+            investments[_investor] = 0;
+            _investor.transfer(investment);
+
+            emit InvestorRefund(_investor, investment);
         }
     }
 

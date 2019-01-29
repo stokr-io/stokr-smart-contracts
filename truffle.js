@@ -38,14 +38,12 @@ module.exports = {
         reporter: "eth-gas-reporter",
     },
 
-    /*
     coverage: {
         network_id: "*",
         host: "localhost",
         port: 8555,
-        gas: 0xfffffffffff,
+        gas: 0xffffffffffffffff,
         gasPrice: 0x01,
     },
-    */
 
 };
