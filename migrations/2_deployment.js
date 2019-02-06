@@ -20,7 +20,7 @@ module.exports = (deployer, network) => deployer.then(async () => {
     await projectManager.setTokenFactory(tokenFactory.address);
     await projectManager.setCrowdsaleFactory(crowdsaleFactory.address);
 
-    let owner = await projectManager.owner()
+    let owner = await projectManager.owner();
 
     await projectManager.setRateAdmin(owner);
     await whitelist.addAdmin(owner);
