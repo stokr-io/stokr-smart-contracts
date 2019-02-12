@@ -70,6 +70,7 @@ contract("StokrCrowdsale", ([owner,
                                                        whitelist.address,
                                                        random.address(),
                                                        random.address(),
+                                                       random.address(),
                                                        {from: owner})).address;
         }
 
@@ -216,6 +217,7 @@ contract("StokrCrowdsale", ([owner,
                                                           {from: owner})).address;
                 params.token = (await StokrToken.new("Name",
                                                      "SYM",
+                                                     random.address(),
                                                      random.address(),
                                                      random.address(),
                                                      random.address(),

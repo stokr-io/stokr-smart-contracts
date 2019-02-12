@@ -12,6 +12,7 @@ contract StokrTokenFactory {
         string symbol,
         Whitelist whitelist,
         address profitDepositor,
+        address profitDistributor,
         address keyRecoverer
     )
         public
@@ -22,6 +23,7 @@ contract StokrTokenFactory {
             symbol,
             whitelist,
             profitDepositor,
+            profitDistributor,
             keyRecoverer);
 
         token.transferOwnership(msg.sender);

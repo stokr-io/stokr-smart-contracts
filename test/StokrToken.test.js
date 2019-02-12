@@ -13,7 +13,7 @@ contract("StokrToken", ([owner,
                          minter,
                          profitDepositor,
                          profitDistributor,
-                         keyRecoverer,
+                         tokenRecoverer,
                          investor1,
                          investor2,
                          investor3,
@@ -30,12 +30,13 @@ contract("StokrToken", ([owner,
         let whitelist = await Whitelist.new({from: owner});
         await whitelist.addAdmin(owner, {from: owner});
         await whitelist.addToWhitelist(investors, {from: owner});
-        // deploy token contract with keyRecoverer and minter
+        // deploy token contract with tokenRecoverer and minter
         let token = await StokrToken.new(tokenName,
                                          tokenSymbol,
                                          whitelist.address,
                                          profitDepositor,
-                                         keyRecoverer,
+                                         profitDistributor,
+                                         tokenRecoverer,
                                          {from: owner});
         await token.setProfitDistributor(profitDistributor, {from: owner});
         await token.setMinter(minter, {from: owner});
@@ -79,7 +80,8 @@ contract("StokrToken", ([owner,
                                                                 tokenSymbol,
                                                                 0x0,
                                                                 profitDepositor,
-                                                                keyRecoverer,
+                                                                profitDistributor,
+                                                                tokenRecoverer,
                                                                 {from: owner}));
                 expect(reason).to.be.equal("whitelist address is zero");
             });
@@ -89,19 +91,32 @@ contract("StokrToken", ([owner,
                                                                 tokenSymbol,
                                                                 whitelist.address,
                                                                 0x0,
-                                                                keyRecoverer,
+                                                                profitDistributor,
+                                                                tokenRecoverer,
                                                                 {from: owner}));
                 expect(reason).to.be.equal("new profit depositor is zero");
             });
 
-            it("fails if keyRecoverer is zero address", async () => {
+            it("fails if profitDistributor is zero address", async () => {
                 let reason = await reject.deploy(StokrToken.new(tokenName,
                                                                 tokenSymbol,
                                                                 whitelist.address,
                                                                 profitDepositor,
                                                                 0x0,
+                                                                tokenRecoverer,
                                                                 {from: owner}));
-                expect(reason).to.be.equal("new key recoverer is zero");
+                expect(reason).to.be.equal("new profit distributor is zero");
+            });
+
+            it("fails if tokenRecoverer is zero address", async () => {
+                let reason = await reject.deploy(StokrToken.new(tokenName,
+                                                                tokenSymbol,
+                                                                whitelist.address,
+                                                                profitDepositor,
+                                                                profitDistributor,
+                                                                0x0,
+                                                                {from: owner}));
+                expect(reason).to.be.equal("new token recoverer is zero");
             });
         });
 
@@ -113,7 +128,8 @@ contract("StokrToken", ([owner,
                                              tokenSymbol,
                                              whitelist.address,
                                              profitDepositor,
-                                             keyRecoverer,
+                                             profitDistributor,
+                                             tokenRecoverer,
                                              {from: owner});
                 expect(await web3.eth.getCode(token.address)).to.be.not.oneOf(["0x", "0x0"]);
             });
@@ -142,8 +158,12 @@ contract("StokrToken", ([owner,
                 expect(await token.profitDepositor()).to.be.bignumber.equal(profitDepositor);
             });
 
-            it("sets correct keyRecoverer", async () => {
-                expect(await token.keyRecoverer()).to.be.bignumber.equal(keyRecoverer);
+            it("sets correct profitDistributor", async () => {
+                expect(await token.profitDistributor()).to.be.bignumber.equal(profitDistributor);
+            });
+
+            it("sets correct tokenRecoverer", async () => {
+                expect(await token.tokenRecoverer()).to.be.bignumber.equal(tokenRecoverer);
             });
 
             it("sets minter to zero address", async () => {
@@ -174,7 +194,8 @@ contract("StokrToken", ([owner,
                                          tokenSymbol,
                                          whitelist.address,
                                          profitDepositor,
-                                         keyRecoverer,
+                                         profitDistributor,
+                                         tokenRecoverer,
                                          {from: owner});
         });
 
@@ -259,30 +280,30 @@ contract("StokrToken", ([owner,
             });
         });
 
-        describe("of key recoverer", () => {
+        describe("of token recoverer", () => {
 
             it("by anyone but owner is forbidden", async () => {
-                let reason = await reject.call(token.setKeyRecoverer(random.address(), {from: anyone}));
+                let reason = await reject.call(token.setTokenRecoverer(random.address(), {from: anyone}));
                 expect(reason).to.be.equal("restricted to owner");
             });
 
             it("to zero is forbidden", async () => {
-                let reason = await reject.call(token.setKeyRecoverer(0x0, {from: owner}));
-                expect(reason).to.be.equal("new key recoverer is zero");
+                let reason = await reject.call(token.setTokenRecoverer(0x0, {from: owner}));
+                expect(reason).to.be.equal("new token recoverer is zero");
             });
 
             it("is possible", async () => {
-                let newKeyRecoverer = random.address();
-                await token.setKeyRecoverer(newKeyRecoverer, {from: owner});
-                expect(await token.keyRecoverer()).to.be.bignumber.equal(newKeyRecoverer);
+                let newTokenRecoverer = random.address();
+                await token.setTokenRecoverer(newTokenRecoverer, {from: owner});
+                expect(await token.tokenRecoverer()).to.be.bignumber.equal(newTokenRecoverer);
             });
 
             it("gets logged", async () => {
-                let newKeyRecoverer = random.address();
-                let tx = await token.setKeyRecoverer(newKeyRecoverer, {from: owner});
-                let entry = tx.logs.find(entry => entry.event === "KeyRecovererChange");
+                let newTokenRecoverer = random.address();
+                let tx = await token.setTokenRecoverer(newTokenRecoverer, {from: owner});
+                let entry = tx.logs.find(entry => entry.event === "TokenRecovererChange");
                 expect(entry).to.exist;
-                expect(entry.args.newKeyRecoverer).to.be.bignumber.equal(newKeyRecoverer);
+                expect(entry.args.newTokenRecoverer).to.be.bignumber.equal(newTokenRecoverer);
             });
         });
 
@@ -960,8 +981,9 @@ contract("StokrToken", ([owner,
         });
     });
 
-    // Tests of key recovery related functions.
-    describe("key recovery", () => {
+
+    // Tests of token recovery related functions.
+    describe("token recovery", () => {
         let whitelist, token, totalSupply;
 
         // Helper function to read an account.
@@ -987,19 +1009,19 @@ contract("StokrToken", ([owner,
             expect(await token.totalSupply()).to.be.bignumber.equal(totalSupply);
         });
 
-        it("is forbidden by anyone other than key recoverer", async () => {
-            let reason = await reject.call(token.recoverKey(investor2, investor3, {from: anyone}));
-            expect(reason).to.be.equal("restricted to key recoverer");
+        it("is forbidden by anyone other than token recoverer", async () => {
+            let reason = await reject.call(token.recoverToken(investor2, investor3, {from: anyone}));
+            expect(reason).to.be.equal("restricted to token recoverer");
         });
 
         it("is forbidden if new address is an already used account", async () => {
-            let reason = await reject.call(token.recoverKey(investor1, investor2, {from: keyRecoverer}));
+            let reason = await reject.call(token.recoverToken(investor1, investor2, {from: tokenRecoverer}));
             expect(reason).to.be.equal("new address exists already");
         });
 
         it("is possible", async () => {
             let account = await getAccount(investor2);
-            await token.recoverKey(investor2, investor3, {from: keyRecoverer});
+            await token.recoverToken(investor2, investor3, {from: tokenRecoverer});
             let oldAccount = await getAccount(investor2);
             expect(oldAccount.balance).to.be.bignumber.zero;
             expect(oldAccount.lastTotalProfits).to.be.bignumber.zero;
@@ -1011,8 +1033,8 @@ contract("StokrToken", ([owner,
         });
 
         it("gets logged", async () => {
-            let tx = await token.recoverKey(investor3, investor2, {from: keyRecoverer});
-            let entry = tx.logs.find(entry => entry.event === "KeyRecovery");
+            let tx = await token.recoverToken(investor3, investor2, {from: tokenRecoverer});
+            let entry = tx.logs.find(entry => entry.event === "TokenRecovery");
             expect(entry).to.exist;
             expect(entry.args.oldAddress).to.be.equal(investor3);
             expect(entry.args.newAddress).to.be.equal(investor2);

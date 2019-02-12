@@ -1,13 +1,13 @@
 pragma solidity 0.4.25;
 
-import "../recovery/KeyRecoverable.sol";
 import "../whitelist/Whitelisted.sol";
+import "./TokenRecoverable.sol";
 import "./MintableToken.sol";
 
 
 /// @title StokrToken
 /// @author Stokr
-contract StokrToken is MintableToken, KeyRecoverable {
+contract StokrToken is MintableToken, TokenRecoverable {
 
     string public name;
     string public symbol;
@@ -17,36 +17,36 @@ contract StokrToken is MintableToken, KeyRecoverable {
 
     /// @dev Constructor
     /// @param _whitelist address of whitelist contract
-    /// @param _keyRecoverer  address of keyRecoverer
+    /// @param _tokenRecoverer  address of token recoverer
     constructor(
         string _name,
         string _symbol,
         Whitelist _whitelist,
         address _profitDepositor,
-        address _keyRecoverer
+        address _profitDistributor,
+        address _tokenRecoverer
     )
         public
         Whitelisted(_whitelist)
-        ProfitSharing(_profitDepositor)
-        KeyRecoverable(_keyRecoverer)
+        ProfitSharing(_profitDepositor, _profitDistributor)
+        TokenRecoverable(_tokenRecoverer)
     {
         name = _name;
         symbol = _symbol;
     }
 
-    /// @dev Self destruct can only be called by crowdSale contract
+    /// @dev Self destruct can only be called by crowdsale contract
     /// in case the goal is not reached
     function destruct() public onlyMinter {
         selfdestruct(owner);
     }
 
-    /// @dev Recover key
+    /// @dev Recover token
     /// @param _oldAddress  address of old account
     /// @param _newAddress  address of new account
-    function recoverKey(address _oldAddress, address _newAddress)
+    function recoverToken(address _oldAddress, address _newAddress)
         public
-        onlyKeyRecoverer
-
+        onlyTokenRecoverer
     {
         // Ensure that new address is *not* an existing account.
         // Check for account.profitShare is not needed because of following implication:
@@ -59,7 +59,7 @@ contract StokrToken is MintableToken, KeyRecoverable {
         accounts[_newAddress] = accounts[_oldAddress];
         delete accounts[_oldAddress];
 
-        emit KeyRecovery(_oldAddress, _newAddress);
+        emit TokenRecovery(_oldAddress, _newAddress);
         emit Transfer(_oldAddress, _newAddress, accounts[_newAddress].balance);
     }
 

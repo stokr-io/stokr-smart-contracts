@@ -140,7 +140,8 @@ contract StokrProjectManager is Ownable, RateSource {
         string name,
         string symbol,
         uint tokenPrice,
-        address[4] roles,  // [profitDepositor, keyRecoverer, tokenOwner, crowdsaleOwner]
+        address[5] roles,  // [profitDepositor, profitDistributor, tokenRecoverer,
+                           //  tokenOwner, crowdsaleOwner]
         uint[5] amounts,  // [tokenCapOfPublicSale, tokenCapOfPrivateSale, tokenGoal,
                           //  tokenPurchaseMinimum, tokenReservePerMill]
         uint[2] period,  // [openingTime, closingTime]
@@ -166,7 +167,8 @@ contract StokrProjectManager is Ownable, RateSource {
             symbol,
             currentWhitelist,
             roles[0],  // profitDepositor
-            roles[1]);  // keyRecoverer
+            roles[1],
+            roles[2]);  // keyRecoverer
 
         // Utilize the crowdsale factory to deploy a new crowdsale contract instance
         StokrCrowdsale crowdsale = crowdsaleFactory.createNewCrowdsale(
@@ -177,8 +179,8 @@ contract StokrProjectManager is Ownable, RateSource {
             wallets);
 
         token.setMinter(crowdsale);  // The crowdsale should be the minter of the token
-        token.transferOwnership(roles[2]);  // to tokenOwner
-        crowdsale.transferOwnership(roles[3]);  // to crowdsaleOwner
+        token.transferOwnership(roles[3]);  // to tokenOwner
+        crowdsale.transferOwnership(roles[4]);  // to crowdsaleOwner
 
         // Store the created project into the projects array state variable
         projects.push(StokrProject(name, currentWhitelist, token, crowdsale));

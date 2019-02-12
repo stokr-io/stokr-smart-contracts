@@ -655,7 +655,7 @@ Permissions
   * assign [minter](#token-role-minter), but only once
   * assign [profit depositor](#token-role-depositor)
   * assign [profit distributor](#token-role-distributor)
-  * assign [key recoverer](#token-role-recoverer)
+  * assign [token recoverer](#token-role-recoverer)
 
 
 ### Token Minter  {#token-role-minter}
@@ -740,9 +740,9 @@ Permissions
   to investors according to their amount of tokens they hold
 
 
-### Key Recoverer  {#token-role-recoverer}
+### Token Recoverer  {#token-role-recoverer}
 
-Authority who may [assign a new address](#token-func-keyrecovery) to a
+Authority who may [assign a new address](#token-func-tokenrecovery) to a
 token holder's account.
 
 Initially
@@ -862,16 +862,16 @@ the following authorities (roles):
     Emitted events
     ~ `ProfitDepositorChange(address)`
 
-#.  [Key recoverer](#token-role-recoverer)
+#.  [Token recoverer](#token-role-recoverer)
 
     Function
-    ~ `setKeyRecoverer(address)`
+    ~ `setTokenRecoverer(address)`
 
     Restrictions
     ~ only by [owner](#token-role-owner)
 
     Emitted events
-    ~ `KeyRecovererChange(address, address)`
+    ~ `TokenRecovererChange(address, address)`
 
 
 ### Whitelist Checks  {#token-func-whitelist}
@@ -1110,23 +1110,23 @@ Token transfers are possible via the [ERC20] functions:
     ~ `Transfer(address, address, uint)`
 
 
-### Key Recovery  {#token-func-keyrecovery}
+### Token Recovery  {#token-func-tokenrecovery}
 
 In case a [token holders](#token-role-holder) wants to change his/her Ethereum
 address, e.g. if he/she lost his/her private key or his account was
-compromised, the [key recoverer](#token-role-recoverer) authority can attach
+compromised, the [token recoverer](#token-role-recoverer) authority can attach
 the account related data to the token holder's new address.
 
 Function
-~ `recoverKey(address, address)`
+~ `recoverToken(address, address)`
 
 Restrictions
-~ * only by [key recoverer](#token-role-recoverer)
+~ * only by [token recoverer](#token-role-recoverer)
   * only if the new address isn't already assigned to some account data within
     this token instance
 
 Emitted events
-~ * `KeyRecovery(address, address)`
+~ * `TokenRecovery(address, address)`
   * `Transfer(address, address, uint)`
 
 

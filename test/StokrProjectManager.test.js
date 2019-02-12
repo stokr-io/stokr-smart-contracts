@@ -16,7 +16,8 @@ contract("StokrProjectManager", ([owner,
                                   tokenOwner,
                                   crowdsaleOwner,
                                   profitDepositor,
-                                  keyRecoverer,
+                                  profitDistributor,
+                                  tokenRecoverer,
                                   rateAdmin,
                                   companyWallet,
                                   reserveAccount,
@@ -247,7 +248,7 @@ contract("StokrProjectManager", ([owner,
             tokenName,
             tokenSymbol,
             tokenPrice,
-            [profitDepositor, keyRecoverer, tokenOwner, crowdsaleOwner],
+            [profitDepositor, profitDistributor, tokenRecoverer, tokenOwner, crowdsaleOwner],
             [tokenCapOfPublicSale, tokenCapOfPrivateSale, tokenGoal,
              tokenPurchaseMinimum, tokenReservePerMill],
             [openingTime, closingTime],
@@ -327,7 +328,8 @@ contract("StokrProjectManager", ([owner,
             expect(await token.name()).to.be.equal(tokenName);
             expect(await token.symbol()).to.be.equal(tokenSymbol);
             expect(await token.profitDepositor()).to.be.bignumber.equal(profitDepositor);
-            expect(await token.keyRecoverer()).to.be.bignumber.equal(keyRecoverer);
+            expect(await token.profitDistributor()).to.be.bignumber.equal(profitDistributor);
+            expect(await token.tokenRecoverer()).to.be.bignumber.equal(tokenRecoverer);
             expect(await token.whitelist()).to.be.bignumber.equal(await projectManager.currentWhitelist());
             expect(await token.minter()).to.be.bignumber.equal(crowdsaleAddress);
             expect(await token.owner()).to.be.bignumber.equal(tokenOwner);

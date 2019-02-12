@@ -94,8 +94,9 @@ contract ProfitSharing is Ownable {
 
     /// @dev Constructor
     /// @param _profitDepositor Profit deposit authority
-    constructor(address _profitDepositor) public {
+    constructor(address _profitDepositor, address _profitDistributor) public {
         setProfitDepositor(_profitDepositor);
+        setProfitDistributor(_profitDistributor);
     }
 
     /// @dev Profit deposit if possible via fallback function

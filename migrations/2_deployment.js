@@ -6,7 +6,6 @@ const StokrTokenFactory = artifacts.require("token/StokrTokenFactory");
 const StokrCrowdsaleFactory = artifacts.require("crowdsale/StokrCrowdsaleFactory");
 
 const INITIAL_ETHER_RATE = 10000;
-//const INITIAL_RATE_ADMIN = "0xC0FEBABE";
 
 
 module.exports = (deployer, network) => deployer.then(async () => {
