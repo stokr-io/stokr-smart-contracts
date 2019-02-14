@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>Code coverage report for contracts/math/SafeMath.sol</title>
+    <title>Code coverage report for contracts/token/TokenRecoverable.sol</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../prettify.css" />
     <link rel="stylesheet" href="../../base.css" />
@@ -16,28 +16,28 @@
 <div class='wrapper'>
   <div class='pad1'>
     <h1>
-      <a href="../../index.html">all files</a> / <a href="index.html">contracts/math/</a> SafeMath.sol
+      <a href="../../index.html">all files</a> / <a href="index.html">contracts/token/</a> TokenRecoverable.sol
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>11/11</span>
+        <span class='fraction'>6/6</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>8/8</span>
+        <span class='fraction'>6/6</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>4/4</span>
+        <span class='fraction'>3/3</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>11/11</span>
+        <span class='fraction'>7/7</span>
       </div>
     </div>
   </div>
@@ -85,7 +85,15 @@
 40
 41
 42
-43</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+43
+44
+45
+46
+47
+48
+49
+50
+51</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -94,79 +102,95 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">285×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">285×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">284×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">147×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">146×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">128×</span>
-<span class="cline-any cline-yes">39×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">89×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">89×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">87×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">108×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">41×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">44×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">42×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">42×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">pragma solidity 0.4.25;
 &nbsp;
+import "../ownership/Ownable.sol";
 &nbsp;
-/// @title SafeMath
-/// @dev Math operations with safety checks that throw on error
-library SafeMath {
 &nbsp;
-    /// @dev Add two integers
-    function add(uint a, uint b) internal pure returns (uint) {
-        uint c = a + b;
+/// @title TokenRecoverable
+/// @author STOKR
+contract TokenRecoverable is Ownable {
 &nbsp;
-        assert(c &gt;= a);
+    // Address that can do the TokenRecovery
+    address public tokenRecoverer;
 &nbsp;
-        return c;
+    /// @dev Event emitted when the TokenRecoverer changes
+    /// @param newTokenRecoverer Ethereum address of new TokenRecoverer
+    event TokenRecovererChange(address indexed newTokenRecoverer);
+&nbsp;
+    /// @dev Event emitted in case of a TokenRecovery
+    /// @param oldAddress Ethereum address of old account
+    /// @param newAddress Ethereum address of new account
+    event TokenRecovery(address indexed oldAddress, address indexed newAddress);
+&nbsp;
+    /// @dev Restrict operation to token recoverer
+    modifier onlyTokenRecoverer() {
+        require(msg.sender == tokenRecoverer, "Restricted to token recoverer");
+        _;
     }
 &nbsp;
-    /// @dev Subtract two integers
-    function sub(uint a, uint b) internal pure returns (uint) {
-        assert(b &lt;= a);
-&nbsp;
-        return a - b;
+    /// @dev Constructor
+    /// @param _tokenRecoverer address
+    constructor(address _tokenRecoverer) public {
+        setTokenRecoverer(_tokenRecoverer);
     }
 &nbsp;
-    /// @dev Multiply tow integers
-    function mul(uint a, uint b) internal pure returns (uint) {
-        if (a == 0) {
-            return 0;
+    /// @dev Set token recoverer
+    /// @param _newTokenRecoverer address
+    function setTokenRecoverer(address _newTokenRecoverer) public onlyOwner {
+        require(_newTokenRecoverer != address(0x0), "New token recoverer is zero");
+&nbsp;
+        if (tokenRecoverer != address(0x0) &amp;&amp; _newTokenRecoverer != tokenRecoverer) {
+            emit TokenRecovererChange(_newTokenRecoverer);
         }
-&nbsp;
-        uint c = a * b;
-&nbsp;
-        assert(c / a == b);
-&nbsp;
-        return c;
+        tokenRecoverer = _newTokenRecoverer;
     }
 &nbsp;
-    /// @dev Floor divide two integers
-    function div(uint a, uint b) internal pure returns (uint) {
-        return a / b;
-    }
+    /// @dev Recover token
+    /// @param _oldAddress address
+    /// @param _newAddress address
+    function recoverToken(address _oldAddress, address _newAddress) public;
 &nbsp;
 }
 &nbsp;</pre></td></tr>
