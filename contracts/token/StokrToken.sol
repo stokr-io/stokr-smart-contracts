@@ -16,8 +16,8 @@ contract StokrToken is MintableToken, TokenRecoverable {
     mapping(address => mapping(address => uint)) internal allowance_;
 
     /// @dev Constructor
-    /// @param _whitelist address of whitelist contract
-    /// @param _tokenRecoverer  address of token recoverer
+    /// @param _whitelist       Ethereum address of whitelist contract
+    /// @param _tokenRecoverer  Ethereum address of token recoverer
     constructor(
         string _name,
         string _symbol,
@@ -35,8 +35,7 @@ contract StokrToken is MintableToken, TokenRecoverable {
         symbol = _symbol;
     }
 
-    /// @dev Self destruct can only be called by crowdsale contract
-    /// in case the goal is not reached
+    /// @dev  Self destruct can only be called by crowdsale contract in case the goal wasn't reached
     function destruct() public onlyMinter {
         selfdestruct(owner);
     }
@@ -63,31 +62,31 @@ contract StokrToken is MintableToken, TokenRecoverable {
         emit Transfer(_oldAddress, _newAddress, accounts[_newAddress].balance);
     }
 
-    /// @dev Total supply
-    /// @return A positive number
+    /// @dev  Total supply of this token
+    /// @return  Token amount
     function totalSupply() public view returns (uint) {
         return totalSupply_;
     }
 
-    /// @dev Balance of
-    /// @param _investor An Ethereum address
-    /// @return A positive number
+    /// @dev  Token balance
+    /// @param _investor  Ethereum address of token holder
+    /// @return           Token amount
     function balanceOf(address _investor) public view returns (uint) {
         return accounts[_investor].balance;
     }
 
-    /// @dev Allowance
-    /// @param _investor An Ethereum address
-    /// @param _spender An Ethereum address
-    /// @return A positive number
+    /// @dev  Allowed token amount a third party trustee may transfer
+    /// @param _investor  Ethereum address of token holder
+    /// @param _spender   Ethereum address of third party
+    /// @return           Allowed token amount
     function allowance(address _investor, address _spender) public view returns (uint) {
         return allowance_[_investor][_spender];
     }
 
-    /// @dev Approve
-    /// @param _spender An Ethereum address
-    /// @param _value A positive number
-    /// @return True or false
+    /// @dev  Approve a third party trustee to transfer tokens
+    /// @param _spender  Ethereum address of third party
+    /// @param _value    Maximunpositive number
+    /// @return          Always true
     function approve(address _spender, uint _value)
         public
         onlyWhitelisted(msg.sender)
@@ -101,19 +100,47 @@ contract StokrToken is MintableToken, TokenRecoverable {
         return true;
     }
 
-    /// @dev Transfer
-    /// @param _to An Ethereum address
-    /// @param _value A positive number
-    /// @return True or false
+    /// @dev  Check if a token transfer is possible
+    /// @param _from   Ethereum address of token sender
+    /// @param _to     Ethereum address of token recipient
+    /// @param _value  Token amount to transfer
+    /// @return        True iff a transfer with given pramaters would succeed
+    function canTransfer(address _from, address _to, uint _value)
+        public view returns (bool)
+    {
+        return totalSupplyIsFixed
+            && _from != address(0x0)
+            && _to != address(0x0)
+            && _value <= accounts[_from].balance
+            && whitelist.isWhitelisted(_from)
+            && whitelist.isWhitelisted(_to);
+    }
+
+    /// @dev  Check if a token transfer by third party is possible
+    /// @param _spender  Ethereum address of third party trustee
+    /// @param _from     Ethereum address of token holder
+    /// @param _to       Ethereum address of token recipient
+    /// @param _value    Token amount to transfer
+    /// @return          True iff a transfer with given pramaters would succeed
+    function canTransferFrom(address _spender, address _from, address _to, uint _value)
+        public view returns (bool)
+    {
+        return canTransfer(_from, _to, _value) && _value <= allowance_[_from][_spender];
+    }
+
+    /// @dev  Token transfer
+    /// @param _to     Ethereum address of token recipient
+    /// @param _value  Token amount to transfer
+    /// @return        Always true
     function transfer(address _to, uint _value) public returns (bool) {
         return _transfer(msg.sender, _to, _value);
     }
 
-    /// @dev Transfer from
-    /// @param _from An Ethereum address
-    /// @param _to An Ethereum address
-    /// @param _value A positive number
-    /// @return True or false
+    /// @dev  Token transfer by a third party
+    /// @param _from   Ethereum address of token holder
+    /// @param _to     Ethereum address of token recipient
+    /// @param _value  Token amount to transfer
+    /// @return        Always true
     function transferFrom(address _from, address _to, uint _value) public returns (bool) {
         require(_value <= allowance_[_from][msg.sender], "Amount exceeds allowance");
 
@@ -122,11 +149,11 @@ contract StokrToken is MintableToken, TokenRecoverable {
         return _transfer(_from, _to, _value);
     }
 
-    /// @dev Transfer
-    /// @param _from An Ethereum address
-    /// @param _to An Ethereum address
-    /// @param _value A positive number
-    /// @return True or false
+    /// @dev  Token transfer (common functionality)
+    /// @param _from   Ethereum address of token sender
+    /// @param _to     Ethereum address of token recipient
+    /// @param _value  Token ammount to transfer
+    /// @return        Always true
     function _transfer(address _from, address _to, uint _value)
         internal
         onlyWhitelisted(_from)

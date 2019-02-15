@@ -439,6 +439,7 @@ contract("StokrToken", ([owner,
         context("while minting", () => {
 
             it("is forbidden", async () => {
+                expect(await token.canTransfer(debited, credited, 1)).to.be.false;
                 let reason = await reject.call(token.transfer(credited, 1, {from: debited}));
                 expect(reason).to.be.equal("total supply may change");
             });
@@ -452,6 +453,7 @@ contract("StokrToken", ([owner,
 
             it("is forbidden if debited account isn't whitelisted", async () => {
                 await whitelist.removeFromWhitelist([debited], {from: owner});
+                expect(await token.canTransfer(debited, credited, 1)).to.be.false;
                 let reason = await reject.call(token.transfer(credited, 1, {from: debited}));
                 await whitelist.addToWhitelist([debited], {from: owner});
                 expect(reason).to.be.equal("address is not whitelisted");
@@ -459,6 +461,7 @@ contract("StokrToken", ([owner,
 
             it("is forbidden if credited account isn't whitelisted", async () => {
                 await whitelist.removeFromWhitelist([credited], {from: owner});
+                expect(await token.canTransfer(debited, credited, 1)).to.be.false;
                 let reason = await reject.call(token.transfer(credited, 1, {from: debited}));
                 await whitelist.addToWhitelist([credited], {from: owner});
                 expect(reason).to.be.equal("address is not whitelisted");
@@ -466,23 +469,27 @@ contract("StokrToken", ([owner,
 
             it("is forbidden if amount exceed balance", async () => {
                 let amount = (await token.balanceOf(debited)).plus(1);
+                expect(await token.canTransfer(debited, credited, amount)).to.be.false;
                 let reason = await reject.call(token.transfer(credited, amount, {from: debited}));
                 expect(reason).to.be.equal("amount exceeds balance");
             });
 
             it("to zero address is forbidden", async () => {
                 await whitelist.addToWhitelist([0x0], {from: owner});
+                expect(await token.canTransfer(debited, 0x0, 0)).to.be.false;
                 let reason = await reject.call(token.transfer(0x0, 0, {from: debited}));
                 expect(reason).to.be.equal("recipient is zero");
             });
 
             it("is possible", async () => {
                 let amount = (await token.balanceOf(debited)).divToInt(2);
+                expect(await token.canTransfer(debited, credited, amount)).to.be.true;
                 await token.transfer(credited, amount, {from: debited});
             });
 
             it("gets logged", async () => {
                 let amount = (await token.balanceOf(debited)).divToInt(2);
+                expect(await token.canTransfer(debited, credited, amount)).to.be.true;
                 let tx = await token.transfer(credited, amount, {from: debited});
                 let entry = tx.logs.find(entry => entry.event === "Transfer");
                 expect(entry).to.exist;
@@ -494,6 +501,7 @@ contract("StokrToken", ([owner,
             it("decreases debited balance", async () => {
                 let balance = await token.balanceOf(debited);
                 let amount = balance.divToInt(2);
+                expect(await token.canTransfer(debited, credited, amount)).to.be.true;
                 await token.transfer(credited, amount, {from: debited});
                 expect(await token.balanceOf(debited)).to.be.bignumber.equal(balance.minus(amount));
             });
@@ -501,6 +509,7 @@ contract("StokrToken", ([owner,
             it("increases credited balance", async () => {
                 let balance = await token.balanceOf(credited);
                 let amount = (await token.balanceOf(debited)).divToInt(2);
+                expect(await token.canTransfer(debited, credited, amount)).to.be.true;
                 await token.transfer(credited, amount, {from: debited});
                 expect(await token.balanceOf(credited)).to.be.bignumber.equal(balance.plus(amount));
             });
@@ -591,6 +600,7 @@ contract("StokrToken", ([owner,
         context("while minting", () => {
 
             it("is forbidden", async () => {
+                expect(await token.canTransferFrom(trustee, debited, credited, 0)).to.be.false;
                 let reason = await reject.call(token.transferFrom(debited, credited, 0, {from: trustee}));
                 expect(reason).to.be.equal("total supply may change");
             });
@@ -607,6 +617,7 @@ contract("StokrToken", ([owner,
                 await token.approve(trustee, 0, {from: debited});
                 await token.approve(trustee, amount, {from: debited});
                 await whitelist.removeFromWhitelist([debited], {from: owner});
+                expect(await token.canTransferFrom(trustee, debited, credited, amount)).to.be.false;
                 let reason = await reject.call(
                     token.transferFrom(debited, credited, amount, {from: trustee}));
                 await whitelist.addToWhitelist([debited], {from: owner});
@@ -618,6 +629,7 @@ contract("StokrToken", ([owner,
                 await token.approve(trustee, 0, {from: debited});
                 await token.approve(trustee, amount, {from: debited});
                 await whitelist.removeFromWhitelist([credited], {from: owner});
+                expect(await token.canTransferFrom(trustee, debited, credited, amount)).to.be.false;
                 let reason = await reject.call(
                     token.transferFrom(debited, credited, amount, {from: trustee}));
                 await whitelist.addToWhitelist([credited], {from: owner});
@@ -629,6 +641,7 @@ contract("StokrToken", ([owner,
                 await token.approve(trustee, 0, {from: debited});
                 await token.approve(trustee, amount, {from: debited});
                 await whitelist.addToWhitelist([0x0], {from: owner});
+                expect(await token.canTransferFrom(trustee, debited, 0x0, amount)).to.be.false;
                 let reason = await reject.call(
                     token.transferFrom(debited, 0x0, amount, {from: trustee}));
                 expect(reason).to.be.equal("recipient is zero");
@@ -638,6 +651,7 @@ contract("StokrToken", ([owner,
                 let amount = (await token.balanceOf(debited)).divToInt(2);
                 await token.approve(trustee, 0, {from: debited});
                 await token.approve(trustee, amount, {from: debited});
+                expect(await token.canTransferFrom(trustee, debited, credited, amount.plus(1))).to.be.false;
                 let reason = await reject.call(
                     token.transferFrom(debited, credited, amount.plus(1), {from: trustee}));
                 expect(reason).to.be.equal("amount exceeds allowance");
@@ -647,6 +661,7 @@ contract("StokrToken", ([owner,
                 let amount = (await token.balanceOf(debited)).plus(1);
                 await token.approve(trustee, 0, {from: debited});
                 await token.approve(trustee, amount, {from: debited});
+                expect(await token.canTransferFrom(trustee, debited, credited, amount)).to.be.false;
                 let reason = await reject.call(
                     token.transferFrom(debited, credited, amount, {from: trustee}));
                 expect(reason).to.be.equal("amount exceeds balance");
@@ -656,6 +671,7 @@ contract("StokrToken", ([owner,
                 let amount = (await token.balanceOf(debited)).dividedToIntegerBy(2);
                 await token.approve(trustee, 0, {from: debited});
                 await token.approve(trustee, amount, {from: debited});
+                expect(await token.canTransferFrom(trustee, debited, credited, amount)).to.be.true;
                 let tx = await token.transferFrom(debited, credited, amount, {from: trustee});
                 let entry = tx.logs.find(entry => entry.event === "Transfer");
                 expect(entry).to.exist;
@@ -669,6 +685,7 @@ contract("StokrToken", ([owner,
                 let amount = balance.dividedToIntegerBy(2);
                 await token.approve(trustee, 0, {from: debited});
                 await token.approve(trustee, amount, {from: debited});
+                expect(await token.canTransferFrom(trustee, debited, credited, amount)).to.be.true;
                 await token.transferFrom(debited, credited, amount, {from: trustee});
                 expect(await token.balanceOf(debited)).to.be.bignumber.equal(balance.minus(amount));
             });
@@ -678,6 +695,7 @@ contract("StokrToken", ([owner,
                 let amount = (await token.balanceOf(debited)).dividedToIntegerBy(2);
                 await token.approve(trustee, 0, {from: debited});
                 await token.approve(trustee, amount, {from: debited});
+                expect(await token.canTransferFrom(trustee, debited, credited, amount)).to.be.true;
                 await token.transferFrom(debited, credited, amount, {from: trustee});
                 expect(await token.balanceOf(credited)).to.be.bignumber.equal(balance.plus(amount));
             });
