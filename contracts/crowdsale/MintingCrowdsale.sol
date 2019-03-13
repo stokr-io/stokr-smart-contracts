@@ -32,12 +32,19 @@ contract MintingCrowdsale is Ownable {
     // Prices are in Euro cents (i.e. 1/100 EUR)
     uint public tokenPrice;
 
-    // The minimum amount of tokens a purchaser has to buy via one transaction.
+    // The minimum amount of tokens a purchaser has to buy via one transaction
     uint public tokenPurchaseMinimum;
+
+    // The maximum total amount of tokens a purchaser may buy during start phase
+    uint public tokenPurchaseLimit;
+
+    // Total token purchased by investor
+    mapping(address => uint) public tokenPurchased;
 
     // Public sale period
     uint public openingTime;
     uint public closingTime;
+    uint public limitEndTime;
 
     // Ethereum address where invested funds will be transferred to
     address public companyWallet;
@@ -71,9 +78,11 @@ contract MintingCrowdsale is Ownable {
     /// @param _tokenCapOfPublicSale Maximum number of token units to mint in public sale
     /// @param _tokenCapOfPrivateSale Maximum number of token units to mint in private sale
     /// @param _tokenPurchaseMinimum Minimum amount of tokens an investor has to buy at once
+    /// @param _tokenPurchaseLimit Maximum total token amounts individually buyable in limit phase
     /// @param _tokenPrice Price of a token in EUR cent
     /// @param _openingTime Block (Unix) timestamp of sale opening time
     /// @param _closingTime Block (Unix) timestamp of sale closing time
+    /// @param _limitEndTime Block (Unix) timestamp until token purchases are limited
     /// @param _companyWallet Ethereum account who will receive sent ether
     /// @param _tokenReservePerMill Per mill amount of sold tokens to mint for reserve account
     /// @param _reserveAccount Ethereum address of reserve tokens recipient
@@ -83,10 +92,12 @@ contract MintingCrowdsale is Ownable {
         uint _tokenCapOfPublicSale,
         uint _tokenCapOfPrivateSale,
         uint _tokenPurchaseMinimum,
+        uint _tokenPurchaseLimit,
         uint _tokenReservePerMill,
         uint _tokenPrice,
         uint _openingTime,
         uint _closingTime,
+        uint _limitEndTime,
         address _companyWallet,
         address _reserveAccount
     )
@@ -106,6 +117,16 @@ contract MintingCrowdsale is Ownable {
         require(_companyWallet != address(0x0), "Company wallet is zero");
         require(_reserveAccount != address(0x0), "Reserve account is zero");
 
+        // Note: There are no time related requirements regarding limitEndTime.
+        //       If it's below openingTime, token purchases will never be limited.
+        //       If it's above closingTime, token purchases will always be limited.
+        if (_limitEndTime > _openingTime) {
+            // But, if there's a purchase limitation phase, the limit must be at
+            // least the purchase minimum or above to make purchases possible.
+            require(_tokenPurchaseLimit >= _tokenPurchaseMinimum,
+                    "Purchase limit is below minimum");
+        }
+
         // Utilize safe math to ensure the sum of three token pools does't overflow
         _tokenCapOfPublicSale.add(_tokenCapOfPrivateSale).mul(_tokenReservePerMill);
 
@@ -114,10 +135,12 @@ contract MintingCrowdsale is Ownable {
         tokenCapOfPublicSale = _tokenCapOfPublicSale;
         tokenCapOfPrivateSale = _tokenCapOfPrivateSale;
         tokenPurchaseMinimum = _tokenPurchaseMinimum;
+        tokenPurchaseLimit= _tokenPurchaseLimit;
         tokenReservePerMill = _tokenReservePerMill;
         tokenPrice = _tokenPrice;
         openingTime = _openingTime;
         closingTime = _closingTime;
+        limitEndTime = _limitEndTime;
         companyWallet = _companyWallet;
         reserveAccount = _reserveAccount;
 
@@ -129,21 +152,25 @@ contract MintingCrowdsale is Ownable {
 
     /// @dev Fallback function: buys tokens
     function () public payable {
+        require(msg.data.length == 0, "Fallback call with data");
+
         buyTokens();
     }
 
     /// @dev Distribute tokens purchased off-chain via public sale
+    ///      Note: additional requirements are enforced in internal function.
     /// @param beneficiaries List of recipients' Ethereum addresses
     /// @param amounts List of token units each recipient will receive
-    function distributeTokensViaPublicSale(address[] beneficiaries, uint[] amounts) public {
+    function distributeTokensViaPublicSale(address[] beneficiaries, uint[] amounts) external {
         tokenRemainingForPublicSale =
             distributeTokens(tokenRemainingForPublicSale, beneficiaries, amounts);
     }
 
     /// @dev Distribute tokens purchased off-chain via private sale
+    ///      Note: additional requirements are enforced in internal function.
     /// @param beneficiaries List of recipients' Ethereum addresses
     /// @param amounts List of token units each recipient will receive
-    function distributeTokensViaPrivateSale(address[] beneficiaries, uint[] amounts) public {
+    function distributeTokensViaPrivateSale(address[] beneficiaries, uint[] amounts) external {
         tokenRemainingForPrivateSale =
             distributeTokens(tokenRemainingForPrivateSale, beneficiaries, amounts);
     }
@@ -191,7 +218,14 @@ contract MintingCrowdsale is Ownable {
         require(amount <= tokenRemainingForPublicSale, "Not enough tokens available");
         require(amount >= tokenPurchaseMinimum, "Investment is too low");
 
+        uint purchased = tokenPurchased[msg.sender].add(amount);
+
+        if (now < limitEndTime) {
+            require(purchased <= tokenPurchaseLimit, "Purchase limit reached");
+        }
+
         tokenRemainingForPublicSale = tokenRemainingForPublicSale.sub(amount);
+        tokenPurchased[msg.sender] = purchased;
         token.mint(msg.sender, amount);
         forwardFunds();
 
@@ -246,3 +280,4 @@ contract MintingCrowdsale is Ownable {
     }
 
 }
+

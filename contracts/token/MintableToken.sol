@@ -66,10 +66,5 @@ contract MintableToken is ERC20, ProfitSharing, Whitelisted {
         emit MintFinished();
     }
 
-    /// @dev Determine whether minting was finished or not
-    /// @return True or false
-    function mintingFinished() public view returns (bool) {
-        return totalSupplyIsFixed;
-    }
-
 }
+

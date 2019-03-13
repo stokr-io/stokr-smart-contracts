@@ -11,29 +11,31 @@ contract StokrCrowdsaleFactory {
     function createNewCrowdsale(
         StokrToken token,
         uint tokenPrice,
-        uint[5] amounts,  // [tokenCapOfPublicSale, tokenCapOfPrivateSale, tokenGoal,
-                          //  tokenPurchaseMinimum, tokenReservePerMill]
-        uint[2] period,  // [openingTime, closingTime]
+        uint[6] amounts,  // [tokenCapOfPublicSale, tokenCapOfPrivateSale, tokenGoal,
+                          //  tokenPurchaseMinimum, tokenPurchaseLimit, tokenReservePerMill]
+        uint[3] period,   // [openingTime, closingTime, limitEndTime]
         address[2] wallets  // [companyWallet, reserveAccount]
     )
-        public
+        external
         returns (StokrCrowdsale)
     {
         StokrCrowdsale crowdsale = new StokrCrowdsale(
             RateSource(msg.sender),  // rateSource
             token,
-            amounts[0],  // tokenCapOfPublicSale
-            amounts[1],  // tokenCapOfPrivateSale
-            amounts[2],  // tokenGoal
-            amounts[3],  // tokenPurchaseMinimum
-            amounts[4],  // tokenReservePerMill
-            tokenPrice,  // tokenPrice
-            period[0],  // openingTime
-            period[1],  // closingTime
-            wallets[0],  // companyWallet
+            amounts[0],   // tokenCapOfPublicSale
+            amounts[1],   // tokenCapOfPrivateSale
+            amounts[2],   // tokenGoal
+            amounts[3],   // tokenPurchaseMinimum
+            amounts[4],   // tokenPurchaseLimit
+            amounts[5],   // tokenReservePerMill
+            tokenPrice,   // tokenPrice
+            period[0],    // openingTime
+            period[1],    // closingTime
+            period[2],    // limitEndTime
+            wallets[0],   // companyWallet
             wallets[1]);  // reserveAccount
 
-        crowdsale.transferOwnership(msg.sender);
+        crowdsale.transferOwnershipUnsafe(msg.sender);
 
         return crowdsale;
     }

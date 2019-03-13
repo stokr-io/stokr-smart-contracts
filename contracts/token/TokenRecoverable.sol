@@ -10,9 +10,10 @@ contract TokenRecoverable is Ownable {
     // Address that can do the TokenRecovery
     address public tokenRecoverer;
 
-    /// @dev Event emitted when the TokenRecoverer changes
-    /// @param newTokenRecoverer Ethereum address of new TokenRecoverer
-    event TokenRecovererChange(address indexed newTokenRecoverer);
+    /// @dev  Event emitted when the TokenRecoverer changes
+    /// @param previous  Ethereum address of previous token recoverer
+    /// @param current   Ethereum address of new token recoverer
+    event TokenRecovererChange(address indexed previous, address indexed current);
 
     /// @dev Event emitted in case of a TokenRecovery
     /// @param oldAddress Ethereum address of old account
@@ -26,20 +27,21 @@ contract TokenRecoverable is Ownable {
     }
 
     /// @dev Constructor
-    /// @param _tokenRecoverer address
+    /// @param _tokenRecoverer Ethereum address of token recoverer
     constructor(address _tokenRecoverer) public {
         setTokenRecoverer(_tokenRecoverer);
     }
 
     /// @dev Set token recoverer
-    /// @param _newTokenRecoverer address
+    /// @param _newTokenRecoverer Ethereum address of new token recoverer
     function setTokenRecoverer(address _newTokenRecoverer) public onlyOwner {
         require(_newTokenRecoverer != address(0x0), "New token recoverer is zero");
 
-        if (tokenRecoverer != address(0x0) && _newTokenRecoverer != tokenRecoverer) {
-            emit TokenRecovererChange(_newTokenRecoverer);
+        if (_newTokenRecoverer != tokenRecoverer) {
+            emit TokenRecovererChange(tokenRecoverer, _newTokenRecoverer);
+
+            tokenRecoverer = _newTokenRecoverer;
         }
-        tokenRecoverer = _newTokenRecoverer;
     }
 
     /// @dev Recover token

@@ -22,22 +22,22 @@
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>6/6</span>
+        <span class='fraction'>11/11</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>6/6</span>
+        <span class='fraction'>10/10</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>3/3</span>
+        <span class='fraction'>6/6</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>7/7</span>
+        <span class='fraction'>12/12</span>
       </div>
     </div>
   </div>
@@ -84,7 +84,36 @@
 39
 40
 41
-42</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -103,24 +132,53 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">390×</span>
-<span class="cline-any cline-yes">373×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">122×</span>
+<span class="cline-any cline-yes">419×</span>
+<span class="cline-any cline-yes">401×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">147×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">32×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">31×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">30×</span>
-<span class="cline-any cline-yes">29×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">29×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">34×</span>
+<span class="cline-any cline-yes">32×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">32×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -131,8 +189,12 @@
 /// @dev Provide a simple access control with a single authority: the owner
 contract Ownable {
 &nbsp;
-    // Ethreum address of current owner
+    // Ethereum address of current owner
     address public owner;
+&nbsp;
+    // Ethereum address of the next owner
+    // (has to claim ownership first to become effective owner)
+    address public newOwner;
 &nbsp;
     // @dev Log event on ownership transferred
     // @param previousOwner Ethereum address of previous owner
@@ -153,12 +215,36 @@ contract Ownable {
         owner = msg.sender;
     }
 &nbsp;
-    /// @dev Transfer ownership to a new Ethereum account
-    /// @param _newOwner Ethereum address to transfer ownership to
+    /// @dev  Transfer ownership to a new Ethereum account (safe method)
+    ///       Note: the new owner has to claim his ownership to become effective owner.
+    /// @param _newOwner  Ethereum address to transfer ownership to
     function transferOwnership(address _newOwner) public onlyOwner {
         require(_newOwner != address(0x0), "New owner is zero");
 &nbsp;
-        if (owner != _newOwner) {
+        newOwner = _newOwner;
+    }
+&nbsp;
+    /// @dev  Transfer ownership to a new Ethereum account (unsafe method)
+    ///       Note: It's strongly recommended to use the safe variant via transferOwnership
+    ///             and claimOwnership, to prevent accidental transfers to a wrong address.
+    /// @param _newOwner  Ethereum address to transfer ownership to
+    function transferOwnershipUnsafe(address _newOwner) public onlyOwner {
+        require(_newOwner != address(0x0), "New owner is zero");
+&nbsp;
+        _transferOwnership(_newOwner);
+    }
+&nbsp;
+    /// @dev  Become effective owner (if dedicated so by previous owner)
+    function claimOwnership() public {
+        require(msg.sender == newOwner, "Restricted to new owner");
+&nbsp;
+        _transferOwnership(msg.sender);
+    }
+&nbsp;
+    /// @dev  Transfer ownership (internal method)
+    /// @param _newOwner  Ethereum address to transfer ownership to
+    function _transferOwnership(address _newOwner) private {
+        if (_newOwner != owner) {
             emit OwnershipTransferred(owner, _newOwner);
 &nbsp;
             owner = _newOwner;
@@ -166,13 +252,14 @@ contract Ownable {
     }
 &nbsp;
 }
+&nbsp;
 &nbsp;</pre></td></tr>
 </table></pre>
 <div class='push'></div><!-- for sticky footer -->
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Fri Feb 15 2019 16:03:29 GMT+0100 (Mitteleuropäische Normalzeit)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Mon Mar 11 2019 14:58:15 GMT+0100 (Mitteleuropäische Normalzeit)
 </div>
 </div>
 <script src="../../prettify.js"></script>

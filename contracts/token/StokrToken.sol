@@ -46,6 +46,7 @@ contract StokrToken is MintableToken, TokenRecoverable {
     function recoverToken(address _oldAddress, address _newAddress)
         public
         onlyTokenRecoverer
+        onlyWhitelisted(_newAddress)
     {
         // Ensure that new address is *not* an existing account.
         // Check for account.profitShare is not needed because of following implication:
@@ -84,20 +85,34 @@ contract StokrToken is MintableToken, TokenRecoverable {
     }
 
     /// @dev  Approve a third party trustee to transfer tokens
+    ///       Note: additional requirements are enforced within internal function.
     /// @param _spender  Ethereum address of third party
-    /// @param _value    Maximunpositive number
+    /// @param _value    Maximum token amount that is allowed to get transferred
     /// @return          Always true
-    function approve(address _spender, uint _value)
-        public
-        onlyWhitelisted(msg.sender)
-        onlyWhenTotalSupplyIsFixed
-        returns (bool)
-    {
-        allowance_[msg.sender][_spender] = _value;
+    function approve(address _spender, uint _value) public returns (bool) {
+        require (_value == 0 || allowance_[msg.sender][_spender] == 0, "Allowance was not reset");
 
-        emit Approval(msg.sender, _spender, _value);
+        return _approve(msg.sender, _spender, _value);
+    }
 
-        return true;
+    /// @dev  Increase the amount of tokens a third party trustee may transfer
+    ///       Note: additional requirements are enforces within internal function.
+    /// @param _spender  Ethereum address of third party
+    /// @param _amount   Additional token amount that is allowed to get transferred
+    /// @return          Always true
+    function increaseAllowance(address _spender, uint _amount) public returns (bool) {
+        return _approve(msg.sender, _spender, allowance_[msg.sender][_spender].add(_amount));
+    }
+
+    /// @dev  Decrease the amount of tokens a third party trustee may transfer
+    ///       Note: additional requirements are enforces within internal function.
+    /// @param _spender  Ethereum address of third party
+    /// @param _amount   Reduced token amount that is allowed to get transferred
+    /// @return          Always true
+    function decreaseAllowance(address _spender, uint _amount) public returns (bool) {
+        require(_amount <= allowance_[msg.sender][_spender], "Amount exceeds allowance");
+
+        return _approve(msg.sender, _spender, allowance_[msg.sender][_spender].sub(_amount));
     }
 
     /// @dev  Check if a token transfer is possible
@@ -129,6 +144,7 @@ contract StokrToken is MintableToken, TokenRecoverable {
     }
 
     /// @dev  Token transfer
+    ///       Note: additional requirements are enforces within internal function.
     /// @param _to     Ethereum address of token recipient
     /// @param _value  Token amount to transfer
     /// @return        Always true
@@ -137,6 +153,7 @@ contract StokrToken is MintableToken, TokenRecoverable {
     }
 
     /// @dev  Token transfer by a third party
+    ///       Note: additional requirements are enforces within internal function.
     /// @param _from   Ethereum address of token holder
     /// @param _to     Ethereum address of token recipient
     /// @param _value  Token amount to transfer
@@ -144,15 +161,32 @@ contract StokrToken is MintableToken, TokenRecoverable {
     function transferFrom(address _from, address _to, uint _value) public returns (bool) {
         require(_value <= allowance_[_from][msg.sender], "Amount exceeds allowance");
 
-        allowance_[_from][msg.sender] = allowance_[_from][msg.sender].sub(_value);
-
-        return _transfer(_from, _to, _value);
+        return _approve(_from, msg.sender, allowance_[_from][msg.sender].sub(_value))
+            && _transfer(_from, _to, _value);
     }
 
-    /// @dev  Token transfer (common functionality)
+    /// @dev  Approve a third party trustee to transfer tokens (internal implementation)
+    /// @param _from     Ethereum address of token holder
+    /// @param _spender  Ethereum address of third party
+    /// @param _value    Maximum token amount the trustee is allowed to transfer
+    /// @return          Always true
+    function _approve(address _from, address _spender, uint _value)
+        internal
+        onlyWhitelisted(_from)
+        onlyWhenTotalSupplyIsFixed
+        returns (bool)
+    {
+        allowance_[_from][_spender] = _value;
+
+        emit Approval(_from, _spender, _value);
+
+        return true;
+    }
+
+    /// @dev  Token transfer (internal implementation)
     /// @param _from   Ethereum address of token sender
     /// @param _to     Ethereum address of token recipient
-    /// @param _value  Token ammount to transfer
+    /// @param _value  Token amount to transfer
     /// @return        Always true
     function _transfer(address _from, address _to, uint _value)
         internal

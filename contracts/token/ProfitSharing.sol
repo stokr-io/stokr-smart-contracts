@@ -50,13 +50,15 @@ contract ProfitSharing is Ownable {
     uint internal totalSupply_;
 
 
-    /// @dev Log entry on change of profit deposit authority
-    /// @param newProfitDepositor New authority's address
-    event ProfitDepositorChange(address indexed newProfitDepositor);
+    /// @dev  Log entry on change of profit deposit authority
+    /// @param previous  Ethereum address of previous profit depositor
+    /// @param current   Ethereum address of new profit depositor
+    event ProfitDepositorChange(address indexed previous, address indexed current);
 
-    /// @dev Log entry on change of profit distribution authority
-    /// @param newProfitDistributor New authority's address
-    event ProfitDistributorChange(address indexed newProfitDistributor);
+    /// @dev  Log entry on change of profit distribution authority
+    /// @param previous  Ethereum address of previous profit distributor
+    /// @param current   Ethereum address of new profit distributor
+    event ProfitDistributorChange(address indexed previous, address indexed current);
 
     /// @dev Log entry on profit deposit
     /// @param depositor Profit depositor's address
@@ -101,6 +103,8 @@ contract ProfitSharing is Ownable {
 
     /// @dev Profit deposit if possible via fallback function
     function () public payable {
+        require(msg.data.length == 0, "Fallback call with data");
+
         depositProfit();
     }
 
@@ -109,11 +113,11 @@ contract ProfitSharing is Ownable {
     function setProfitDepositor(address _newProfitDepositor) public onlyOwner {
         require(_newProfitDepositor != address(0x0), "New profit depositor is zero");
 
-        // Don't emit event if set for first time or to the same value again
-        if (profitDepositor != address(0x0) && _newProfitDepositor != profitDepositor) {
-            emit ProfitDepositorChange(_newProfitDepositor);
+        if (_newProfitDepositor != profitDepositor) {
+            emit ProfitDepositorChange(profitDepositor, _newProfitDepositor);
+
+            profitDepositor = _newProfitDepositor;
         }
-        profitDepositor = _newProfitDepositor;
     }
 
     /// @dev Change profit distributor
@@ -121,11 +125,11 @@ contract ProfitSharing is Ownable {
     function setProfitDistributor(address _newProfitDistributor) public onlyOwner {
         require(_newProfitDistributor != address(0x0), "New profit distributor is zero");
 
-        // Don't emit event if set for first time or to the same value again
-        if (profitDistributor != address(0x0) && _newProfitDistributor != profitDistributor) {
-            emit ProfitDistributorChange(_newProfitDistributor);
+        if (_newProfitDistributor != profitDistributor) {
+            emit ProfitDistributorChange(profitDistributor, _newProfitDistributor);
+
+            profitDistributor = _newProfitDistributor;
         }
-        profitDistributor = _newProfitDistributor;
     }
 
     /// @dev Deposit profit
@@ -174,7 +178,7 @@ contract ProfitSharing is Ownable {
     }
 
     /// @dev Withdraw profit share
-    function withdrawProfitShares(address[] _investors) public onlyProfitDistributor {
+    function withdrawProfitShares(address[] _investors) external onlyProfitDistributor {
         for (uint i = 0; i < _investors.length; ++i) {
             _withdrawProfitShare(_investors[i], _investors[i]);
         }

@@ -245,11 +245,20 @@ contract("StokrToken", ([owner,
             });
 
             it("gets logged", async () => {
+                let oldProfitDepositor = await token.profitDepositor();
                 let newProfitDepositor = random.address();
                 let tx = await token.setProfitDepositor(newProfitDepositor, {from: owner});
                 let entry = tx.logs.find(entry => entry.event === "ProfitDepositorChange");
                 expect(entry).to.exist;
-                expect(entry.args.newProfitDepositor).to.be.bignumber.equal(newProfitDepositor);
+                expect(entry.args.previous).to.be.bignumber.equal(oldProfitDepositor);
+                expect(entry.args.current).to.be.bignumber.equal(newProfitDepositor);
+            });
+
+            it("doesn't get logged if set to same address again", async () => {
+                let profitDepositor = await token.profitDepositor();
+                let tx = await token.setProfitDepositor(profitDepositor, {from: owner});
+                let entry = tx.logs.find(entry => entry.event === "ProfitDepositorChange");
+                expect(entry).to.not.exist;
             });
         });
 
@@ -272,11 +281,20 @@ contract("StokrToken", ([owner,
             });
 
             it("gets logged", async () => {
+                let oldProfitDistributor = await token.profitDistributor();
                 let newProfitDistributor = random.address();
                 let tx = await token.setProfitDistributor(newProfitDistributor, {from: owner});
                 let entry = tx.logs.find(entry => entry.event === "ProfitDistributorChange");
                 expect(entry).to.exist;
-                expect(entry.args.newProfitDistributor).to.be.bignumber.equal(newProfitDistributor);
+                expect(entry.args.previous).to.be.bignumber.equal(oldProfitDistributor);
+                expect(entry.args.current).to.be.bignumber.equal(newProfitDistributor);
+            });
+
+            it("doesn't get logged if set to same address again", async () => {
+                let profitDistributor = await token.profitDistributor();
+                let tx = await token.setProfitDistributor(profitDistributor, {from: owner});
+                let entry = tx.logs.find(entry => entry.event === "ProfitDistributorChange");
+                expect(entry).to.not.exist;
             });
         });
 
@@ -299,11 +317,20 @@ contract("StokrToken", ([owner,
             });
 
             it("gets logged", async () => {
+                let oldTokenRecoverer = await token.tokenRecoverer();
                 let newTokenRecoverer = random.address();
                 let tx = await token.setTokenRecoverer(newTokenRecoverer, {from: owner});
                 let entry = tx.logs.find(entry => entry.event === "TokenRecovererChange");
                 expect(entry).to.exist;
-                expect(entry.args.newTokenRecoverer).to.be.bignumber.equal(newTokenRecoverer);
+                expect(entry.args.previous).to.be.bignumber.equal(oldTokenRecoverer);
+                expect(entry.args.current).to.be.bignumber.equal(newTokenRecoverer);
+            });
+
+            it("doesn't get logged if set to same address again", async () => {
+                let tokenRecoverer = await token.tokenRecoverer();
+                let tx = await token.setTokenRecoverer(tokenRecoverer, {from: owner});
+                let entry = tx.logs.find(entry => entry.event === "TokenRecovererChange");
+                expect(entry).to.not.exist;
             });
         });
 
@@ -392,7 +419,7 @@ contract("StokrToken", ([owner,
                 let tx = await token.finishMinting({from: minter});
                 let entry = tx.logs.find(entry => entry.event === "MintFinished");
                 expect(entry).to.exist
-                expect(await token.mintingFinished()).to.be.true;
+                expect(await token.totalSupplyIsFixed()).to.be.true;
             });
         });
 
@@ -540,11 +567,37 @@ contract("StokrToken", ([owner,
                 await token.finishMinting({from: minter});
             });
 
+            beforeEach("reset allowance", async () => {
+                await token.approve(trustee, 0, {from: approver});
+            });
+
             it("is forbidden if approver isn't whitelisted", async () => {
                 await whitelist.removeFromWhitelist([approver], {from: owner});
                 let reason = await reject.call(token.approve(trustee, 1, {from: approver}));
                 await whitelist.addToWhitelist([approver], {from: owner});
                 expect(reason).to.be.equal("address is not whitelisted");
+            });
+
+            it("increasing is forbidden if approver isn't whitelisted", async () => {
+                await token.approve(trustee, 1, {from: approver});
+                await whitelist.removeFromWhitelist([approver], {from: owner});
+                let reason = await reject.call(token.increaseAllowance(trustee, 1, {from: approver}));
+                await whitelist.addToWhitelist([approver], {from: owner});
+                expect(reason).to.be.equal("address is not whitelisted");
+            });
+
+            it("decreasing is forbidden if approver isn't whitelisted", async () => {
+                await token.approve(trustee, 1, {from: approver});
+                await whitelist.removeFromWhitelist([approver], {from: owner});
+                let reason = await reject.call(token.decreaseAllowance(trustee, 1, {from: approver}));
+                await whitelist.addToWhitelist([approver], {from: owner});
+                expect(reason).to.be.equal("address is not whitelisted");
+            });
+
+            it("decreasing is forbidden if amount is above allowance", async () => {
+                await token.approve(trustee, 1, {from: approver});
+                let reason = await reject.call(token.decreaseAllowance(trustee, 2, {from: approver}));
+                expect(reason).to.be.equal("amount exceeds allowance");
             });
 
             it("is possible", async () => {
@@ -563,15 +616,64 @@ contract("StokrToken", ([owner,
             });
 
             it("sets correct allowance", async () => {
-                let amount = (await token.allowance(approver, trustee)).plus(1);
-                let tx = await token.approve(trustee, amount, {from: approver});
+                let amount = (await token.balanceOf(approver)).plus(1);
+                await token.approve(trustee, amount, {from: approver});
                 expect(await token.allowance(approver, trustee)).to.be.bignumber.equal(amount);
             });
 
-            it.skip("is forbidden if allowance wasn't reset before", async () => {
+            it("is forbidden if allowance wasn't reset before", async () => {
                 let amount = (await token.balanceOf(approver)).plus(1);
                 await token.approve(trustee, amount, {from: approver});
                 let reason = await reject.call(token.approve(trustee, amount.plus(1), {from: approver}));
+                expect(reason).to.be.equal("allowance was not reset");
+            });
+
+            it("increasing is possible", async () => {
+                let amount = (await token.balanceOf(approver)).plus(1);
+                await token.approve(trustee, amount, {from: approver});
+                await token.increaseAllowance(trustee, 1, {from: approver});
+            });
+
+            it("increasing gets logged", async () => {
+                let amount = (await token.balanceOf(approver)).plus(1);
+                await token.approve(trustee, amount, {from: approver});
+                let tx = await token.increaseAllowance(trustee, 1, {from: approver});
+                let entry = tx.logs.find(entry => entry.event === "Approval");
+                expect(entry).to.exist;
+                expect(entry.args.owner).to.be.bignumber.equal(approver);
+                expect(entry.args.spender).to.be.bignumber.equal(trustee);
+                expect(entry.args.value).to.be.bignumber.equal(amount.plus(1));
+            });
+
+            it("increasing sets correct allowance", async () => {
+                let amount = (await token.balanceOf(approver)).plus(1);
+                await token.approve(trustee, amount, {from: approver});
+                await token.increaseAllowance(trustee, 1, {from: approver});
+                expect(await token.allowance(approver, trustee)).to.be.bignumber.equal(amount.plus(1));
+            });
+
+            it("decreasing is possible", async () => {
+                let amount = (await token.balanceOf(approver)).plus(1);
+                await token.approve(trustee, amount, {from: approver});
+                await token.decreaseAllowance(trustee, 1, {from: approver});
+            });
+
+            it("decreasing gets logged", async () => {
+                let amount = (await token.balanceOf(approver)).plus(1);
+                await token.approve(trustee, amount, {from: approver});
+                let tx = await token.decreaseAllowance(trustee, 1, {from: approver});
+                let entry = tx.logs.find(entry => entry.event === "Approval");
+                expect(entry).to.exist;
+                expect(entry.args.owner).to.be.bignumber.equal(approver);
+                expect(entry.args.spender).to.be.bignumber.equal(trustee);
+                expect(entry.args.value).to.be.bignumber.equal(amount.minus(1));
+            });
+
+            it("decreasing sets correct allowance", async () => {
+                let amount = (await token.balanceOf(approver)).plus(1);
+                await token.approve(trustee, amount, {from: approver});
+                await token.decreaseAllowance(trustee, 1, {from: approver});
+                expect(await token.allowance(approver, trustee)).to.be.bignumber.equal(amount.minus(1));
             });
         });
     });
@@ -612,9 +714,12 @@ contract("StokrToken", ([owner,
                 await token.finishMinting({from: minter});
             });
 
+            beforeEach("reset allowance", async () => {
+                await token.approve(trustee, 0, {from: debited});
+            });
+
             it("is forbidden if debited account isn't whitelisted", async () => {
                 let amount = (await token.balanceOf(debited)).divToInt(2);
-                await token.approve(trustee, 0, {from: debited});
                 await token.approve(trustee, amount, {from: debited});
                 await whitelist.removeFromWhitelist([debited], {from: owner});
                 expect(await token.canTransferFrom(trustee, debited, credited, amount)).to.be.false;
@@ -626,7 +731,6 @@ contract("StokrToken", ([owner,
 
             it("is forbidden if credited account isn't whitelisted", async () => {
                 let amount = (await token.balanceOf(debited)).divToInt(2);
-                await token.approve(trustee, 0, {from: debited});
                 await token.approve(trustee, amount, {from: debited});
                 await whitelist.removeFromWhitelist([credited], {from: owner});
                 expect(await token.canTransferFrom(trustee, debited, credited, amount)).to.be.false;
@@ -638,7 +742,6 @@ contract("StokrToken", ([owner,
 
             it("is forbidden if credited account is zero", async () => {
                 let amount = (await token.balanceOf(debited)).divToInt(2);
-                await token.approve(trustee, 0, {from: debited});
                 await token.approve(trustee, amount, {from: debited});
                 await whitelist.addToWhitelist([0x0], {from: owner});
                 expect(await token.canTransferFrom(trustee, debited, 0x0, amount)).to.be.false;
@@ -649,7 +752,6 @@ contract("StokrToken", ([owner,
 
             it("is forbidden if amount exceeds allowance", async () => {
                 let amount = (await token.balanceOf(debited)).divToInt(2);
-                await token.approve(trustee, 0, {from: debited});
                 await token.approve(trustee, amount, {from: debited});
                 expect(await token.canTransferFrom(trustee, debited, credited, amount.plus(1))).to.be.false;
                 let reason = await reject.call(
@@ -659,7 +761,6 @@ contract("StokrToken", ([owner,
 
             it("is forbidden if amount exceeds balance", async () => {
                 let amount = (await token.balanceOf(debited)).plus(1);
-                await token.approve(trustee, 0, {from: debited});
                 await token.approve(trustee, amount, {from: debited});
                 expect(await token.canTransferFrom(trustee, debited, credited, amount)).to.be.false;
                 let reason = await reject.call(
@@ -669,7 +770,6 @@ contract("StokrToken", ([owner,
 
             it("is possible", async () => {
                 let amount = (await token.balanceOf(debited)).dividedToIntegerBy(2);
-                await token.approve(trustee, 0, {from: debited});
                 await token.approve(trustee, amount, {from: debited});
                 expect(await token.canTransferFrom(trustee, debited, credited, amount)).to.be.true;
                 let tx = await token.transferFrom(debited, credited, amount, {from: trustee});
@@ -680,20 +780,27 @@ contract("StokrToken", ([owner,
                 expect(entry.args.value).to.be.bignumber.equal(amount);
             });
 
+            it("decreases allowance", async () => {
+                let allowance = await token.balanceOf(debited);
+                await token.approve(trustee, allowance, {from: debited});
+                let amount = allowance.dividedToIntegerBy(3);
+                expect(await token.canTransferFrom(trustee, debited, credited, amount)).to.be.true;
+                let tx = await token.transferFrom(debited, credited, amount, {from: trustee});
+                expect(await token.allowance(debited, trustee)).to.be.bignumber.equal(allowance.minus(amount));
+            });
+
             it("decreases debited balance", async () => {
                 let balance = await token.balanceOf(debited);
                 let amount = balance.dividedToIntegerBy(2);
-                await token.approve(trustee, 0, {from: debited});
                 await token.approve(trustee, amount, {from: debited});
                 expect(await token.canTransferFrom(trustee, debited, credited, amount)).to.be.true;
                 await token.transferFrom(debited, credited, amount, {from: trustee});
                 expect(await token.balanceOf(debited)).to.be.bignumber.equal(balance.minus(amount));
             });
 
-            it("decreases credited balance", async () => {
+            it("increases credited balance", async () => {
                 let balance = await token.balanceOf(credited);
                 let amount = (await token.balanceOf(debited)).dividedToIntegerBy(2);
-                await token.approve(trustee, 0, {from: debited});
                 await token.approve(trustee, amount, {from: debited});
                 expect(await token.canTransferFrom(trustee, debited, credited, amount)).to.be.true;
                 await token.transferFrom(debited, credited, amount, {from: trustee});
@@ -754,6 +861,16 @@ contract("StokrToken", ([owner,
                 let value = money.ether(2);
                 await web3.eth.sendTransaction({from: profitDepositor, to: token.address, value});
                 expect(await web3.eth.getBalance(token.address)).to.be.bignumber.equal(asset.plus(value));
+            });
+
+            it("via fallback function with data is forbidden", async () => {
+                let reason = await reject.tx({
+                    from: profitDepositor,
+                    to: token.address,
+                    value: money.ether(2),
+                    data: "0x01",
+                });
+                expect(reason).to.be.equal("fallback call with data");
             });
 
             it("increases wei balance", async () => {
@@ -1030,6 +1147,13 @@ contract("StokrToken", ([owner,
         it("is forbidden by anyone other than token recoverer", async () => {
             let reason = await reject.call(token.recoverToken(investor2, investor3, {from: anyone}));
             expect(reason).to.be.equal("restricted to token recoverer");
+        });
+
+        it("is forbidden if new address isn't whitelisted", async () => {
+            await whitelist.removeFromWhitelist([investor3], {from: owner});
+            let reason = await reject.call(token.recoverToken(investor2, investor3, {from: tokenRecoverer}));
+            await whitelist.addToWhitelist([investor3], {from: owner});
+            expect(reason).to.be.equal("address is not whitelisted");
         });
 
         it("is forbidden if new address is an already used account", async () => {

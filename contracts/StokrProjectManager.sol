@@ -19,6 +19,8 @@ contract StokrProjectManager is Ownable, RateSource {
         StokrCrowdsale crowdsale;
     }
 
+    // Rate must be below this limit: floor(2**256 / 10)
+    uint public constant RATE_LIMIT = uint(-1) / 10;
 
     // Block number where this contract instance was deployed
     uint public deploymentBlockNumber;
@@ -46,14 +48,19 @@ contract StokrProjectManager is Ownable, RateSource {
     /// @dev Log entry upon rate admin change event
     /// @param previous Ethereum address of previous rate admin
     /// @param current Ethereum address of current rate admin
-    event RateAdminChange(address previous, address current);
+    event RateAdminChange(address indexed previous, address indexed current);
 
     /// @dev Log entry upon project creation event
     /// @param whitelist  Ethereum address of Whitelist contract
     /// @param token  Ethereum address of StokrToken contract
     /// @param crowdsale  Ethereum address of StokrCrowdsale contract
     /// @param index  Index of the project within projects list
-    event ProjectCreation(uint index, address whitelist, address token, address crowdsale);
+    event ProjectCreation(
+        uint indexed index,
+        address whitelist,
+        address indexed token,
+        address indexed crowdsale
+    );
 
 
     /// @dev Restrict operation to rate admin role
@@ -67,6 +74,7 @@ contract StokrProjectManager is Ownable, RateSource {
     /// @param etherRate Initial price of an Ether in EUR cents
     constructor(uint etherRate) public {
         require(etherRate > 0, "Ether rate is zero");
+        require(etherRate < RATE_LIMIT, "Ether rate reaches limit");
 
         deploymentBlockNumber = block.number;
         rate = etherRate;
@@ -114,6 +122,7 @@ contract StokrProjectManager is Ownable, RateSource {
     function setRate(uint newRate) public onlyRateAdmin {
         // Rate changes beyond an order of magnitude are likely just typos
         require(rate / 10 < newRate && newRate < 10 * rate, "Rate change too big");
+        require(newRate < RATE_LIMIT, "New rate reaches limit");
 
         if (newRate != rate) {
             emit RateChange(rate, newRate);
@@ -142,12 +151,12 @@ contract StokrProjectManager is Ownable, RateSource {
         uint tokenPrice,
         address[5] roles,  // [profitDepositor, profitDistributor, tokenRecoverer,
                            //  tokenOwner, crowdsaleOwner]
-        uint[5] amounts,  // [tokenCapOfPublicSale, tokenCapOfPrivateSale, tokenGoal,
-                          //  tokenPurchaseMinimum, tokenReservePerMill]
-        uint[2] period,  // [openingTime, closingTime]
+        uint[6] amounts,   // [tokenCapOfPublicSale, tokenCapOfPrivateSale, tokenGoal,
+                           //  tokenPurchaseMinimum, tokenPurchaseLimit, tokenReservePerMill]
+        uint[3] period,    // [openingTime, closingTime, limitEndTime]
         address[2] wallets  // [companyWallet, reserveAccount]
     )
-        public onlyOwner
+        external onlyOwner
     {
         require(address(currentWhitelist) != address(0x0), "Whitelist is zero");
         require(address(tokenFactory) != address(0x0), "Token factory is zero");
@@ -166,9 +175,9 @@ contract StokrProjectManager is Ownable, RateSource {
             name,
             symbol,
             currentWhitelist,
-            roles[0],  // profitDepositor
-            roles[1],
-            roles[2]);  // keyRecoverer
+            roles[0],   // profitDepositor
+            roles[1],   // profitDistributor
+            roles[2]);  // tokenRecoverer
 
         // Utilize the crowdsale factory to deploy a new crowdsale contract instance
         StokrCrowdsale crowdsale = crowdsaleFactory.createNewCrowdsale(
@@ -179,8 +188,8 @@ contract StokrProjectManager is Ownable, RateSource {
             wallets);
 
         token.setMinter(crowdsale);  // The crowdsale should be the minter of the token
-        token.transferOwnership(roles[3]);  // to tokenOwner
-        crowdsale.transferOwnership(roles[4]);  // to crowdsaleOwner
+        token.transferOwnershipUnsafe(roles[3]);  // to tokenOwner
+        crowdsale.transferOwnershipUnsafe(roles[4]);  // to crowdsaleOwner
 
         // Store the created project into the projects array state variable
         projects.push(StokrProject(name, currentWhitelist, token, crowdsale));

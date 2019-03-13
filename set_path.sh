@@ -13,3 +13,4 @@ case ":$PATH:" in
     *:$nodebin:*) hash -r ;;
     *) export PATH="$nodebin:$PATH" ;;
 esac
+

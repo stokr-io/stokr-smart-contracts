@@ -35,19 +35,27 @@ contract("StokrProjectManager", ([owner,
     let tokenCapOfPublicSale = tokensFor(money.ether(40));
     let tokenCapOfPrivateSale = tokensFor(money.ether(30));
     let tokenPurchaseMinimum = tokensFor(money.ether(1));
+    let tokenPurchaseLimit = tokensFor(money.ether(1));
     let tokenGoal = tokensFor(money.ether(8));
     let tokenReservePerMill = new BN(200);
 
     let openingTime = time.now() + time.days(7);
     let closingTime = openingTime + time.days(7);
+    let limitEndTime = openingTime + time.days(2);
 
 
     describe("Deployment", () => {
         let projectManager;
 
         it("fails if initial ether rate is zero", async () => {
-            let reason = await reject.deploy(StokrProjectManager.new(0x0, {from: owner}));
+            let reason = await reject.deploy(StokrProjectManager.new(0, {from: owner}));
             expect(reason).to.be.equal("ether rate is zero");
+        });
+
+        it("fails if initial ether rate is too high", async () => {
+            let rate = (new BN(2)).pow(256).divToInt(10);
+            let reason = await reject.deploy(StokrProjectManager.new(rate, {from: owner}));
+            expect(reason).to.be.equal("ether rate reaches limit");
         });
 
         it("succeeds", async () => {
@@ -163,6 +171,14 @@ contract("StokrProjectManager", ([owner,
             let entry = tx.logs.find(entry => entry.event === "RateChange");
             expect(entry).to.not.exist;
         });
+
+        it("reaching limit is forbidden", async () => {
+            let maxRate = (new BN(2)).pow(256).divToInt(10).minus(1);
+            projectManager = await StokrProjectManager.new(maxRate, {from: owner});
+            await projectManager.setRateAdmin(rateAdmin, {from: owner});
+            let reason = await reject.call(projectManager.setRate(maxRate.plus(1), {from: rateAdmin}));
+            expect(reason).to.be.equal("new rate reaches limit");
+        });
     });
 
     describe("Whitelist change", () => {
@@ -250,8 +266,8 @@ contract("StokrProjectManager", ([owner,
             tokenPrice,
             [profitDepositor, profitDistributor, tokenRecoverer, tokenOwner, crowdsaleOwner],
             [tokenCapOfPublicSale, tokenCapOfPrivateSale, tokenGoal,
-             tokenPurchaseMinimum, tokenReservePerMill],
-            [openingTime, closingTime],
+             tokenPurchaseMinimum, tokenPurchaseLimit, tokenReservePerMill],
+            [openingTime, closingTime, limitEndTime],
             [companyWallet, reserveAccount],
             {from});
 
@@ -348,9 +364,11 @@ contract("StokrProjectManager", ([owner,
             expect(await crowdsale.tokenCapOfPrivateSale()).to.be.bignumber.equal(tokenCapOfPrivateSale);
             expect(await crowdsale.tokenGoal()).to.be.bignumber.equal(tokenGoal);
             expect(await crowdsale.tokenPurchaseMinimum()).to.be.bignumber.equal(tokenPurchaseMinimum);
+            expect(await crowdsale.tokenPurchaseLimit()).to.be.bignumber.equal(tokenPurchaseLimit);
             expect(await crowdsale.tokenReservePerMill()).to.be.bignumber.equal(tokenReservePerMill);
             expect(await crowdsale.openingTime()).to.be.bignumber.equal(openingTime);
             expect(await crowdsale.closingTime()).to.be.bignumber.equal(closingTime);
+            expect(await crowdsale.limitEndTime()).to.be.bignumber.equal(limitEndTime);
             expect(await crowdsale.companyWallet()).to.be.bignumber.equal(companyWallet);
             expect(await crowdsale.reserveAccount()).to.be.bignumber.equal(reserveAccount);
             expect(await crowdsale.owner()).to.be.bignumber.equal(crowdsaleOwner);

@@ -13,7 +13,7 @@ contract StokrTokenFactory {
         Whitelist whitelist,
         address profitDepositor,
         address profitDistributor,
-        address keyRecoverer
+        address tokenRecoverer
     )
         public
         returns (StokrToken)
@@ -24,9 +24,9 @@ contract StokrTokenFactory {
             whitelist,
             profitDepositor,
             profitDistributor,
-            keyRecoverer);
+            tokenRecoverer);
 
-        token.transferOwnership(msg.sender);
+        token.transferOwnershipUnsafe(msg.sender);
 
         return token;
     }

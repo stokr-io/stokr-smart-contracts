@@ -27,11 +27,13 @@ contract StokrCrowdsale is MintingCrowdsale {
     /// @param _tokenCapOfPrivateSale Available token units for private sale
     /// @param _tokenGoal Minimum number of sold token units to be successful
     /// @param _tokenPurchaseMinimum Minimum amount of tokens an investor has to buy at once
+    /// @param _tokenPurchaseLimit Maximum total token amounts individually buyable in limit phase
     /// @param _tokenReservePerMill Additional reserve tokens in per mill of sold tokens
     /// @param _tokenPrice Price of a token in EUR cent
     /// @param _rateSource Ethereum address of ether rate setting authority
     /// @param _openingTime Block (Unix) timestamp of sale opening time
     /// @param _closingTime Block (Unix) timestamp of sale closing time
+    /// @param _limitEndTime Block (Unix) timestamp until token purchases are limited
     /// @param _companyWallet Ethereum account who will receive sent ether
     /// @param _reserveAccount An address
     constructor(
@@ -41,10 +43,12 @@ contract StokrCrowdsale is MintingCrowdsale {
         uint _tokenCapOfPrivateSale,
         uint _tokenGoal,
         uint _tokenPurchaseMinimum,
+        uint _tokenPurchaseLimit,
         uint _tokenReservePerMill,
         uint _tokenPrice,
         uint _openingTime,
         uint _closingTime,
+        uint _limitEndTime,
         address _companyWallet,
         address _reserveAccount
     )
@@ -55,10 +59,12 @@ contract StokrCrowdsale is MintingCrowdsale {
             _tokenCapOfPublicSale,
             _tokenCapOfPrivateSale,
             _tokenPurchaseMinimum,
+            _tokenPurchaseLimit,
             _tokenReservePerMill,
             _tokenPrice,
             _openingTime,
             _closingTime,
+            _limitEndTime,
             _companyWallet,
             _reserveAccount
         )
@@ -75,7 +81,7 @@ contract StokrCrowdsale is MintingCrowdsale {
     }
 
     /// @dev Investors can claim refunds here if crowdsale was unsuccessful
-    function distributeRefunds(address[] _investors) public {
+    function distributeRefunds(address[] _investors) external {
         for (uint i = 0; i < _investors.length; ++i) {
             refundInvestor(_investors[i]);
         }

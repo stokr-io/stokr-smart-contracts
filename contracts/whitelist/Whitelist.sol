@@ -63,7 +63,7 @@ contract Whitelist is Ownable {
 
     /// @dev Add investor to set of whitelisted addresses
     /// @param _investors A list where each entry is an Ethereum address
-    function addToWhitelist(address[] memory _investors) public onlyAdmin {
+    function addToWhitelist(address[] _investors) external onlyAdmin {
         for (uint256 i = 0; i < _investors.length; i++) {
             if (!isWhitelisted[_investors[i]]) {
                 isWhitelisted[_investors[i]] = true;
@@ -75,7 +75,7 @@ contract Whitelist is Ownable {
 
     /// @dev Remove investor from set of whitelisted addresses
     /// @param _investors A list where each entry is an Ethereum address
-    function removeFromWhitelist(address[] memory _investors) public onlyAdmin {
+    function removeFromWhitelist(address[] _investors) external onlyAdmin {
         for (uint256 i = 0; i < _investors.length; i++) {
             if (isWhitelisted[_investors[i]]) {
                 isWhitelisted[_investors[i]] = false;

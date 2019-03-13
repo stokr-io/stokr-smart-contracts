@@ -165,16 +165,14 @@ module.exports = (() => {
 
         // Execute a single transaction (promise) and throw if
         // it succeeds or any not-transaction-related error occurs.
-        const tx = async options => {
-            return call(new Promise((resolve, reject) => {
-                try {
-                    resolve(web3.eth.sendTransaction(options));
-                }
-                catch (error) {
-                    reject(error);
-                }
-            }));
-        };
+        const tx = options => call(new Promise((resolve, reject) => {
+            try {
+                resolve(web3.eth.sendTransaction(options));
+            }
+            catch (error) {
+                reject(error);
+            }
+        }));
 
         return {deploy, call, tx};
     })();
