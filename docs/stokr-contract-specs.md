@@ -627,8 +627,8 @@ End time
 ~ at `closingTime`
 
 A `limitEndTime` that lies either before `openingTime` or after `closingTime`
-is perfectly valid and makes either never or always limits the token purchase
-with Ether.
+is perfectly valid and either never or always limits the individual total amount
+of tokens bought with Ether.
 
 
 ### Between End of Public Sale Phase and Finalization
