@@ -42,6 +42,12 @@ This functionality is shared by all following contracts.
 
 Transfer the contract instance's ownership to a new address.
 
+**Note:**
+The actual ownership transfer doesn't happen immediately.
+The designated new owner has to [claim](#ownable-func-transfer) first,
+to become the effective new owner.
+Thus, transferring the ownership to an invalid address is avoided.
+
 Function
 ~ `transferOwnerShip(address)`
 
@@ -50,6 +56,17 @@ Restrictions
 
 Emitted events
 ~ `OwnershipTransferred(address, address)`
+
+
+### Ownership Claiming {#ownable-func-claim}
+
+Claiming the ownership.
+
+Function
+~ `claimOwnership()`
+
+Restrictions
+~ only by the designated `newOwner`
 
 
 
@@ -422,6 +439,15 @@ deployment (parameter `tokenPurchaseMinimum`) in token units (quantity of
 Companies may decide to not define a lower threshold by setting
 `tokenPurchaseMinimum` to zero.
 
+#### Purchase Limit
+
+During the start phase of the public sale, the total amount of tokens a single
+investor can buy with Ether may be limited (parameter `tokenPurchaseLimit`).
+
+When the start phase has ended (parameter `limitEndTime`) investors may buy
+as much tokens as they want as long as the total cap for tokens purchasable
+in public sale was not reached.
+
 #### Token Price
 
 The price of a token denominated in EUR-cents has to be given to the constructor
@@ -575,19 +601,34 @@ Start time
 End time
 ~ at `openingTime`
 
-
 ### Public Sale Phase
 
 The public sale is open for [investors](#whitelist-role-investor) who want
 to [buy token with Ether](#crowdsale-func-purchase) from opening time till
 closing time given as Ethereum block timestamps (UNIX epoch) to constructor
-upon deployment (parameters `openingTime` and `closingTime`)
+upon deployment (parameters `openingTime`, `closingTime`, `limitEndTime`).
+
+During the start phase of a public sale the total amount of tokens a buyer
+may purchase can be limited:
 
 Start time
 ~ at `openingTime`
 
 End time
+~ at `limitEndTime`
+
+During the remaining time of a public sale the amount of tokens a buyer
+can purchase is only constrained by the total cap.
+
+Start time
+~ at `limitEndTime`
+
+End time
 ~ at `closingTime`
+
+A `limitEndTime` that lies either before `openingTime` or after `closingTime`
+is perfectly valid and makes either never or always limits the token purchase
+with Ether.
 
 
 ### Between End of Public Sale Phase and Finalization
@@ -967,14 +1008,17 @@ can claim always reflects his/her token share.
 The profit share of an investor is related to his/her token share:
 
 Let be
-~ * *balance~Inv~* the amount of tokens held by the investor,
-  * *profitShareOwing~Inv~* the owing profits share [in Ether],
-  * *totalSupply* the total supply of tokens,
-  * *ΔtotalProfits* the profits which where deposited into the token,
-    instance since the investor's last profit share withdrawal [in Ether],
+~ * *totalSupply* the total supply of tokens,
+  * *balance~Inv~* the amount of tokens held by the investor,
+  * *ΔtotalProfits* the additional profits [in Ether]
+    which where deposited into the token instance
+    since the investor's last profit share withdrawal,
+  * *ΔprofitShare~Inv~* the owing profit share [in Ether],
+    that is additional profit share
+    since the investor's last profit share withdrawal,
 
 then
-~ *balance~Inv~* ÷ *totalSupply* = *profitShare~Inv~* ÷ *ΔtotalProfits*
+~ *balance~Inv~* ÷ *totalSupply* = *ΔprofitShare~Inv~* ÷ *ΔtotalProfits*
 
 **Note**
 A prerequisite to correct profit share calculation is a non-changing
