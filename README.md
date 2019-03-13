@@ -24,7 +24,7 @@ to the token holders.
 * "chai-as-promised": "^7.1.1",
 * "chai-bignumber": "^2.0.2",
 * "eth-gas-reporter": "^0.1.12",
-* "ganache-cli": "6.2.5",
+* "ganache-cli": "^6.4.1",
 * "solhint": "^1.4.0",
 * "solidity-coverage": "^0.5.11",
 * "truffle": "^4.1.14",
