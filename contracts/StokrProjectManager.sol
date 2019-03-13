@@ -149,8 +149,7 @@ contract StokrProjectManager is Ownable, RateSource {
         string name,
         string symbol,
         uint tokenPrice,
-        address[5] roles,  // [profitDepositor, profitDistributor, tokenRecoverer,
-                           //  tokenOwner, crowdsaleOwner]
+        address[3] roles,  // [profitDepositor, profitDistributor, tokenRecoverer]
         uint[6] amounts,   // [tokenCapOfPublicSale, tokenCapOfPrivateSale, tokenGoal,
                            //  tokenPurchaseMinimum, tokenPurchaseLimit, tokenReservePerMill]
         uint[3] period,    // [openingTime, closingTime, limitEndTime]
@@ -188,8 +187,8 @@ contract StokrProjectManager is Ownable, RateSource {
             wallets);
 
         token.setMinter(crowdsale);  // The crowdsale should be the minter of the token
-        token.transferOwnershipUnsafe(roles[3]);  // to tokenOwner
-        crowdsale.transferOwnershipUnsafe(roles[4]);  // to crowdsaleOwner
+        token.transferOwnershipUnsafe(msg.sender);  // to tokenOwner
+        crowdsale.transferOwnershipUnsafe(msg.sender);  // to crowdsaleOwner
 
         // Store the created project into the projects array state variable
         projects.push(StokrProject(name, currentWhitelist, token, crowdsale));
@@ -198,4 +197,3 @@ contract StokrProjectManager is Ownable, RateSource {
     }
 
 }
-

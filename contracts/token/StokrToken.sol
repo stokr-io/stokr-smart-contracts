@@ -90,8 +90,6 @@ contract StokrToken is MintableToken, TokenRecoverable {
     /// @param _value    Maximum token amount that is allowed to get transferred
     /// @return          Always true
     function approve(address _spender, uint _value) public returns (bool) {
-        require (_value == 0 || allowance_[msg.sender][_spender] == 0, "Allowance was not reset");
-
         return _approve(msg.sender, _spender, _value);
     }
 
@@ -101,6 +99,8 @@ contract StokrToken is MintableToken, TokenRecoverable {
     /// @param _amount   Additional token amount that is allowed to get transferred
     /// @return          Always true
     function increaseAllowance(address _spender, uint _amount) public returns (bool) {
+        require(allowance_[msg.sender][_spender] + _amount >= _amount, "Allowance overflow");
+
         return _approve(msg.sender, _spender, allowance_[msg.sender][_spender].add(_amount));
     }
 

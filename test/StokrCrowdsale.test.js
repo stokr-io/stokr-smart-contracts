@@ -646,14 +646,6 @@ contract("StokrCrowdsale", ([owner,
                 expect(reason).to.be.equal("fallback call with data");
             });
 
-            it("increases investor's purchased amount", async () => {
-                let purchased = await sale.tokenPurchased(investor1);
-                let value = money.ether(2);
-                let amount = await tokenAmountOf(sale, value);
-                await sale.buyTokens({from: investor1, value});
-                expect(await sale.tokenPurchased(investor1)).to.be.bignumber.equal(purchased.plus(amount));
-            });
-
             it("increases investor's balance", async () => {
                 let balance = await token.balanceOf(investor1);
                 let value = money.ether(2);
@@ -796,6 +788,14 @@ contract("StokrCrowdsale", ([owner,
                 let value = maxValue.plus(await valueOf1(sale));
                 let reason = await reject.call(sale.buyTokens({from: investor1, value}));
                 expect(reason).to.be.equal("purchase limit reached");
+            });
+
+            it("increases investor's purchased amount", async () => {
+                let purchased = await sale.tokenPurchased(investor1);
+                let value = money.ether(2);
+                let amount = await tokenAmountOf(sale, value);
+                await sale.buyTokens({from: investor1, value});
+                expect(await sale.tokenPurchased(investor1)).to.be.bignumber.equal(purchased.plus(amount));
             });
         });
     });
@@ -1328,5 +1328,3 @@ contract("StokrCrowdsale", ([owner,
     });
 
 });
-
-

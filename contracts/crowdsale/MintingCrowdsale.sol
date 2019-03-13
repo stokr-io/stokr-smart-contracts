@@ -222,10 +222,11 @@ contract MintingCrowdsale is Ownable {
 
         if (now < limitEndTime) {
             require(purchased <= tokenPurchaseLimit, "Purchase limit reached");
+            tokenPurchased[msg.sender] = purchased;
         }
 
         tokenRemainingForPublicSale = tokenRemainingForPublicSale.sub(amount);
-        tokenPurchased[msg.sender] = purchased;
+
         token.mint(msg.sender, amount);
         forwardFunds();
 
@@ -280,4 +281,3 @@ contract MintingCrowdsale is Ownable {
     }
 
 }
-

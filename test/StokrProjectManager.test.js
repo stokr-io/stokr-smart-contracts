@@ -13,8 +13,6 @@ const {random, time, money, reject, snapshot} = require("./helpers/common");
 
 
 contract("StokrProjectManager", ([owner,
-                                  tokenOwner,
-                                  crowdsaleOwner,
                                   profitDepositor,
                                   profitDistributor,
                                   tokenRecoverer,
@@ -264,7 +262,7 @@ contract("StokrProjectManager", ([owner,
             tokenName,
             tokenSymbol,
             tokenPrice,
-            [profitDepositor, profitDistributor, tokenRecoverer, tokenOwner, crowdsaleOwner],
+            [profitDepositor, profitDistributor, tokenRecoverer],
             [tokenCapOfPublicSale, tokenCapOfPrivateSale, tokenGoal,
              tokenPurchaseMinimum, tokenPurchaseLimit, tokenReservePerMill],
             [openingTime, closingTime, limitEndTime],
@@ -348,7 +346,7 @@ contract("StokrProjectManager", ([owner,
             expect(await token.tokenRecoverer()).to.be.bignumber.equal(tokenRecoverer);
             expect(await token.whitelist()).to.be.bignumber.equal(await projectManager.currentWhitelist());
             expect(await token.minter()).to.be.bignumber.equal(crowdsaleAddress);
-            expect(await token.owner()).to.be.bignumber.equal(tokenOwner);
+            expect(await token.owner()).to.be.bignumber.equal(owner);
         });
 
         it("deploys correct crowdsale", async () => {
@@ -371,9 +369,8 @@ contract("StokrProjectManager", ([owner,
             expect(await crowdsale.limitEndTime()).to.be.bignumber.equal(limitEndTime);
             expect(await crowdsale.companyWallet()).to.be.bignumber.equal(companyWallet);
             expect(await crowdsale.reserveAccount()).to.be.bignumber.equal(reserveAccount);
-            expect(await crowdsale.owner()).to.be.bignumber.equal(crowdsaleOwner);
+            expect(await crowdsale.owner()).to.be.bignumber.equal(owner);
         });
     });
 
 });
-

@@ -594,6 +594,12 @@ contract("StokrToken", ([owner,
                 expect(reason).to.be.equal("address is not whitelisted");
             });
 
+            it("increasing is forbidden if allowance overflows", async () => {
+                await token.approve(trustee, (new BN(2)).pow(256).minus(1), {from: approver});
+                let reason = await reject.call(token.increaseAllowance(trustee, 1, {from: approver}));
+                expect(reason).to.be.equal("allowance overflow");
+            });
+
             it("decreasing is forbidden if amount is above allowance", async () => {
                 await token.approve(trustee, 1, {from: approver});
                 let reason = await reject.call(token.decreaseAllowance(trustee, 2, {from: approver}));
@@ -619,13 +625,6 @@ contract("StokrToken", ([owner,
                 let amount = (await token.balanceOf(approver)).plus(1);
                 await token.approve(trustee, amount, {from: approver});
                 expect(await token.allowance(approver, trustee)).to.be.bignumber.equal(amount);
-            });
-
-            it("is forbidden if allowance wasn't reset before", async () => {
-                let amount = (await token.balanceOf(approver)).plus(1);
-                await token.approve(trustee, amount, {from: approver});
-                let reason = await reject.call(token.approve(trustee, amount.plus(1), {from: approver}));
-                expect(reason).to.be.equal("allowance was not reset");
             });
 
             it("increasing is possible", async () => {
