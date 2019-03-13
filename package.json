@@ -12,8 +12,13 @@
     "chai-as-promised": "^7.1.1",
     "chai-bignumber": "^2.0.2",
     "eth-gas-reporter": "^0.1.12",
+<<<<<<< HEAD
     "ganache-cli": "^6.4.1",
     "solhint": "^1.5.1",
+=======
+    "ganache-cli": "6.2.5",
+    "solhint": "^1.5.0",
+>>>>>>> be93ca797a9096fb3f157fbcefe3dee05214e66c
     "solidity-coverage": "^0.5.11",
     "solium": "^1.2.3",
     "truffle": "^4.1.15",
