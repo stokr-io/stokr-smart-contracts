@@ -38,7 +38,7 @@ contract MintingCrowdsale is Ownable {
     // The maximum total amount of tokens a purchaser may buy during start phase
     uint public tokenPurchaseLimit;
 
-    // Total token purchased by investor
+    // Total token purchased by investor (while purchase amount is limited)
     mapping(address => uint) public tokenPurchased;
 
     // Public sale period
@@ -218,10 +218,12 @@ contract MintingCrowdsale is Ownable {
         require(amount <= tokenRemainingForPublicSale, "Not enough tokens available");
         require(amount >= tokenPurchaseMinimum, "Investment is too low");
 
-        uint purchased = tokenPurchased[msg.sender].add(amount);
-
+        // Is the total amount an investor can purchase with Ether limited?
         if (now < limitEndTime) {
+            uint purchased = tokenPurchased[msg.sender].add(amount);
+
             require(purchased <= tokenPurchaseLimit, "Purchase limit reached");
+
             tokenPurchased[msg.sender] = purchased;
         }
 

@@ -218,11 +218,20 @@ contract("StokrToken", ([owner,
             });
 
             it("gets logged", async () => {
+                let oldWhitelist = await token.whitelist();
                 let newWhitelist = random.address();
                 let tx = await token.setWhitelist(newWhitelist, {from: owner});
-                let entry = tx.logs.find(entry => entry.event === "WhitelistChanged");
+                let entry = tx.logs.find(entry => entry.event === "WhitelistChange");
                 expect(entry).to.exist;
-                expect(entry.args.newWhitelist).to.be.bignumber.equal(newWhitelist);
+                expect(entry.args.previous).to.be.bignumber.equal(oldWhitelist);
+                expect(entry.args.current).to.be.bignumber.equal(newWhitelist);
+            });
+
+            it("doesn't get logged if set to same address again", async () => {
+                let currentWhitelist = await token.whitelist();
+                let tx = await token.setWhitelist(currentWhitelist, {from: owner});
+                let entry = tx.logs.find(entry => entry.event === "WhitelistChange");
+                expect(entry).to.not.exist;
             });
         });
 

@@ -10,9 +10,10 @@ contract Whitelisted is Ownable {
 
     Whitelist public whitelist;
 
-    /// @dev Event when whitelist is changed
-    /// @param newWhitelist An Ethereum address
-    event WhitelistChanged(address indexed newWhitelist);
+    /// @dev  Log entry on change of whitelist contract instance
+    /// @param previous  Ethereum address of previous whitelist
+    /// @param current   Ethereum address of new whitelist
+    event WhitelistChange(address indexed previous, address indexed current);
 
     /// @dev Ensure only whitelisted addresses can call
     modifier onlyWhitelisted(address _address) {
@@ -31,10 +32,11 @@ contract Whitelisted is Ownable {
     function setWhitelist(Whitelist _newWhitelist) public onlyOwner {
         require(address(_newWhitelist) != address(0x0), "Whitelist address is zero");
 
-        if (address(whitelist) != address(0x0) && address(_newWhitelist) != address(whitelist)) {
-            emit WhitelistChanged(address(_newWhitelist));
+        if (address(_newWhitelist) != address(whitelist)) {
+            emit WhitelistChange(address(whitelist), address(_newWhitelist));
+
+            whitelist = Whitelist(_newWhitelist);
         }
-        whitelist = Whitelist(_newWhitelist);
     }
 
 }
