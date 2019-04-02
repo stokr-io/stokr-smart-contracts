@@ -60,7 +60,8 @@ contract MintingCrowdsale is Ownable {
     /// @dev Log entry upon token distribution event
     /// @param beneficiary Ethereum address of token recipient
     /// @param amount Number of token units
-    event TokenDistribution(address indexed beneficiary, uint amount);
+    /// @param isPublicSale Whether the distribution was via public sale
+    event TokenDistribution(address indexed beneficiary, uint amount, bool isPublicSale);
 
     /// @dev Log entry upon token purchase event
     /// @param buyer Ethereum address of token purchaser
@@ -163,7 +164,7 @@ contract MintingCrowdsale is Ownable {
     /// @param amounts List of token units each recipient will receive
     function distributeTokensViaPublicSale(address[] beneficiaries, uint[] amounts) external {
         tokenRemainingForPublicSale =
-            distributeTokens(tokenRemainingForPublicSale, beneficiaries, amounts);
+            distributeTokens(tokenRemainingForPublicSale, beneficiaries, amounts, true);
     }
 
     /// @dev Distribute tokens purchased off-chain via private sale
@@ -172,7 +173,7 @@ contract MintingCrowdsale is Ownable {
     /// @param amounts List of token units each recipient will receive
     function distributeTokensViaPrivateSale(address[] beneficiaries, uint[] amounts) external {
         tokenRemainingForPrivateSale =
-            distributeTokens(tokenRemainingForPrivateSale, beneficiaries, amounts);
+            distributeTokens(tokenRemainingForPrivateSale, beneficiaries, amounts, false);
     }
 
     /// @dev Check whether the sale has closed
@@ -254,7 +255,7 @@ contract MintingCrowdsale is Ownable {
     /// @param beneficiaries Ethereum addresses of purchasers
     /// @param amounts Token unit amounts to deliver to each investor
     /// @return Token units available for sale after distribution
-    function distributeTokens(uint tokenRemaining, address[] beneficiaries, uint[] amounts)
+    function distributeTokens(uint tokenRemaining, address[] beneficiaries, uint[] amounts, bool isPublicSale)
         internal
         onlyOwner
         returns (uint)
@@ -271,7 +272,7 @@ contract MintingCrowdsale is Ownable {
             tokenRemaining = tokenRemaining.sub(amount);
             token.mint(beneficiary, amount);
 
-            emit TokenDistribution(beneficiary, amount);
+            emit TokenDistribution(beneficiary, amount, isPublicSale);
         }
 
         return tokenRemaining;
