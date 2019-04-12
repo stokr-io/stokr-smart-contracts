@@ -11,6 +11,9 @@ import "./RateSourceInterface.sol";
 contract MintingCrowdsale is Ownable {
     using SafeMath for uint;
 
+    // Maximum Time of offering period after extension;
+    uint constant MAXOFFERINGPERIOD = 80 days;
+
     // Ether rate oracle contract providing the price of an Ether in EUR cents
     RateSource public rateSource;
 
@@ -116,6 +119,7 @@ contract MintingCrowdsale is Ownable {
         require(_closingTime >= _openingTime, "Closing lies before opening");
         require(_companyWallet != address(0x0), "Company wallet is zero");
         require(_reserveAccount != address(0x0), "Reserve account is zero");
+
 
         // Note: There are no time related requirements regarding limitEndTime.
         //       If it's below openingTime, token purchases will never be limited.
@@ -235,9 +239,20 @@ contract MintingCrowdsale is Ownable {
         emit TokenPurchase(msg.sender, msg.value, amount);
     }
 
+    /// @dev Extend the offering period of the crowd sale.
+    /// @param _newClosingTime new closingTime of the crowdsale
+    function changeClosingTime(uint _newClosingTime) public onlyOwner {
+        require(!hasClosed(),"Sale has already ended");
+        require(_newClosingTime > now,"ClosingTime not in the future");
+        require(_newClosingTime > openingTime, "New offering is zero");
+        require(_newClosingTime.sub(openingTime) <= MAXOFFERINGPERIOD, "New offering too long");
+
+        closingTime = _newClosingTime;
+    }
+
     /// @dev Finalize, i.e. end token minting phase and enable token transfers
     function finalize() public onlyOwner {
-        require(!isFinalized, "Sale has already been finalized");
+        require(!isFinalized, "Sale is already finalized");
         require(hasClosed(), "Sale has not closed");
 
         if (tokenReservePerMill > 0) {
