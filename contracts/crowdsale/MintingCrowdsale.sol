@@ -71,6 +71,11 @@ contract MintingCrowdsale is Ownable {
     /// @param amount Number of token units
     event TokenPurchase(address indexed buyer, uint value, uint amount);
 
+    /// @dev Log entry upon rate change event
+    /// @param previous Previous closing time of sale
+    /// @param current Current closing time of sale
+    event ClosingTimeChange(uint previous, uint current);
+
     /// @dev Log entry upon finalization event
     event Finalization();
 
@@ -246,6 +251,8 @@ contract MintingCrowdsale is Ownable {
         require(_newClosingTime > now,"ClosingTime not in the future");
         require(_newClosingTime > openingTime, "New offering is zero");
         require(_newClosingTime.sub(openingTime) <= MAXOFFERINGPERIOD, "New offering too long");
+
+        emit ClosingTimeChange(closingTime,_newClosingTime);
 
         closingTime = _newClosingTime;
     }
