@@ -259,7 +259,7 @@ contract MintingCrowdsale is Ownable {
 
     /// @dev Finalize, i.e. end token minting phase and enable token transfers
     function finalize() public onlyOwner {
-        require(!isFinalized, "Sale is already finalized");
+        require(!isFinalized, "Sale has already been finalized");
         require(hasClosed(), "Sale has not closed");
 
         if (tokenReservePerMill > 0) {
