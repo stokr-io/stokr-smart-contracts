@@ -507,6 +507,22 @@ all invested Ether are transferred to the
 
 Companies may decide to not define a goal by setting `tokenGoal` to zero.
 
+### Change of the ClosingTime
+
+The Closing time of the crowdsale can be changed by the crowdsale [owner](#crowdsale-role-owner).  This allows the crowdsale [owner](#crowdsale-role-owner) to decrease the offering period in case the crowdsale is already fully sold. It also allows to extend the offering period to a maximum of 80 days. In case the offering preiod is already longer than 80 days the offering period can not be extended.
+
+Function
+~ `changeClosingTime()`
+
+Restrictions
+~ * only by crowdsale [owner](#crowdsale-role-owner)
+  * only before the public sale has closed
+  * only if closingTime is in the future
+  * only if offering period is longer than 0 afterwards
+  * only if offering period is not longer than 80 days afterwards.
+
+Emitted events
+~ * `ClosingTimeChange(uint, uint)`
 
 ### Finalization  {#crowdsale-func-finalization}
 
@@ -550,6 +566,7 @@ Emitted events
   #. if goal was missed
 
      * `Finalization()`
+     * `TokenDestroyed()`
 
 
 
@@ -1448,4 +1465,3 @@ Restrictions
 
 Emitted events
 ~ `RateChange(uint, uint)`
-

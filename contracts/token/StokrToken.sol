@@ -15,6 +15,9 @@ contract StokrToken is MintableToken, TokenRecoverable {
 
     mapping(address => mapping(address => uint)) internal allowance_;
 
+    /// @dev Log entry on self destruction of the token
+    event TokenDestroyed();
+
     /// @dev Constructor
     /// @param _whitelist       Ethereum address of whitelist contract
     /// @param _tokenRecoverer  Ethereum address of token recoverer
@@ -37,6 +40,7 @@ contract StokrToken is MintableToken, TokenRecoverable {
 
     /// @dev  Self destruct can only be called by crowdsale contract in case the goal wasn't reached
     function destruct() public onlyMinter {
+        emit TokenDestroyed();
         selfdestruct(owner);
     }
 
