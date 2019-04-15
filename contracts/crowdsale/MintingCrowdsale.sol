@@ -11,7 +11,7 @@ import "./RateSourceInterface.sol";
 contract MintingCrowdsale is Ownable {
     using SafeMath for uint;
 
-    // Maximum Time of offering period after extension;
+    // Maximum Time of offering period after extension
     uint constant MAXOFFERINGPERIOD = 80 days;
 
     // Ether rate oracle contract providing the price of an Ether in EUR cents
@@ -247,12 +247,12 @@ contract MintingCrowdsale is Ownable {
     /// @dev Extend the offering period of the crowd sale.
     /// @param _newClosingTime new closingTime of the crowdsale
     function changeClosingTime(uint _newClosingTime) public onlyOwner {
-        require(!hasClosed(),"Sale has already ended");
-        require(_newClosingTime > now,"ClosingTime not in the future");
+        require(!hasClosed(), "Sale has already ended");
+        require(_newClosingTime > now, "ClosingTime not in the future");
         require(_newClosingTime > openingTime, "New offering is zero");
-        require(_newClosingTime.sub(openingTime) <= MAXOFFERINGPERIOD, "New offering too long");
+        require(_newClosingTime - openingTime <= MAXOFFERINGPERIOD, "New offering too long");
 
-        emit ClosingTimeChange(closingTime,_newClosingTime);
+        emit ClosingTimeChange(closingTime, _newClosingTime);
 
         closingTime = _newClosingTime;
     }

@@ -20,24 +20,24 @@
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
-        <span class="strong">100% </span>
+        <span class="strong">91.55% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>65/65</span>
+        <span class='fraction'>65/71</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">100% </span>
+        <span class="strong">87.1% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>54/54</span>
+        <span class='fraction'>54/62</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">100% </span>
+        <span class="strong">92.31% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>12/12</span>
+        <span class='fraction'>12/13</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">100% </span>
+        <span class="strong">92.21% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>71/71</span>
+        <span class='fraction'>71/77</span>
       </div>
     </div>
   </div>
@@ -328,7 +328,37 @@
 283
 284
 285
-286</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -450,6 +480,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">22×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -567,6 +598,19 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">12×</span>
 <span class="cline-any cline-yes">10×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -626,6 +670,9 @@ import "./RateSourceInterface.sol";
 contract MintingCrowdsale is Ownable {
     using SafeMath for uint;
 &nbsp;
+    // Maximum Time of offering period after extension;
+    uint constant MAXOFFERINGPERIOD = 80 days;
+&nbsp;
     // Ether rate oracle contract providing the price of an Ether in EUR cents
     RateSource public rateSource;
 &nbsp;
@@ -683,6 +730,11 @@ contract MintingCrowdsale is Ownable {
     /// @param amount Number of token units
     event TokenPurchase(address indexed buyer, uint value, uint amount);
 &nbsp;
+    /// @dev Log entry upon rate change event
+    /// @param previous Previous closing time of sale
+    /// @param current Current closing time of sale
+    event ClosingTimeChange(uint previous, uint current);
+&nbsp;
     /// @dev Log entry upon finalization event
     event Finalization();
 &nbsp;
@@ -731,6 +783,7 @@ contract MintingCrowdsale is Ownable {
         require(_closingTime &gt;= _openingTime, "Closing lies before opening");
         require(_companyWallet != address(0x0), "Company wallet is zero");
         require(_reserveAccount != address(0x0), "Reserve account is zero");
+&nbsp;
 &nbsp;
         // Note: There are no time related requirements regarding limitEndTime.
         //       If it's below openingTime, token purchases will never be limited.
@@ -850,6 +903,19 @@ contract MintingCrowdsale is Ownable {
         emit TokenPurchase(msg.sender, msg.value, amount);
     }
 &nbsp;
+    /// @dev Extend the offering period of the crowd sale.
+    /// @param _newClosingTime new closingTime of the crowdsale
+<span class="fstat-no" title="function not covered" >    function changeClosingTime(uint _newClosingTime) public onlyOwne</span>r {
+<span class="cstat-no" title="statement not covered" >        require(!hasClosed(),"Sale has already ended")</span>;
+<span class="cstat-no" title="statement not covered" >        require(_newClosingTime &gt; now,"ClosingTime not in the future")</span>;
+<span class="cstat-no" title="statement not covered" >        require(_newClosingTime &gt; openingTime, "New offering is zero")</span>;
+<span class="cstat-no" title="statement not covered" >        require(_newClosingTime.sub(openingTime) &lt;= MAXOFFERINGPERIOD, "New offering too long")</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        emit ClosingTimeChange(closingTime,_newClosingTime);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        closingTime = _newClosingTime</span>;
+    }
+&nbsp;
     /// @dev Finalize, i.e. end token minting phase and enable token transfers
     function finalize() public onlyOwner {
         require(!isFinalized, "Sale has already been finalized");
@@ -904,7 +970,7 @@ contract MintingCrowdsale is Ownable {
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Thu Mar 21 2019 14:31:04 GMT+0100 (Mitteleuropäische Normalzeit)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Fri Apr 12 2019 19:18:25 GMT+0200 (Mitteleuropäische Sommerzeit)
 </div>
 </div>
 <script src="../../prettify.js"></script>

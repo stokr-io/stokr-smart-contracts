@@ -1190,4 +1190,30 @@ contract("StokrToken", ([owner,
             expect(entry.args.newAddress).to.be.equal(investor2);
         });
     });
+
+    describe("destruction", () => {
+        let whitelist, token;
+
+        before("deploy contracts", async () => {
+            [whitelist, token] = await deployWhitelistAndToken();
+        });
+
+        it("by anyone but minter is forbidden", async () => {
+            let reason = await reject.call(token.destruct({from: anyone}));
+            expect(reason).to.be.equal("restricted to minter");
+        });
+
+        it("transfers ether balance to owner and gets logged", async () => {
+            let value = money.ether(2);
+            await token.mint(investor1, 1, {from: minter});
+            await token.finishMinting({from: minter});
+            await token.depositProfit({value, from: profitDepositor});
+            let balance = await web3.eth.getBalance(owner);
+            let tx = await token.destruct({from: minter});
+            let entry = tx.logs.find(entry => entry.event === "TokenDestroyed");
+            expect(entry).to.exist;
+            expect(await web3.eth.getBalance(owner)).to.be.bignumber.equal(balance.plus(value));
+        });
+    });
+
 });

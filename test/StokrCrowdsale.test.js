@@ -409,7 +409,7 @@ contract("StokrCrowdsale", ([owner,
                     expect(reason).to.be.equal("lengths are different");
                 });
 
-                it(`via ${fns.name} with #accounts > amounts is forbidden`, async () => {
+                it(`via ${fns.name} with #accounts > #amounts is forbidden`, async () => {
                     let reason = await reject.call(
                         sale[fns.distributeTokens]([investor1, investor2], [1], {from: owner}));
                     expect(reason).to.be.equal("lengths are different");

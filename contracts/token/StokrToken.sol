@@ -40,8 +40,8 @@ contract StokrToken is MintableToken, TokenRecoverable {
 
     /// @dev  Self destruct can only be called by crowdsale contract in case the goal wasn't reached
     function destruct() public onlyMinter {
-        selfdestruct(owner);
         emit TokenDestroyed();
+        selfdestruct(owner);
     }
 
     /// @dev Recover token
