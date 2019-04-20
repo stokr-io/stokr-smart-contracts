@@ -20,24 +20,24 @@
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
-        <span class="strong">91.55% </span>
+        <span class="strong">100% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>65/71</span>
+        <span class='fraction'>71/71</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">87.1% </span>
+        <span class="strong">100% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>54/62</span>
+        <span class='fraction'>62/62</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">92.31% </span>
+        <span class="strong">100% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>12/13</span>
+        <span class='fraction'>13/13</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">92.21% </span>
+        <span class="strong">100% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>71/77</span>
+        <span class='fraction'>77/77</span>
       </div>
     </div>
   </div>
@@ -350,7 +350,9 @@
 305
 306
 307
-308</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+308
+309</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -539,7 +541,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">65×</span>
+<span class="cline-any cline-yes">78×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -599,14 +601,14 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">13×</span>
+<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">6×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -722,7 +724,8 @@ contract MintingCrowdsale is Ownable {
     /// @dev Log entry upon token distribution event
     /// @param beneficiary Ethereum address of token recipient
     /// @param amount Number of token units
-    event TokenDistribution(address indexed beneficiary, uint amount);
+    /// @param isPublicSale Whether the distribution was via public sale
+    event TokenDistribution(address indexed beneficiary, uint amount, bool isPublicSale);
 &nbsp;
     /// @dev Log entry upon token purchase event
     /// @param buyer Ethereum address of token purchaser
@@ -831,7 +834,7 @@ contract MintingCrowdsale is Ownable {
     /// @param amounts List of token units each recipient will receive
     function distributeTokensViaPublicSale(address[] beneficiaries, uint[] amounts) external {
         tokenRemainingForPublicSale =
-            distributeTokens(tokenRemainingForPublicSale, beneficiaries, amounts);
+            distributeTokens(tokenRemainingForPublicSale, beneficiaries, amounts, true);
     }
 &nbsp;
     /// @dev Distribute tokens purchased off-chain via private sale
@@ -840,7 +843,7 @@ contract MintingCrowdsale is Ownable {
     /// @param amounts List of token units each recipient will receive
     function distributeTokensViaPrivateSale(address[] beneficiaries, uint[] amounts) external {
         tokenRemainingForPrivateSale =
-            distributeTokens(tokenRemainingForPrivateSale, beneficiaries, amounts);
+            distributeTokens(tokenRemainingForPrivateSale, beneficiaries, amounts, false);
     }
 &nbsp;
     /// @dev Check whether the sale has closed
@@ -905,15 +908,15 @@ contract MintingCrowdsale is Ownable {
 &nbsp;
     /// @dev Extend the offering period of the crowd sale.
     /// @param _newClosingTime new closingTime of the crowdsale
-<span class="fstat-no" title="function not covered" >    function changeClosingTime(uint _newClosingTime) public onlyOwne</span>r {
-<span class="cstat-no" title="statement not covered" >        require(!hasClosed(), "Sale has already ended")</span>;
-<span class="cstat-no" title="statement not covered" >        require(_newClosingTime &gt; now, "ClosingTime not in the future")</span>;
-<span class="cstat-no" title="statement not covered" >        require(_newClosingTime &gt; openingTime, "New offering is zero")</span>;
-<span class="cstat-no" title="statement not covered" >        require(_newClosingTime - openingTime &lt;= MAXOFFERINGPERIOD, "New offering too long")</span>;
+    function changeClosingTime(uint _newClosingTime) public onlyOwner {
+        require(!hasClosed(), "Sale has already ended");
+        require(_newClosingTime &gt; now, "ClosingTime not in the future");
+        require(_newClosingTime &gt; openingTime, "New offering is zero");
+        require(_newClosingTime - openingTime &lt;= MAXOFFERINGPERIOD, "New offering too long");
 &nbsp;
-<span class="cstat-no" title="statement not covered" >        emit ClosingTimeChange(closingTime, _newClosingTime);</span>
+        emit ClosingTimeChange(closingTime, _newClosingTime);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >        closingTime = _newClosingTime</span>;
+        closingTime = _newClosingTime;
     }
 &nbsp;
     /// @dev Finalize, i.e. end token minting phase and enable token transfers
@@ -935,7 +938,7 @@ contract MintingCrowdsale is Ownable {
     /// @param beneficiaries Ethereum addresses of purchasers
     /// @param amounts Token unit amounts to deliver to each investor
     /// @return Token units available for sale after distribution
-    function distributeTokens(uint tokenRemaining, address[] beneficiaries, uint[] amounts)
+    function distributeTokens(uint tokenRemaining, address[] beneficiaries, uint[] amounts, bool isPublicSale)
         internal
         onlyOwner
         returns (uint)
@@ -952,7 +955,7 @@ contract MintingCrowdsale is Ownable {
             tokenRemaining = tokenRemaining.sub(amount);
             token.mint(beneficiary, amount);
 &nbsp;
-            emit TokenDistribution(beneficiary, amount);
+            emit TokenDistribution(beneficiary, amount, isPublicSale);
         }
 &nbsp;
         return tokenRemaining;
@@ -970,7 +973,7 @@ contract MintingCrowdsale is Ownable {
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Mon Apr 15 2019 17:16:00 GMT+0200 (Mitteleuropäische Sommerzeit)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Sat Apr 20 2019 13:37:04 GMT+0200 (Mitteleuropäische Sommerzeit)
 </div>
 </div>
 <script src="../../prettify.js"></script>

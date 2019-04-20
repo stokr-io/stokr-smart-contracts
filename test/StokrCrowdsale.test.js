@@ -16,6 +16,7 @@ contract("StokrCrowdsale", ([owner,
                              investor1,
                              investor2,
                              anyone]) => {
+    const MAX_OFFERING_PERIOD = time.days(80);
 
     // Helper function: default deployment parameters
     const getDefaultParams = changedParams => {
@@ -374,6 +375,49 @@ contract("StokrCrowdsale", ([owner,
             });
         });
 
+        describe("change of closing time", async () => {
+
+            it("by anyone but owner is forbidden", async () => {
+                let closingTime = (await sale.closingTime()).plus(time.mins(1));
+                let reason = await reject.call(sale.changeClosingTime(closingTime, {from: anyone}));
+                expect(reason).to.be.equal("restricted to owner");
+            });
+
+            it("to past is forbidden", async () => {
+                let closingTime = time.now();
+                let reason = await reject.call(sale.changeClosingTime(closingTime, {from: owner}));
+                expect(reason).to.be.equal("closingtime not in the future");
+            });
+
+            it("to lie before opening is forbidden", async () => {
+                let closingTime = await sale.openingTime();
+                let reason = await reject.call(sale.changeClosingTime(closingTime, {from: owner}));
+                expect(reason).to.be.equal("new offering is zero");
+            });
+
+            it("to be longer than max offering period is forbidden", async () => {
+                let closingTime = (await sale.openingTime()).plus(MAX_OFFERING_PERIOD).plus(time.secs(1));
+                let reason = await reject.call(sale.changeClosingTime(closingTime, {from: owner}));
+                expect(reason).to.be.equal("new offering too long");
+            });
+
+            it("is possible", async () => {
+                let closingTime = (await sale.openingTime()).plus(MAX_OFFERING_PERIOD);
+                await sale.changeClosingTime(closingTime, {from: owner});
+                expect(await sale.closingTime()).to.be.bignumber.equal(closingTime);
+            });
+
+            it("gets logged", async () => {
+                let oldClosingTime = await sale.closingTime();
+                let newClosingTime = (await sale.openingTime()).plus(time.secs(1));
+                let tx = await sale.changeClosingTime(newClosingTime, {from: owner});
+                let entry = tx.logs.find(entry => entry.event === "ClosingTimeChange");
+                expect(entry).to.exist;
+                expect(entry.args.previous).to.be.bignumber.equal(oldClosingTime);
+                expect(entry.args.current).to.be.bignumber.equal(newClosingTime);
+            });
+        });
+
         describe("token distribution", () => {
             [
                 {
@@ -583,6 +627,43 @@ contract("StokrCrowdsale", ([owner,
 
             it("has not been finalized", async () => {
                 expect(await sale.isFinalized()).to.be.false;
+            });
+        });
+
+        describe("change of closing time", async () => {
+
+            it("by anyone but owner is forbidden", async () => {
+                let closingTime = (await sale.closingTime()).plus(time.mins(1));
+                let reason = await reject.call(sale.changeClosingTime(closingTime, {from: anyone}));
+                expect(reason).to.be.equal("restricted to owner");
+            });
+
+            it("to past is forbidden", async () => {
+                let closingTime = time.now();
+                let reason = await reject.call(sale.changeClosingTime(closingTime, {from: owner}));
+                expect(reason).to.be.equal("closingtime not in the future");
+            });
+
+            it("to be longer than max offering period is forbidden", async () => {
+                let closingTime = (await sale.openingTime()).plus(MAX_OFFERING_PERIOD).plus(time.secs(1));
+                let reason = await reject.call(sale.changeClosingTime(closingTime, {from: owner}));
+                expect(reason).to.be.equal("new offering too long");
+            });
+
+            it("is possible", async () => {
+                let closingTime = (await sale.openingTime()).plus(MAX_OFFERING_PERIOD);
+                await sale.changeClosingTime(closingTime, {from: owner});
+                expect(await sale.closingTime()).to.be.bignumber.equal(closingTime);
+            });
+
+            it("gets logged", async () => {
+                let oldClosingTime = await sale.closingTime();
+                let newClosingTime = oldClosingTime.plus(time.secs(1));
+                let tx = await sale.changeClosingTime(newClosingTime, {from: owner});
+                let entry = tx.logs.find(entry => entry.event === "ClosingTimeChange");
+                expect(entry).to.exist;
+                expect(entry.args.previous).to.be.bignumber.equal(oldClosingTime);
+                expect(entry.args.current).to.be.bignumber.equal(newClosingTime);
             });
         });
 
@@ -877,6 +958,15 @@ contract("StokrCrowdsale", ([owner,
             });
         });
 
+        describe("change of closing time", async () => {
+
+            it("is forbidden", async () => {
+                let closingTime = time.now() + time.mins(1);
+                let reason = await reject.call(sale.changeClosingTime(closingTime, {from: owner}));
+                expect(reason).to.be.equal("sale has already ended");
+            });
+        });
+
         describe("token distribution", () => {
 
             it("via public sale is possible", async () => {
@@ -975,6 +1065,15 @@ contract("StokrCrowdsale", ([owner,
 
             it("has not been finalized", async () => {
                 expect(await sale.isFinalized()).to.be.false;
+            });
+        });
+
+        describe("change of closing time", async () => {
+
+            it("is forbidden", async () => {
+                let closingTime = time.now() + time.mins(1);
+                let reason = await reject.call(sale.changeClosingTime(closingTime, {from: owner}));
+                expect(reason).to.be.equal("sale has already ended");
             });
         });
 
@@ -1131,6 +1230,15 @@ contract("StokrCrowdsale", ([owner,
             });
         });
 
+        describe("change of closing time", async () => {
+
+            it("is forbidden", async () => {
+                let closingTime = time.now() + time.mins(1);
+                let reason = await reject.call(sale.changeClosingTime(closingTime, {from: owner}));
+                expect(reason).to.be.equal("sale has already ended");
+            });
+        });
+
         describe("token distribution", () => {
 
             it("via public sale is forbidden", async () => {
@@ -1277,6 +1385,15 @@ contract("StokrCrowdsale", ([owner,
 
             it("total supply is fixed", async () => {
                 expect(await token.totalSupplyIsFixed()).to.be.true;
+            });
+        });
+
+        describe("change of closing time", async () => {
+
+            it("is forbidden", async () => {
+                let closingTime = time.now() + time.mins(1);
+                let reason = await reject.call(sale.changeClosingTime(closingTime, {from: owner}));
+                expect(reason).to.be.equal("sale has already ended");
             });
         });
 
