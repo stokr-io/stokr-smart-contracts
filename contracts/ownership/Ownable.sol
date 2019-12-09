@@ -1,4 +1,4 @@
-pragma solidity 0.4.25;
+pragma solidity 0.5.12;
 
 /// @title Ownable
 /// @dev Provide a simple access control with a single authority: the owner
@@ -64,6 +64,7 @@ contract Ownable {
 
             owner = _newOwner;
         }
+        newOwner = address(0x0);
     }
 
 }

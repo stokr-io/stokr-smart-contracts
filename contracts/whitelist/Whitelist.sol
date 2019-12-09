@@ -1,4 +1,4 @@
-pragma solidity 0.4.25;
+pragma solidity 0.5.12;
 
 import "../ownership/Ownable.sol";
 
@@ -63,7 +63,7 @@ contract Whitelist is Ownable {
 
     /// @dev Add investor to set of whitelisted addresses
     /// @param _investors A list where each entry is an Ethereum address
-    function addToWhitelist(address[] _investors) external onlyAdmin {
+    function addToWhitelist(address[] calldata _investors) external onlyAdmin {
         for (uint256 i = 0; i < _investors.length; i++) {
             if (!isWhitelisted[_investors[i]]) {
                 isWhitelisted[_investors[i]] = true;
@@ -75,7 +75,7 @@ contract Whitelist is Ownable {
 
     /// @dev Remove investor from set of whitelisted addresses
     /// @param _investors A list where each entry is an Ethereum address
-    function removeFromWhitelist(address[] _investors) external onlyAdmin {
+    function removeFromWhitelist(address[] calldata _investors) external onlyAdmin {
         for (uint256 i = 0; i < _investors.length; i++) {
             if (isWhitelisted[_investors[i]]) {
                 isWhitelisted[_investors[i]] = false;

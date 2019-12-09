@@ -1,4 +1,4 @@
-pragma solidity 0.4.25;
+pragma solidity 0.5.12;
 
 import "../math/SafeMath.sol";
 import "../ownership/Ownable.sol";
@@ -53,27 +53,43 @@ contract ProfitSharing is Ownable {
     /// @dev  Log entry on change of profit deposit authority
     /// @param previous  Ethereum address of previous profit depositor
     /// @param current   Ethereum address of new profit depositor
-    event ProfitDepositorChange(address indexed previous, address indexed current);
+    event ProfitDepositorChange(
+        address indexed previous,
+        address indexed current
+    );
 
     /// @dev  Log entry on change of profit distribution authority
     /// @param previous  Ethereum address of previous profit distributor
     /// @param current   Ethereum address of new profit distributor
-    event ProfitDistributorChange(address indexed previous, address indexed current);
+    event ProfitDistributorChange(
+        address indexed previous,
+        address indexed current
+    );
 
     /// @dev Log entry on profit deposit
     /// @param depositor Profit depositor's address
     /// @param amount Deposited profits in wei
-    event ProfitDeposit(address indexed depositor, uint amount);
+    event ProfitDeposit(
+        address indexed depositor,
+        uint amount
+    );
 
     /// @dev Log entry on profit share update
     /// @param investor Investor's address
     /// @param amount New wei amount the token owes the investor
-    event ProfitShareUpdate(address indexed investor, uint amount);
+    event ProfitShareUpdate(
+        address indexed investor,
+        uint amount
+    );
 
     /// @dev Log entry on profit withdrawal
     /// @param investor Investor's address
     /// @param amount Wei amount the investor withdrew from this token
-    event ProfitShareWithdrawal(address indexed investor, address indexed beneficiary, uint amount);
+    event ProfitShareWithdrawal(
+        address indexed investor,
+        address indexed beneficiary,
+        uint amount
+    );
 
 
     /// @dev Restrict operation to profit deposit authority only
@@ -102,7 +118,7 @@ contract ProfitSharing is Ownable {
     }
 
     /// @dev Profit deposit if possible via fallback function
-    function () public payable {
+    function () external payable {
         require(msg.data.length == 0, "Fallback call with data");
 
         depositProfit();
@@ -173,19 +189,22 @@ contract ProfitSharing is Ownable {
         _withdrawProfitShare(msg.sender, msg.sender);
     }
 
-    function withdrawProfitShareTo(address _beneficiary) public {
+    function withdrawProfitShareTo(address payable _beneficiary) public {
         _withdrawProfitShare(msg.sender, _beneficiary);
     }
 
     /// @dev Withdraw profit share
-    function withdrawProfitShares(address[] _investors) external onlyProfitDistributor {
+    function withdrawProfitShares(address payable[] calldata _investors)
+        external
+        onlyProfitDistributor
+    {
         for (uint i = 0; i < _investors.length; ++i) {
             _withdrawProfitShare(_investors[i], _investors[i]);
         }
     }
 
     /// @dev Withdraw profit share
-    function _withdrawProfitShare(address _investor, address _beneficiary) internal {
+    function _withdrawProfitShare(address _investor, address payable _beneficiary) internal {
         updateProfitShare(_investor);
 
         uint withdrawnProfitShare = accounts[_investor].profitShare;

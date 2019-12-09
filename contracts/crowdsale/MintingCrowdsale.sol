@@ -1,4 +1,4 @@
-pragma solidity 0.4.25;
+pragma solidity 0.5.12;
 
 import "../math/SafeMath.sol";
 import "../ownership/Ownable.sol";
@@ -50,7 +50,7 @@ contract MintingCrowdsale is Ownable {
     uint public limitEndTime;
 
     // Ethereum address where invested funds will be transferred to
-    address public companyWallet;
+    address payable public companyWallet;
 
     // Amount and receiver of reserved tokens
     uint public tokenReservePerMill;
@@ -107,7 +107,7 @@ contract MintingCrowdsale is Ownable {
         uint _openingTime,
         uint _closingTime,
         uint _limitEndTime,
-        address _companyWallet,
+        address payable _companyWallet,
         address _reserveAccount
     )
         public
@@ -161,7 +161,7 @@ contract MintingCrowdsale is Ownable {
 
 
     /// @dev Fallback function: buys tokens
-    function () public payable {
+    function () external payable {
         require(msg.data.length == 0, "Fallback call with data");
 
         buyTokens();
@@ -171,7 +171,12 @@ contract MintingCrowdsale is Ownable {
     ///      Note: additional requirements are enforced in internal function.
     /// @param beneficiaries List of recipients' Ethereum addresses
     /// @param amounts List of token units each recipient will receive
-    function distributeTokensViaPublicSale(address[] beneficiaries, uint[] amounts) external {
+    function distributeTokensViaPublicSale(
+        address[] memory beneficiaries,
+        uint[] memory amounts
+    )
+        public
+    {
         tokenRemainingForPublicSale =
             distributeTokens(tokenRemainingForPublicSale, beneficiaries, amounts, true);
     }
@@ -180,7 +185,12 @@ contract MintingCrowdsale is Ownable {
     ///      Note: additional requirements are enforced in internal function.
     /// @param beneficiaries List of recipients' Ethereum addresses
     /// @param amounts List of token units each recipient will receive
-    function distributeTokensViaPrivateSale(address[] beneficiaries, uint[] amounts) external {
+    function distributeTokensViaPrivateSale(
+        address[] memory beneficiaries,
+        uint[] memory amounts
+    )
+        public
+    {
         tokenRemainingForPrivateSale =
             distributeTokens(tokenRemainingForPrivateSale, beneficiaries, amounts, false);
     }
@@ -277,7 +287,12 @@ contract MintingCrowdsale is Ownable {
     /// @param beneficiaries Ethereum addresses of purchasers
     /// @param amounts Token unit amounts to deliver to each investor
     /// @return Token units available for sale after distribution
-    function distributeTokens(uint tokenRemaining, address[] beneficiaries, uint[] amounts, bool isPublicSale)
+    function distributeTokens(
+        uint tokenRemaining,
+        address[] memory beneficiaries,
+        uint[] memory amounts,
+        bool isPublicSale
+    )
         internal
         onlyOwner
         returns (uint)

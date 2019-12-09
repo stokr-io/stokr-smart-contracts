@@ -7,9 +7,13 @@ const StokrCrowdsale = artifacts.require("./crowdsale/StokrCrowdsale.sol");
 const StokrCrowdsaleFactory = artifacts.require("./crowdsale/StokrCrowdsaleFactory.sol");
 const StokrProjectManager = artifacts.require("./StokrProjectManager.sol");
 
-const BN = web3.BigNumber;
-const {expect} = require("chai").use(require("chai-bignumber")(BN));
-const {random, time, money, reject, snapshot} = require("./helpers/common");
+const {toBN, toWei, toChecksumAddress, randomHex, padLeft} = web3.utils;
+const {expect} = require("chai").use(require("chai-bn")(web3.utils.BN));
+const {time, reject} = require("./helpers/_all");
+
+const ZERO_ADDRESS = padLeft("0x0", 160 >> 2);
+const randomAddress = () => toChecksumAddress(randomHex(160 >> 3));
+const ether = n => toWei(toBN(n), "ether");
 
 
 contract("StokrProjectManager", ([owner,
@@ -24,18 +28,18 @@ contract("StokrProjectManager", ([owner,
     let tokenName = "STOKR Test Token";
     let tokenSymbol = "STT";
 
-    let etherRate = new BN(16321);  // Realistic rate is something in [1e5..2e5]
-    let tokenPrice = new BN(100);  // A token costs one Euro
+    let etherRate = toBN(16321);  // Realistic rate is something in [1e5..2e5]
+    let tokenPrice = toBN(100);   // A token costs one Euro
 
     // Set the cap so that a single investor can easily reach it
-    let tokensFor = value => value.mul(etherRate).divToInt(tokenPrice);
+    let tokensFor = value => value.mul(etherRate).div(tokenPrice);
 
-    let tokenCapOfPublicSale = tokensFor(money.ether(40));
-    let tokenCapOfPrivateSale = tokensFor(money.ether(30));
-    let tokenPurchaseMinimum = tokensFor(money.ether(1));
-    let tokenPurchaseLimit = tokensFor(money.ether(1));
-    let tokenGoal = tokensFor(money.ether(8));
-    let tokenReservePerMill = new BN(200);
+    let tokenCapOfPublicSale = tokensFor(ether(40));
+    let tokenCapOfPrivateSale = tokensFor(ether(30));
+    let tokenPurchaseMinimum = tokensFor(ether(1));
+    let tokenPurchaseLimit = tokensFor(ether(1));
+    let tokenGoal = tokensFor(ether(8));
+    let tokenReservePerMill = toBN(200);
 
     let openingTime = time.now() + time.days(7);
     let closingTime = openingTime + time.days(7);
@@ -47,13 +51,13 @@ contract("StokrProjectManager", ([owner,
 
         it("fails if initial ether rate is zero", async () => {
             let reason = await reject.deploy(StokrProjectManager.new(0, {from: owner}));
-            expect(reason).to.be.equal("ether rate is zero");
+            expect(reason).to.equal("Ether rate is zero");
         });
 
         it("fails if initial ether rate is too high", async () => {
-            let rate = (new BN(2)).pow(256).divToInt(10);
+            let rate = (toBN(2)).pow(toBN(256)).div(toBN(10));
             let reason = await reject.deploy(StokrProjectManager.new(rate, {from: owner}));
-            expect(reason).to.be.equal("ether rate reaches limit");
+            expect(reason).to.equal("Ether rate reaches limit");
         });
 
         it("succeeds", async () => {
@@ -61,7 +65,7 @@ contract("StokrProjectManager", ([owner,
         });
 
         it("sets correct owner", async () => {
-            expect(await projectManager.owner()).to.be.bignumber.equal(owner);
+            expect(await projectManager.owner()).to.equal(owner);
         });
 
         it("sets correct ether rate", async () => {
@@ -77,29 +81,29 @@ contract("StokrProjectManager", ([owner,
         });
 
         it("is forbidden by anyone but owner", async () => {
-            let reason = await reject.call(projectManager.setRateAdmin(random.address(), {from: anyone}));
-            expect(reason).to.be.equal("restricted to owner");
+            let reason = await reject.call(projectManager.setRateAdmin(randomAddress(), {from: anyone}));
+            expect(reason).to.equal("Restricted to owner");
         });
 
         it("to zero is forbidden", async () => {
-            let reason = await reject.call(projectManager.setRateAdmin(0x0, {from: owner}));
-            expect(reason).to.be.equal("new rate admin is zero");
+            let reason = await reject.call(projectManager.setRateAdmin(ZERO_ADDRESS, {from: owner}));
+            expect(reason).to.equal("New rate admin is zero");
         });
 
         it("is possible", async () => {
-            let newAdmin = random.address();
+            let newAdmin = randomAddress();
             await projectManager.setRateAdmin(newAdmin, {from: owner});
-            expect(await projectManager.rateAdmin()).to.be.bignumber.equal(newAdmin);
+            expect(await projectManager.rateAdmin()).to.equal(newAdmin);
         });
 
         it("gets logged", async () => {
             let oldAdmin = await projectManager.rateAdmin();
-            let newAdmin = random.address();
+            let newAdmin = randomAddress();
             let tx = await projectManager.setRateAdmin(newAdmin, {from: owner});
             let entry = tx.logs.find(entry => entry.event === "RateAdminChange");
             expect(entry).to.exist;
-            expect(entry.args.previous).to.be.bignumber.equal(oldAdmin);
-            expect(entry.args.current).to.be.bignumber.equal(newAdmin);
+            expect(entry.args.previous).to.equal(oldAdmin);
+            expect(entry.args.current).to.equal(newAdmin);
         });
 
         it("doesn't get logged if value remains unchanged", async () => {
@@ -119,43 +123,48 @@ contract("StokrProjectManager", ([owner,
         });
 
         it("by owner not being rate admin is forbidden", async () => {
-            let newRate = (await projectManager.etherRate()).plus(1);
-            let reason = await reject.call(projectManager.setRate(newRate, {from: owner}));
-            expect(reason).to.be.equal("restricted to rate admin");
+            let newRate = (await projectManager.etherRate()).add(toBN(1));
+            let reason = await reject.call(
+                projectManager.setRate(newRate, {from: owner}));
+            expect(reason).to.equal("Restricted to rate admin");
         });
 
         it("by anyone but rate admin is forbidden", async () => {
-            let newRate = (await projectManager.etherRate()).plus(1);
-            let reason = await reject.call(projectManager.setRate(newRate, {from: anyone}));
-            expect(reason).to.be.equal("restricted to rate admin");
+            let newRate = (await projectManager.etherRate()).add(toBN(1));
+            let reason = await reject.call(
+                projectManager.setRate(newRate, {from: anyone}));
+            expect(reason).to.equal("Restricted to rate admin");
         });
 
         it("to zero is forbidden", async () => {
-            let reason = await reject.call(projectManager.setRate(0, {from: rateAdmin}));
-            expect(reason).to.be.equal("rate change too big");
+            let reason = await reject.call(
+                projectManager.setRate(0, {from: rateAdmin}));
+            expect(reason).to.equal("Rate change too big");
         });
 
         it("lowering by an order of magnitude is forbidden", async () => {
-            let newRate = (await projectManager.etherRate()).divToInt(10);
-            let reason = await reject.call(projectManager.setRate(newRate, {from: rateAdmin}));
-            expect(reason).to.be.equal("rate change too big");
+            let newRate = (await projectManager.etherRate()).div(toBN(10));
+            let reason = await reject.call(
+                projectManager.setRate(newRate, {from: rateAdmin}));
+            expect(reason).to.equal("Rate change too big");
         });
 
         it("raising by an order of magnitude is forbidden", async () => {
-            let newRate = (await projectManager.etherRate()).times(10);
-            let reason = await reject.call(projectManager.setRate(newRate, {from: rateAdmin}));
-            expect(reason).to.be.equal("rate change too big");
+            let newRate = (await projectManager.etherRate()).mul(toBN(10));
+            let reason = await reject.call(
+                projectManager.setRate(newRate, {from: rateAdmin}));
+            expect(reason).to.equal("Rate change too big");
         });
 
         it("is possible", async () => {
-            let newRate = (await projectManager.etherRate()).times(2).plus(1);
+            let newRate = (await projectManager.etherRate()).mul(toBN(2)).add(toBN(1));
             await projectManager.setRate(newRate, {from: rateAdmin});
             expect(await projectManager.etherRate()).to.be.bignumber.equal(newRate);
         });
 
         it("gets logged", async () => {
             let oldRate = await projectManager.etherRate();
-            let newRate = oldRate.times(2).plus(1);
+            let newRate = oldRate.mul(toBN(2)).add(toBN(1));
             let tx = await projectManager.setRate(newRate, {from: rateAdmin});
             let entry = tx.logs.find(entry => entry.event === "RateChange");
             expect(entry).to.exist;
@@ -171,11 +180,12 @@ contract("StokrProjectManager", ([owner,
         });
 
         it("reaching limit is forbidden", async () => {
-            let maxRate = (new BN(2)).pow(256).divToInt(10).minus(1);
+            let maxRate = (toBN(2)).pow(toBN(256)).div(toBN(10)).sub(toBN(1));
             projectManager = await StokrProjectManager.new(maxRate, {from: owner});
             await projectManager.setRateAdmin(rateAdmin, {from: owner});
-            let reason = await reject.call(projectManager.setRate(maxRate.plus(1), {from: rateAdmin}));
-            expect(reason).to.be.equal("new rate reaches limit");
+            let reason = await reject.call(
+                projectManager.setRate(maxRate.add(toBN(1)), {from: rateAdmin}));
+            expect(reason).to.equal("New rate reaches limit");
         });
     });
 
@@ -188,19 +198,21 @@ contract("StokrProjectManager", ([owner,
 
         it("by anyone but owner is forbidden", async () => {
             let whitelist = await Whitelist.new({from: owner});
-            let reason = await reject.call(projectManager.setWhitelist(whitelist.address, {from: anyone}));
-            expect(reason).to.be.equal("restricted to owner");
+            let reason = await reject.call(
+                projectManager.setWhitelist(whitelist.address, {from: anyone}));
+            expect(reason).to.equal("Restricted to owner");
         });
 
         it("to zero is forbidden", async () => {
-            let reason = await reject.call(projectManager.setWhitelist(0x0, {from: owner}));
-            expect(reason).to.be.equal("whitelist is zero");
+            let reason = await reject.call(
+                projectManager.setWhitelist(ZERO_ADDRESS, {from: owner}));
+            expect(reason).to.equal("Whitelist is zero");
         });
 
         it("is possible", async () => {
             let whitelist = await Whitelist.new({from: owner});
             await projectManager.setWhitelist(whitelist.address, {from: owner});
-            expect(await projectManager.currentWhitelist()).to.be.bignumber.equal(whitelist.address);
+            expect(await projectManager.currentWhitelist()).to.equal(whitelist.address);
         });
     });
 
@@ -213,20 +225,21 @@ contract("StokrProjectManager", ([owner,
 
         it("by anyone but owner is forbidden", async () => {
             let tokenFactory = await StokrTokenFactory.new({from: owner});
-            let reason = await reject.call(projectManager.setTokenFactory(tokenFactory.address,
-                                                                          {from: anyone}));
-            expect(reason).to.be.equal("restricted to owner");
+            let reason = await reject.call(
+                projectManager.setTokenFactory(tokenFactory.address, {from: anyone}));
+            expect(reason).to.equal("Restricted to owner");
         });
 
         it("to zero is forbidden", async () => {
-            let reason = await reject.call(projectManager.setTokenFactory(0x0, {from: owner}));
-            expect(reason).to.be.equal("token factory is zero");
+            let reason = await reject.call(
+                projectManager.setTokenFactory(ZERO_ADDRESS, {from: owner}));
+            expect(reason).to.equal("Token factory is zero");
         });
 
         it("is possible", async () => {
             let tokenFactory = await StokrTokenFactory.new({from: owner});
             await projectManager.setTokenFactory(tokenFactory.address, {from: owner});
-            expect(await projectManager.tokenFactory()).to.be.bignumber.equal(tokenFactory.address);
+            expect(await projectManager.tokenFactory()).to.equal(tokenFactory.address);
         });
     });
 
@@ -239,20 +252,21 @@ contract("StokrProjectManager", ([owner,
 
         it("by anyone but owner is forbidden", async () => {
             let crowdsaleFactory = await StokrCrowdsaleFactory.new({from: owner});
-            let reason = await reject.call(projectManager.setCrowdsaleFactory(crowdsaleFactory.address,
-                                                                              {from: anyone}));
-            expect(reason).to.be.equal("restricted to owner");
+            let reason = await reject.call(
+                projectManager.setCrowdsaleFactory(crowdsaleFactory.address, {from: anyone}));
+            expect(reason).to.equal("Restricted to owner");
         });
 
         it("to zero is forbidden", async () => {
-            let reason = await reject.call(projectManager.setCrowdsaleFactory(0x0, {from: owner}));
-            expect(reason).to.be.equal("crowdsale factory is zero");
+            let reason = await reject.call(
+                projectManager.setCrowdsaleFactory(ZERO_ADDRESS, {from: owner}));
+            expect(reason).to.equal("Crowdsale factory is zero");
         });
 
         it("is possible", async () => {
             let crowdsaleFactory = await StokrCrowdsaleFactory.new({from: owner});
             await projectManager.setCrowdsaleFactory(crowdsaleFactory.address, {from: owner});
-            expect(await projectManager.crowdsaleFactory()).to.be.bignumber.equal(crowdsaleFactory.address);
+            expect(await projectManager.crowdsaleFactory()).to.equal(crowdsaleFactory.address);
         });
     });
 
@@ -277,26 +291,26 @@ contract("StokrProjectManager", ([owner,
             let reason = await reject.call(createProject(owner));
             let whitelist = await Whitelist.new({from: owner});
             await projectManager.setWhitelist(whitelist.address, {from: owner});
-            expect(reason).to.be.equal("whitelist is zero");
+            expect(reason).to.equal("Whitelist is zero");
         });
 
         it("fails if token factory wasn't set", async () => {
             let reason = await reject.call(createProject(owner));
             let tokenFactory = await StokrTokenFactory.new({from: owner});
             await projectManager.setTokenFactory(tokenFactory.address, {from: owner});
-            expect(reason).to.be.equal("token factory is zero");
+            expect(reason).to.equal("Token factory is zero");
         });
 
         it("fails if crowdsale factory wasn't set", async () => {
             let reason = await reject.call(createProject(owner));
             let crowdsaleFactory = await StokrCrowdsaleFactory.new({from: owner});
             await projectManager.setCrowdsaleFactory(crowdsaleFactory.address, {from: owner});
-            expect(reason).to.be.equal("crowdsale factory is zero");
+            expect(reason).to.equal("Crowdsale factory is zero");
         });
 
         it("from anyone but owner is forbidden", async () => {
             let reason = await reject.call(createProject(anyone));
-            expect(reason).to.be.equal("restricted to owner");
+            expect(reason).to.equal("Restricted to owner");
         });
 
         it("is possible", async () => {
@@ -309,20 +323,21 @@ contract("StokrProjectManager", ([owner,
             let entry = tx.logs.find(entry => entry.event === "ProjectCreation");
             expect(entry).to.exist;
             expect(entry.args.index).to.be.bignumber.equal(index);
-            expect(entry.args.whitelist).to.be.bignumber.equal(await projectManager.currentWhitelist());
+            expect(entry.args.whitelist).to.equal(await projectManager.currentWhitelist());
         });
 
         it("increases the projects count", async () => {
             let projectsCount = await projectManager.projectsCount();
             await createProject(owner);
-            expect(await projectManager.projectsCount()).to.be.bignumber.equal(projectsCount.plus(1));
+            expect(await projectManager.projectsCount())
+                .to.be.bignumber.equal(projectsCount.add(toBN(1)));
         });
 
         it("sets correct project name", async () => {
             let index = await projectManager.projectsCount();
             await createProject(owner);
             let name = (await projectManager.projects(index))[0];
-            expect(name).to.be.equal(tokenName);
+            expect(name).to.equal(tokenName);
         });
 
         it("deploys correct whitelist", async () => {
@@ -330,33 +345,33 @@ contract("StokrProjectManager", ([owner,
             await createProject(owner);
             let address = (await projectManager.projects(index))[1];
             expect(await web3.eth.getCode(address)).to.be.not.oneOf(["0x", "0x0"]);
-            expect(address).to.be.bignumber.equal(await projectManager.currentWhitelist());
+            expect(address).to.equal(await projectManager.currentWhitelist());
         });
 
         it("deploys correct token", async () => {
             let index = await projectManager.projectsCount();
             await createProject(owner);
-            let [address, crowdsaleAddress] = (await projectManager.projects(index)).slice(2);
-            expect(await web3.eth.getCode(address)).to.be.not.oneOf(["0x", "0x0"]);
-            let token = await StokrToken.at(address);
-            expect(await token.name()).to.be.equal(tokenName);
-            expect(await token.symbol()).to.be.equal(tokenSymbol);
-            expect(await token.profitDepositor()).to.be.bignumber.equal(profitDepositor);
-            expect(await token.profitDistributor()).to.be.bignumber.equal(profitDistributor);
-            expect(await token.tokenRecoverer()).to.be.bignumber.equal(tokenRecoverer);
-            expect(await token.whitelist()).to.be.bignumber.equal(await projectManager.currentWhitelist());
-            expect(await token.minter()).to.be.bignumber.equal(crowdsaleAddress);
-            expect(await token.owner()).to.be.bignumber.equal(owner);
+            let project = await projectManager.projects(index);
+            expect(await web3.eth.getCode(project.token)).to.be.not.oneOf(["0x", "0x0"]);
+            let token = await StokrToken.at(project.token);
+            expect(await token.name()).to.equal(tokenName);
+            expect(await token.symbol()).to.equal(tokenSymbol);
+            expect(await token.profitDepositor()).to.equal(profitDepositor);
+            expect(await token.profitDistributor()).to.equal(profitDistributor);
+            expect(await token.tokenRecoverer()).to.equal(tokenRecoverer);
+            expect(await token.whitelist()).to.equal(await projectManager.currentWhitelist());
+            expect(await token.minter()).to.equal(project.crowdsale);
+            expect(await token.owner()).to.equal(owner);
         });
 
         it("deploys correct crowdsale", async () => {
             let index = await projectManager.projectsCount();
             await createProject(owner);
-            let [tokenAddress, address] = (await projectManager.projects(index)).slice(2);
-            expect(await web3.eth.getCode(address)).to.be.not.oneOf(["0x", "0x0"]);
-            let crowdsale = await StokrCrowdsale.at(address);
-            expect(await crowdsale.rateSource()).to.be.bignumber.equal(projectManager.address);
-            expect(await crowdsale.token()).to.be.bignumber.equal(tokenAddress);
+            let project = await projectManager.projects(index);
+            expect(await web3.eth.getCode(project.crowdsale)).to.be.not.oneOf(["0x", "0x0"]);
+            let crowdsale = await StokrCrowdsale.at(project.crowdsale);
+            expect(await crowdsale.rateSource()).to.equal(projectManager.address);
+            expect(await crowdsale.token()).to.equal(project.token);
             expect(await crowdsale.tokenPrice()).to.be.bignumber.equal(tokenPrice);
             expect(await crowdsale.tokenCapOfPublicSale()).to.be.bignumber.equal(tokenCapOfPublicSale);
             expect(await crowdsale.tokenCapOfPrivateSale()).to.be.bignumber.equal(tokenCapOfPrivateSale);
@@ -364,12 +379,12 @@ contract("StokrProjectManager", ([owner,
             expect(await crowdsale.tokenPurchaseMinimum()).to.be.bignumber.equal(tokenPurchaseMinimum);
             expect(await crowdsale.tokenPurchaseLimit()).to.be.bignumber.equal(tokenPurchaseLimit);
             expect(await crowdsale.tokenReservePerMill()).to.be.bignumber.equal(tokenReservePerMill);
-            expect(await crowdsale.openingTime()).to.be.bignumber.equal(openingTime);
-            expect(await crowdsale.closingTime()).to.be.bignumber.equal(closingTime);
-            expect(await crowdsale.limitEndTime()).to.be.bignumber.equal(limitEndTime);
-            expect(await crowdsale.companyWallet()).to.be.bignumber.equal(companyWallet);
-            expect(await crowdsale.reserveAccount()).to.be.bignumber.equal(reserveAccount);
-            expect(await crowdsale.owner()).to.be.bignumber.equal(owner);
+            expect(await crowdsale.openingTime()).to.be.bignumber.equal(toBN(openingTime));
+            expect(await crowdsale.closingTime()).to.be.bignumber.equal(toBN(closingTime));
+            expect(await crowdsale.limitEndTime()).to.be.bignumber.equal(toBN(limitEndTime));
+            expect(await crowdsale.companyWallet()).to.equal(companyWallet);
+            expect(await crowdsale.reserveAccount()).to.equal(reserveAccount);
+            expect(await crowdsale.owner()).to.equal(owner);
         });
     });
 

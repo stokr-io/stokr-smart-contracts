@@ -1,4 +1,4 @@
-pragma solidity 0.4.25;
+pragma solidity 0.5.12;
 
 import "../whitelist/Whitelist.sol";
 import "./StokrToken.sol";
@@ -8,8 +8,8 @@ import "./StokrToken.sol";
 contract StokrTokenFactory {
 
     function createNewToken(
-        string name,
-        string symbol,
+        string memory name,
+        string memory symbol,
         Whitelist whitelist,
         address profitDepositor,
         address profitDistributor,

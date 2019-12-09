@@ -1,4 +1,4 @@
-pragma solidity 0.4.25;
+pragma solidity 0.5.12;
 
 import "../whitelist/Whitelisted.sol";
 import "./TokenRecoverable.sol";
@@ -22,8 +22,8 @@ contract StokrToken is MintableToken, TokenRecoverable {
     /// @param _whitelist       Ethereum address of whitelist contract
     /// @param _tokenRecoverer  Ethereum address of token recoverer
     constructor(
-        string _name,
-        string _symbol,
+        string memory _name,
+        string memory _symbol,
         Whitelist _whitelist,
         address _profitDepositor,
         address _profitDistributor,
@@ -41,7 +41,7 @@ contract StokrToken is MintableToken, TokenRecoverable {
     /// @dev  Self destruct can only be called by crowdsale contract in case the goal wasn't reached
     function destruct() public onlyMinter {
         emit TokenDestroyed();
-        selfdestruct(owner);
+        selfdestruct(address(uint160(owner)));
     }
 
     /// @dev Recover token

@@ -1,4 +1,4 @@
-pragma solidity 0.4.25;
+pragma solidity 0.5.12;
 
 
 /// @title RateSource
@@ -7,6 +7,6 @@ interface RateSource {
 
     /// @dev The current price of an Ether in EUR cents
     /// @return Current ether rate
-    function etherRate() external returns(uint);
+    function etherRate() external view returns (uint);
 
 }

@@ -5,9 +5,14 @@ const Whitelist = artifacts.require("./whitelist/Whitelist.sol");
 const StokrToken = artifacts.require("./token/StokrToken.sol");
 const StokrCrowdsale = artifacts.require("./crowdsale/StokrCrowdsale.sol");
 
-const BN = web3.BigNumber;
-const {expect} = require("chai").use(require("chai-bignumber")(BN));
-const {random, time, money, reject, snapshot, logGas} = require("./helpers/common");
+const {toBN, toWei, toChecksumAddress, randomHex, padLeft} = web3.utils;
+const {expect} = require("chai").use(require("chai-bn")(web3.utils.BN));
+const {time, reject, evm, bisection} = require("./helpers/_all");
+
+const EVM = evm(web3);
+const ZERO_ADDRESS = padLeft("0x0", 160 >> 2);
+const randomAddress = () => toChecksumAddress(randomHex(160 >> 3));
+const ether = n => toWei(toBN(n), "ether");
 
 
 contract("StokrCrowdsale", ([owner,
@@ -19,19 +24,19 @@ contract("StokrCrowdsale", ([owner,
     const MAX_OFFERING_PERIOD = time.days(80);
 
     // Helper function: default deployment parameters
-    const getDefaultParams = changedParams => {
-        let etherRate = new BN(16321);  // Realistic rate is something in [1e5..2e5]
-        let tokenPrice = new BN(100);  // A token costs one Euro
+    const getDeployParams = async changedParams => {
+        let etherRate = toBN(16321);  // Realistic rate is something in [1e5..2e5]
+        let tokenPrice = toBN(100);  // A token costs one Euro
 
-        let tokensFor = value => value.mul(etherRate).divToInt(tokenPrice);
+        let tokensFor = value => value.mul(etherRate).div(tokenPrice);
 
         // Set the caps so that a single investor can easily reach them
-        let tokenCapOfPublicSale = tokensFor(money.ether(30));
-        let tokenCapOfPrivateSale = tokensFor(money.ether(20));
-        let tokenGoal = tokensFor(money.ether(10));
-        let tokenPurchaseMinimum = tokensFor(money.ether(1));
-        let tokenPurchaseLimit = tokensFor(money.ether(2));
-        let tokenReservePerMill = new BN(200);  // 20%
+        let tokenCapOfPublicSale = tokensFor(ether(30));
+        let tokenCapOfPrivateSale = tokensFor(ether(20));
+        let tokenGoal = tokensFor(ether(10));
+        let tokenPurchaseMinimum = tokensFor(ether(1));
+        let tokenPurchaseLimit = tokensFor(ether(2));
+        let tokenReservePerMill = toBN(200);  // 20%
 
         let params = {
             etherRate,
@@ -42,9 +47,9 @@ contract("StokrCrowdsale", ([owner,
             tokenPurchaseMinimum,
             tokenPurchaseLimit,
             tokenPrice,
-            openingTime: time.now() + time.days(1),
-            closingTime: time.now() + time.days(7),
-            limitEndTime: time.now() + time.days(2),
+            openingTime: toBN(await EVM.now() + time.days(1)),
+            closingTime: toBN(await EVM.now() + time.days(7)),
+            limitEndTime: toBN(await EVM.now() + time.days(2)),
             companyWallet,
             reserveAccount
         };
@@ -72,9 +77,9 @@ contract("StokrCrowdsale", ([owner,
         return StokrToken.new("Sample Stokr Token",
                               "STOKR",
                               whitelist.address,
-                              random.address(),
-                              random.address(),
-                              random.address(),
+                              randomAddress(),
+                              randomAddress(),
+                              randomAddress(),
                               {from: owner});
     }
 
@@ -110,22 +115,22 @@ contract("StokrCrowdsale", ([owner,
 
     // Helper function to get the token amount of a give wei value
     const tokenAmountOf = async (sale, value) => {
-        return value.times(await etherRate(sale)).divToInt(await sale.tokenPrice());
+        return value.mul(await etherRate(sale)).div(await sale.tokenPrice());
     };
 
     // Helper function to get the wei value of a given token amount
     const tokenValueOf = async (sale, amount) => {
-        return amount.times(await sale.tokenPrice()).divToInt(await etherRate(sale));
+        return amount.mul(await sale.tokenPrice()).div(await etherRate(sale));
     };
 
     // Helper function to get the minimum investment wei value to get at least one token
-    const valueOf1 = sale => tokenAmountOf(sale, new BN(1));
+    const valueOf1 = sale => tokenAmountOf(sale, toBN(1));
 
 
     let initialState;
 
     before("save inital state", async () => {
-        initialState = await snapshot.new();
+        initialState = await EVM.snapshot();
     });
 
     after("revert inital state", async () => {
@@ -137,126 +142,129 @@ contract("StokrCrowdsale", ([owner,
         describe("with invalid parameters", () => {
 
             it("fails if rate source address is zero", async () => {
-                let params = getDefaultParams({rateSource: 0x0});
+                let params = await getDeployParams({rateSource: ZERO_ADDRESS});
                 let reason = await reject.deploy(deploySale(params));
-                expect(reason).to.be.equal("rate source is zero");
+                expect(reason).to.equal("Rate source is zero");
             });
 
             it("fails if token address is zero", async () => {
-                let params = getDefaultParams({token: 0x0});
+                let params = await getDeployParams({token: ZERO_ADDRESS});
                 let reason = await reject.deploy(deploySale(params));
-                expect(reason).to.be.equal("token address is zero");
+                expect(reason).to.equal("Token address is zero");
             });
 
             it("fails if another sale is already minting the token", async () => {
-                let sale = await deploySale(getDefaultParams());
+                let sale = await deploySale(await getDeployParams());
                 let token = await StokrToken.at(await sale.token());
                 await token.setMinter(sale.address, {from: owner});
-                let params = getDefaultParams({token: token.address});
+                let params = await getDeployParams({token: token.address});
                 let reason = await reject.deploy(deploySale(params));
-                expect(reason).to.be.equal("token has another minter");
+                expect(reason).to.equal("Token has another minter");
             });
 
             it("fails if token cap of public sale is zero", async () => {
-                let params = getDefaultParams({tokenCapOfPublicSale: 0});
+                let params = await getDeployParams({tokenCapOfPublicSale: toBN(0)});
                 let reason = await reject.deploy(deploySale(params));
-                expect(reason).to.be.equal("cap of public sale is zero");
+                expect(reason).to.equal("Cap of public sale is zero");
             });
 
             it("fails if token cap of private sale is zero", async () => {
-                let params = getDefaultParams({tokenCapOfPrivateSale: 0});
+                let params = await getDeployParams({tokenCapOfPrivateSale: toBN(0)});
                 let reason = await reject.deploy(deploySale(params));
-                expect(reason).to.be.equal("cap of private sale is zero");
+                expect(reason).to.equal("Cap of private sale is zero");
             });
 
             it("fails if token goal is not reachable", async () => {
-                let params = getDefaultParams();
-                params.tokenGoal = params.tokenCapOfPublicSale.plus(params.tokenCapOfPrivateSale).plus(1);
+                let params = await getDeployParams();
+                params.tokenGoal = params.tokenCapOfPublicSale
+                                         .add(params.tokenCapOfPrivateSale)
+                                         .add(toBN(1));
                 let reason = await reject.deploy(deploySale(params));
-                expect(reason).to.be.equal("goal is not attainable");
+                expect(reason).to.equal("Goal is not attainable");
             });
 
             it("fails if token purchase minimum exceeds public sale cap", async () => {
-                let params = getDefaultParams();
-                params.tokenPurchaseMinimum = params.tokenCapOfPublicSale.plus(1);
+                let params = await getDeployParams();
+                params.tokenPurchaseMinimum = params.tokenCapOfPublicSale.add(toBN(1));
                 let reason = await reject.deploy(deploySale(params));
-                expect(reason).to.be.equal("purchase minimum exceeds cap");
+                expect(reason).to.equal("Purchase minimum exceeds cap");
             });
 
             it("fails if token purchase minimum exceeds private sale cap", async () => {
-                let params = getDefaultParams();
-                params.tokenPurchaseMinimum = params.tokenCapOfPrivateSale.plus(1);
+                let params = await getDeployParams();
+                params.tokenPurchaseMinimum = params.tokenCapOfPrivateSale.add(toBN(1));
                 let reason = await reject.deploy(deploySale(params));
-                expect(reason).to.be.equal("purchase minimum exceeds cap");
+                expect(reason).to.equal("Purchase minimum exceeds cap");
             });
 
             it("fails if token price is zero", async () => {
-                let params = getDefaultParams({tokenPrice: 0});
+                let params = await getDeployParams({tokenPrice: toBN(0)});
                 let reason = await reject.deploy(deploySale(params));
-                expect(reason).to.be.equal("token price is zero");
+                expect(reason).to.equal("Token price is zero");
             });
 
             it("fails if opening time is in the past", async () => {
-                let params = getDefaultParams({openingTime: time.now() - time.mins(1)});
+                let params = await getDeployParams({openingTime: time.now() - time.mins(1)});
                 let reason = await reject.deploy(deploySale(params));
-                expect(reason).to.be.equal("opening lies in the past");
+                expect(reason).to.equal("Opening lies in the past");
             });
 
             it("fails if closing time is before opening time", async () => {
-                let params = getDefaultParams();
+                let params = await getDeployParams();
                 params.closingTime = params.openingTime - time.secs(1);
                 let reason = await reject.deploy(deploySale(params));
-                expect(reason).to.be.equal("closing lies before opening");
+                expect(reason).to.equal("Closing lies before opening");
             });
 
             it("fails if company wallet address is zero", async () => {
-                let params = getDefaultParams({companyWallet: 0x0});
+                let params = await getDeployParams({companyWallet: ZERO_ADDRESS});
                 let reason = await reject.deploy(deploySale(params));
-                expect(reason).to.be.equal("company wallet is zero");
+                expect(reason).to.equal("Company wallet is zero");
             });
 
             it("fails if reserve account address is zero", async () => {
-                let params = getDefaultParams({reserveAccount: 0x0});
+                let params = await getDeployParams({reserveAccount: ZERO_ADDRESS});
                 let reason = await reject.deploy(deploySale(params));
-                expect(reason).to.be.equal("reserve account is zero");
+                expect(reason).to.equal("Reserve account is zero");
             });
 
             it("fails if purchase limit makes it impossible to buy tokens", async () => {
-                let params = getDefaultParams();
-                params.tokenPurchaseLimit = params.tokenPurchaseMinimum.minus(1);
+                let params = await getDeployParams();
+                params.tokenPurchaseLimit = params.tokenPurchaseMinimum.sub(toBN(1));
                 let reason = await reject.deploy(deploySale(params));
-                expect(reason).to.be.equal("purchase limit is below minimum");
+                expect(reason).to.equal("Purchase limit is below minimum");
             });
 
             it("fails if sum of token caps and reserve overflows", async () => {
-                let params = getDefaultParams({
-                    tokenCapOfPublicSale: (new BN(2)).pow(254),
-                    tokenCapOfPrivateSale: (new BN(2)).pow(254),
-                    tokenReservePerMill: 2
+                let params = await getDeployParams({
+                    tokenCapOfPublicSale: toBN(2).pow(toBN(254)),
+                    tokenCapOfPrivateSale: toBN(2).pow(toBN(254)),
+                    tokenReservePerMill: toBN(2),
                 });
                 await reject.deploy(deploySale(params));
             });
         });
 
         describe("with valid parameters", () => {
-            let params = getDefaultParams();
+            let params;
             let sale;
 
             it("succeeds", async () => {
+                params = await getDeployParams();
                 sale = await deploySale(params);
                 expect(await web3.eth.getCode(sale.address)).to.be.not.oneOf(["0x", "0x0"]);
             });
 
             it("sets correct owner", async () => {
-                expect(await sale.owner()).to.be.bignumber.equal(owner);
+                expect(await sale.owner()).to.equal(owner);
             });
 
             it("sets correct rate source address", async () => {
-                expect(await sale.rateSource()).to.be.bignumber.equal(params.rateSource);
+                expect(await sale.rateSource()).to.equal(params.rateSource);
             });
 
             it("sets correct token address", async () => {
-                expect(await sale.token()).to.be.bignumber.equal(params.token);
+                expect(await sale.token()).to.equal(params.token);
             });
 
             it("sets correct token cap of public sale", async () => {
@@ -274,15 +282,18 @@ contract("StokrCrowdsale", ([owner,
             });
 
             it("sets correct token purchase minimum", async () => {
-                expect(await sale.tokenPurchaseMinimum()).to.be.bignumber.equal(params.tokenPurchaseMinimum);
+                expect(await sale.tokenPurchaseMinimum())
+                    .to.be.bignumber.equal(params.tokenPurchaseMinimum);
             });
 
             it("sets correct token purchase limit", async () => {
-                expect(await sale.tokenPurchaseLimit()).to.be.bignumber.equal(params.tokenPurchaseLimit);
+                expect(await sale.tokenPurchaseLimit())
+                    .to.be.bignumber.equal(params.tokenPurchaseLimit);
             });
 
             it("sets correct token reserve per mill", async () => {
-                expect(await sale.tokenReservePerMill()).to.be.bignumber.equal(params.tokenReservePerMill);
+                expect(await sale.tokenReservePerMill())
+                    .to.be.bignumber.equal(params.tokenReservePerMill);
             });
 
             it("sets correct token price", async () => {
@@ -302,11 +313,11 @@ contract("StokrCrowdsale", ([owner,
             });
 
             it("sets correct company wallet address", async () => {
-                expect(await sale.companyWallet()).to.be.bignumber.equal(params.companyWallet);
+                expect(await sale.companyWallet()).to.equal(params.companyWallet);
             });
 
             it("sets correct reserve account address", async () => {
-                expect(await sale.reserveAccount()).to.be.bignumber.equal(params.reserveAccount);
+                expect(await sale.reserveAccount()).to.equal(params.reserveAccount);
             });
 
             it("correctly calculates remaining tokens for public sale", async () => {
@@ -326,11 +337,11 @@ contract("StokrCrowdsale", ([owner,
             it("correctly calculates remaining sale time", async () => {
                 let timeRemaining = params.closingTime - time.now();
                 expect(await sale.timeRemaining())
-                    .to.be.bignumber.least(params.closingTime - params.openingTime);
+                    .to.be.bignumber.least(toBN(params.closingTime - params.openingTime));
             });
 
             it("succeeds if purchase limit < minimum, but limit is never applied", async () => {
-                params.tokenPurchaseLimit = params.tokenPurchaseMinimum.divToInt(3);
+                params.tokenPurchaseLimit = params.tokenPurchaseMinimum.div(toBN(3));
                 params.limitEndTime = params.openingTime;
                 await deploySale(params);
             });
@@ -343,11 +354,11 @@ contract("StokrCrowdsale", ([owner,
 
         before("deploy and save state", async () => {
             await initialState.restore();
-            sale = await deploySale(getDefaultParams());
+            sale = await deploySale(await getDeployParams());
             token = await StokrToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
             await token.setMinter(sale.address, {from: owner});
-            startState = await snapshot.new();
+            startState = await EVM.snapshot();
         });
 
         afterEach("restore start state", async () => {
@@ -359,7 +370,7 @@ contract("StokrCrowdsale", ([owner,
             it("remaining time is at least as long as sale period", async () => {
                 let openingTime = await sale.openingTime();
                 let closingTime = await sale.closingTime();
-                expect(await sale.timeRemaining()).to.be.bignumber.least(closingTime.minus(openingTime));
+                expect(await sale.timeRemaining()).to.be.bignumber.least(closingTime.sub(openingTime));
             });
 
             it("is not open", async () => {
@@ -378,38 +389,39 @@ contract("StokrCrowdsale", ([owner,
         describe("change of closing time", async () => {
 
             it("by anyone but owner is forbidden", async () => {
-                let closingTime = (await sale.closingTime()).plus(time.mins(1));
+                let closingTime = (await sale.closingTime()).add(toBN(time.mins(1)));
                 let reason = await reject.call(sale.changeClosingTime(closingTime, {from: anyone}));
-                expect(reason).to.be.equal("restricted to owner");
+                expect(reason).to.equal("Restricted to owner");
             });
 
             it("to past is forbidden", async () => {
                 let closingTime = time.now();
                 let reason = await reject.call(sale.changeClosingTime(closingTime, {from: owner}));
-                expect(reason).to.be.equal("closingtime not in the future");
+                expect(reason).to.equal("ClosingTime not in the future");
             });
 
             it("to lie before opening is forbidden", async () => {
                 let closingTime = await sale.openingTime();
                 let reason = await reject.call(sale.changeClosingTime(closingTime, {from: owner}));
-                expect(reason).to.be.equal("new offering is zero");
+                expect(reason).to.equal("New offering is zero");
             });
 
             it("to be longer than max offering period is forbidden", async () => {
-                let closingTime = (await sale.openingTime()).plus(MAX_OFFERING_PERIOD).plus(time.secs(1));
+                let closingTime = (await sale.openingTime()).add(toBN(MAX_OFFERING_PERIOD))
+                                                            .add(toBN(time.secs(1)));
                 let reason = await reject.call(sale.changeClosingTime(closingTime, {from: owner}));
-                expect(reason).to.be.equal("new offering too long");
+                expect(reason).to.equal("New offering too long");
             });
 
             it("is possible", async () => {
-                let closingTime = (await sale.openingTime()).plus(MAX_OFFERING_PERIOD);
+                let closingTime = (await sale.openingTime()).add(toBN(MAX_OFFERING_PERIOD));
                 await sale.changeClosingTime(closingTime, {from: owner});
                 expect(await sale.closingTime()).to.be.bignumber.equal(closingTime);
             });
 
             it("gets logged", async () => {
                 let oldClosingTime = await sale.closingTime();
-                let newClosingTime = (await sale.openingTime()).plus(time.secs(1));
+                let newClosingTime = (await sale.openingTime()).add(toBN(time.secs(1)));
                 let tx = await sale.changeClosingTime(newClosingTime, {from: owner});
                 let entry = tx.logs.find(entry => entry.event === "ClosingTimeChange");
                 expect(entry).to.exist;
@@ -436,7 +448,7 @@ contract("StokrCrowdsale", ([owner,
                 it(`via ${fns.name} by anyone but owner is forbidden`, async () => {
                     let reason = await reject.call(
                         sale[fns.distributeTokens]([investor1], [1], {from: anyone}));
-                    expect(reason).to.be.equal("restricted to owner");
+                    expect(reason).to.equal("Restricted to owner");
                 });
 
                 it(`via ${fns.name} of more than remaining tokens is forbidden`, async () => {
@@ -444,72 +456,72 @@ contract("StokrCrowdsale", ([owner,
                         sale[fns.distributeTokens]([investor1, investor2],
                                                    [await sale[fns.tokenRemaining](), 1],
                                                    {from: owner}));
-                    expect(reason).to.be.equal("not enough tokens available");
+                    expect(reason).to.equal("Not enough tokens available");
                 });
 
                 it(`via ${fns.name} with #accounts < #amounts is forbidden`, async () => {
                     let reason = await reject.call(
                         sale[fns.distributeTokens]([investor1, investor2], [1, 2, 3], {from: owner}));
-                    expect(reason).to.be.equal("lengths are different");
+                    expect(reason).to.equal("Lengths are different");
                 });
 
                 it(`via ${fns.name} with #accounts > #amounts is forbidden`, async () => {
                     let reason = await reject.call(
                         sale[fns.distributeTokens]([investor1, investor2], [1], {from: owner}));
-                    expect(reason).to.be.equal("lengths are different");
+                    expect(reason).to.equal("Lengths are different");
                 });
 
                 it(`via ${fns.name} is possible`, async () => {
-                    let amount1 = (await sale[fns.tokenRemaining]()).divToInt(3);
-                    let amount2 = amount1.divToInt(3);
+                    let amount1 = (await sale[fns.tokenRemaining]()).div(toBN(3));
+                    let amount2 = amount1.div(toBN(3));
                     await sale[fns.distributeTokens]([investor1, investor2],
                                                      [amount1, amount2],
                                                      {from: owner});
                 });
 
                 it(`via ${fns.name} gets logged`, async () => {
-                    let amount = (await sale[fns.tokenRemaining]()).divToInt(3);
+                    let amount = (await sale[fns.tokenRemaining]()).div(toBN(3));
                     let tx = await sale[fns.distributeTokens]([investor1],
                                                               [amount],
                                                               {from: owner});
                     let entry = tx.logs.find(entry => entry.event === "TokenDistribution");
                     expect(entry).to.exist;
-                    expect(entry.args.beneficiary).to.be.bignumber.equal(investor1);
+                    expect(entry.args.beneficiary).to.equal(investor1);
                     expect(entry.args.amount).to.be.bignumber.equal(amount);
                 });
 
                 it(`via ${fns.name} increases recipients' balance`, async () => {
                     let balance1 = await token.balanceOf(investor1);
                     let balance2 = await token.balanceOf(investor2);
-                    let amount1 = (await sale[fns.tokenRemaining]()).divToInt(3);
-                    let amount2 = amount1.divToInt(3);
+                    let amount1 = (await sale[fns.tokenRemaining]()).div(toBN(3));
+                    let amount2 = amount1.div(toBN(3));
                     await sale[fns.distributeTokens]([investor1, investor2],
                                                      [amount1, amount2],
                                                      {from: owner});
-                    expect(await token.balanceOf(investor1)).to.be.bignumber.equal(balance1.plus(amount1));
-                    expect(await token.balanceOf(investor2)).to.be.bignumber.equal(balance2.plus(amount2));
+                    expect(await token.balanceOf(investor1)).to.be.bignumber.equal(balance1.add(amount1));
+                    expect(await token.balanceOf(investor2)).to.be.bignumber.equal(balance2.add(amount2));
                 });
 
                 it(`via ${fns.name} increases token total supply`, async () => {
                     let supply = await token.totalSupply();
-                    let amount1 = (await sale[fns.tokenRemaining]()).divToInt(3);
-                    let amount2 = amount1.divToInt(3);
+                    let amount1 = (await sale[fns.tokenRemaining]()).div(toBN(3));
+                    let amount2 = amount1.div(toBN(3));
                     await sale[fns.distributeTokens]([investor1, investor2],
                                                      [amount1, amount2],
                                                      {from: owner});
                     expect(await token.totalSupply())
-                        .to.be.bignumber.equal(supply.plus(amount1).plus(amount2));
+                        .to.be.bignumber.equal(supply.add(amount1).add(amount2));
                 });
 
                 it(`via ${fns.name} decreases remaining tokens`, async () => {
                     let remaining = await sale[fns.tokenRemaining]();
-                    let amount1 = remaining.divToInt(2);
-                    let amount2 = remaining.divToInt(3);
+                    let amount1 = remaining.div(toBN(2));
+                    let amount2 = remaining.div(toBN(3));
                     await sale[fns.distributeTokens]([investor1, investor2],
                                                      [amount1, amount2],
                                                      {from: owner});
                     expect(await sale[fns.tokenRemaining]())
-                        .to.be.bignumber.equal(remaining.minus(amount1).minus(amount2));
+                        .to.be.bignumber.equal(remaining.sub(amount1).sub(amount2));
                 });
 
                 it(`via ${fns.name} increases sold tokens`, async () => {
@@ -519,46 +531,14 @@ contract("StokrCrowdsale", ([owner,
                     await sale[fns.distributeTokens]([investor1, investor2],
                                                      [amount1, amount2],
                                                      {from: owner});
-                    expect(await sale.tokenSold()).to.be.bignumber.equal(sold.plus(amount1).plus(amount2));
+                    expect(await sale.tokenSold())
+                        .to.be.bignumber.equal(sold.add(toBN(amount1)).add(toBN(amount2)));
                 });
 
                 it(`via ${fns.name} may reach goal`, async () => {
-                    let amount = (await sale.tokenGoal()).minus(await sale.tokenSold());
+                    let amount = (await sale.tokenGoal()).sub(await sale.tokenSold());
                     await sale[fns.distributeTokens]([investor1], [amount], {from: owner});
                     expect(await sale.goalReached()).to.be.true;
-                });
-
-                it.skip(`via ${fns.name} to many recipients at once is possible`, async () => {
-                    await logGas(sale[fns.distributeTokens]([], [], {from: owner}), "no investors");
-                    let nSucc = 0;
-                    let nFail = -1;
-                    let nTest = 1;
-                    while (nTest != nSucc && nTest < 1024) {
-                        let investors = [];
-                        let amounts = [];
-                        for (let i = 0; i < nTest; ++i) {
-                            investors.push(random.address());
-                            amounts.push(i);
-                        }
-                        await whitelist.addToWhitelist(investors, {from: owner});
-                        let success = true;
-                        try {
-                            await logGas(sale[fns.distributeTokens](investors, amounts, {from: owner}),
-                                         nTest + " investors");
-                        }
-                        catch (error) {
-                            success = false;
-                        }
-                        if (success) {
-                            nSucc = nTest;
-                            nTest = nFail < 0 ? 2 * nTest : Math.trunc((nTest + nFail) / 2);
-                        }
-                        else {
-                            nFail = nTest;
-                            nTest = Math.trunc((nSucc + nTest) / 2);
-                        }
-                    }
-                    expect(nSucc).to.be.at.above(2);
                 });
             });
         });
@@ -566,8 +546,8 @@ contract("StokrCrowdsale", ([owner,
         describe("token purchase", () => {
 
             it("is forbidden", async () => {
-                let reason = await reject.call(sale.buyTokens({from: investor1, value: money.ether(1)}));
-                expect(reason).to.be.equal("sale is not open");
+                let reason = await reject.call(sale.buyTokens({from: investor1, value: ether(1)}));
+                expect(reason).to.equal("Sale is not open");
             });
         });
 
@@ -575,12 +555,12 @@ contract("StokrCrowdsale", ([owner,
 
             it("claiming is forbidden", async () => {
                 let reason = await reject.call(sale.claimRefund({from: investor1}));
-                expect(reason).to.be.equal("sale has not been finalized");
+                expect(reason).to.equal("Sale has not been finalized");
             });
 
             it("distribution is forbidden", async () => {
                 let reason = await reject.call(sale.distributeRefunds([investor1], {from: owner}));
-                expect(reason).to.be.equal("sale has not been finalized");
+                expect(reason).to.equal("Sale has not been finalized");
             });
         });
 
@@ -588,7 +568,7 @@ contract("StokrCrowdsale", ([owner,
 
             it("is forbidden", async () => {
                 let reason = await reject.call(sale.finalize({from: owner}));
-                expect(reason).to.be.equal("sale has not closed");
+                expect(reason).to.equal("Sale has not closed");
             });
         });
     });
@@ -599,12 +579,12 @@ contract("StokrCrowdsale", ([owner,
 
         before("deploy", async () => {
             await initialState.restore();
-            sale = await deploySale(getDefaultParams());
+            sale = await deploySale(await getDeployParams());
             token = await StokrToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
             await token.setMinter(sale.address, {from: owner});
             await time.increaseTo(await sale.limitEndTime());
-            startState = await snapshot.new();
+            startState = await EVM.snapshot();
         });
 
         afterEach("restore start state", async () => {
@@ -614,7 +594,7 @@ contract("StokrCrowdsale", ([owner,
         describe("sale state", () => {
 
             it("has a non-zero remaining time", async () => {
-                expect(await sale.timeRemaining()).to.be.bignumber.above(0);
+                expect(await sale.timeRemaining()).to.be.bignumber.above(toBN(0));
             });
 
             it("is open", async () => {
@@ -633,32 +613,33 @@ contract("StokrCrowdsale", ([owner,
         describe("change of closing time", async () => {
 
             it("by anyone but owner is forbidden", async () => {
-                let closingTime = (await sale.closingTime()).plus(time.mins(1));
+                let closingTime = (await sale.closingTime()).add(toBN(time.mins(1)));
                 let reason = await reject.call(sale.changeClosingTime(closingTime, {from: anyone}));
-                expect(reason).to.be.equal("restricted to owner");
+                expect(reason).to.equal("Restricted to owner");
             });
 
             it("to past is forbidden", async () => {
                 let closingTime = time.now();
                 let reason = await reject.call(sale.changeClosingTime(closingTime, {from: owner}));
-                expect(reason).to.be.equal("closingtime not in the future");
+                expect(reason).to.equal("ClosingTime not in the future");
             });
 
             it("to be longer than max offering period is forbidden", async () => {
-                let closingTime = (await sale.openingTime()).plus(MAX_OFFERING_PERIOD).plus(time.secs(1));
+                let closingTime = (await sale.openingTime()).add(toBN(MAX_OFFERING_PERIOD))
+                                                            .add(toBN(time.secs(1)));
                 let reason = await reject.call(sale.changeClosingTime(closingTime, {from: owner}));
-                expect(reason).to.be.equal("new offering too long");
+                expect(reason).to.equal("New offering too long");
             });
 
             it("is possible", async () => {
-                let closingTime = (await sale.openingTime()).plus(MAX_OFFERING_PERIOD);
+                let closingTime = (await sale.openingTime()).add(toBN(MAX_OFFERING_PERIOD));
                 await sale.changeClosingTime(closingTime, {from: owner});
                 expect(await sale.closingTime()).to.be.bignumber.equal(closingTime);
             });
 
             it("gets logged", async () => {
                 let oldClosingTime = await sale.closingTime();
-                let newClosingTime = oldClosingTime.plus(time.secs(1));
+                let newClosingTime = oldClosingTime.add(toBN(time.secs(1)));
                 let tx = await sale.changeClosingTime(newClosingTime, {from: owner});
                 let entry = tx.logs.find(entry => entry.event === "ClosingTimeChange");
                 expect(entry).to.exist;
@@ -676,43 +657,59 @@ contract("StokrCrowdsale", ([owner,
             it("via private sale is possible", async () => {
                 await sale.distributeTokensViaPrivateSale([investor1], [1], {from: owner});
             });
+
+            it("via public sale forwards funds if goal was reached", async () => {
+                let goal = await sale.tokenGoal();
+                await sale.buyTokens({from: investor1, value: ether(1)});
+                expect(toBN(await web3.eth.getBalance(sale.address))).to.be.not.bignumber.zero;
+                await sale.distributeTokensViaPublicSale([investor1], [goal]);
+                expect(toBN(await web3.eth.getBalance(sale.address))).to.be.bignumber.zero;
+            });
+
+            it("via private sale forwards funds if goal was reached", async () => {
+                let goal = await sale.tokenGoal();
+                await sale.buyTokens({from: investor1, value: ether(1)});
+                expect(toBN(await web3.eth.getBalance(sale.address))).to.be.not.bignumber.zero;
+                await sale.distributeTokensViaPrivateSale([investor1], [goal]);
+                expect(toBN(await web3.eth.getBalance(sale.address))).to.be.bignumber.zero;
+            });
         });
 
         describe("token purchase", () => {
 
             it("by non-whitelisted is forbidden", async () => {
-                let reason = await reject.call(sale.buyTokens({from: anyone, value: money.ether(1)}));
-                expect(reason).to.be.equal("address is not whitelisted");
+                let reason = await reject.call(sale.buyTokens({from: anyone, value: ether(1)}));
+                expect(reason).to.equal("Address is not whitelisted");
             });
 
             it("below purchase minimum is forbidden", async () => {
                 let minimum = await sale.tokenPurchaseMinimum();
-                let value = (await tokenValueOf(sale, minimum)).minus(money.wei(1));
+                let value = (await tokenValueOf(sale, minimum)).sub(toBN(1));
                 let reason = await reject.call(sale.buyTokens({from: investor1, value}));
-                expect(reason).to.be.equal("investment is too low");
+                expect(reason).to.equal("Investment is too low");
             });
 
             it("is possible", async () => {
                 let balance = await token.balanceOf(investor1);
-                await sale.buyTokens({from: investor1, value: money.ether(1)});
+                await sale.buyTokens({from: investor1, value: ether(1)});
                 expect(await token.balanceOf(investor1)).to.be.bignumber.above(balance);
             });
 
             it("gets logged", async () => {
-                let value = money.ether(2);
+                let value = ether(2);
                 let amount = await tokenAmountOf(sale, value);
                 let tx = await sale.buyTokens({from: investor1, value});
                 let entry = tx.logs.find(entry => entry.event === "TokenPurchase");
                 expect(entry).to.exist;
-                expect(entry.args.buyer).to.be.bignumber.equal(investor1);
+                expect(entry.args.buyer).to.equal(investor1);
                 expect(entry.args.value).to.be.bignumber.equal(value);
                 expect(entry.args.amount).to.be.bignumber.equal(amount);
             });
 
             it("via fallback function is possible", async () => {
                 let balance = await token.balanceOf(investor1);
-                let options = {from: investor1, to: sale.address, value: money.ether(1)};
-                options.gas = await web3.eth.estimateGas(options);
+                let options = {from: investor1, to: sale.address, value: ether(1)};
+                options.gas = 2 * await web3.eth.estimateGas(options);
                 await web3.eth.sendTransaction(options);
                 expect(await token.balanceOf(investor1)).to.be.bignumber.above(balance);
             });
@@ -721,112 +718,112 @@ contract("StokrCrowdsale", ([owner,
                 let reason = await reject.tx({
                     from: investor1,
                     to: sale.address,
-                    value: money.ether(1),
+                    value: ether(1),
                     data: "0x01",
                 });
-                expect(reason).to.be.equal("fallback call with data");
+                expect(reason).to.equal("Fallback call with data");
             });
 
             it("increases investor's balance", async () => {
                 let balance = await token.balanceOf(investor1);
-                let value = money.ether(2);
+                let value = ether(2);
                 let amount = await tokenAmountOf(sale, value);
                 await sale.buyTokens({from: investor1, value});
-                expect(await token.balanceOf(investor1)).to.be.bignumber.equal(balance.plus(amount));
+                expect(await token.balanceOf(investor1)).to.be.bignumber.equal(balance.add(amount));
             });
 
             it("decreases investor's wei balance", async () => {
                 let asset = await web3.eth.getBalance(investor1);
-                let value = money.ether(2);
+                let value = ether(2);
                 await sale.buyTokens({from: investor1, value});
-                expect(await web3.eth.getBalance(investor1)).to.be.bignumber.most(asset.minus(value));
+                expect(toBN(await web3.eth.getBalance(investor1))).to.be.bignumber.most(asset.sub(value));
             });
 
             it("increases token total supply", async () => {
                 let supply = await token.totalSupply();
-                let value = money.ether(2);
+                let value = ether(2);
                 let amount = await tokenAmountOf(sale, value);
                 await sale.buyTokens({from: investor1, value});
-                expect(await token.totalSupply()).to.be.bignumber.equal(supply.plus(amount));
+                expect(await token.totalSupply()).to.be.bignumber.equal(supply.add(amount));
             });
 
             it("decreases remaining tokens for public sale", async () => {
                 let remaining = await sale.tokenRemainingForPublicSale();
-                let value = money.ether(2);
+                let value = ether(2);
                 let amount = await tokenAmountOf(sale, value);
                 await sale.buyTokens({from: investor1, value});
                 expect(await sale.tokenRemainingForPublicSale())
-                    .to.be.bignumber.equal(remaining.minus(amount));
+                    .to.be.bignumber.equal(remaining.sub(amount));
             });
 
             it("increases tokens sold", async () => {
                 let sold = await sale.tokenSold();
-                let value = money.ether(2);
+                let value = ether(2);
                 let amount = await tokenAmountOf(sale, value);
                 await sale.buyTokens({from: investor1, value});
-                expect(await sale.tokenSold()).to.be.bignumber.equal(sold.plus(amount));
+                expect(await sale.tokenSold()).to.be.bignumber.equal(sold.add(amount));
             });
 
             it("exceeding remaining tokens for public sale is forbidden", async () => {
                 let remaining = await sale.tokenRemainingForPublicSale();
-                let value = (await tokenValueOf(sale, remaining)).plus(await valueOf1(sale));
+                let value = (await tokenValueOf(sale, remaining)).add(await valueOf1(sale));
                 let reason = await reject.call(sale.buyTokens({from: investor1, value}));
-                expect(reason).to.be.equal("not enough tokens available");
+                expect(reason).to.equal("Not enough tokens available");
             });
 
             it("is stored if goal wasn't reached", async () => {
-                let amount = (await sale.tokenGoal()).minus(await sale.tokenSold());
-                let value = (await tokenValueOf(sale, amount)).divToInt(3);
+                let amount = (await sale.tokenGoal()).sub(await sale.tokenSold());
+                let value = (await tokenValueOf(sale, amount)).div(toBN(3));
                 await sale.buyTokens({from: investor1, value});
                 expect(await sale.investments(investor1)).to.be.bignumber.equal(value);
                 await sale.buyTokens({from: investor1, value});
-                expect(await sale.investments(investor1)).to.be.bignumber.equal(value.times(2));
+                expect(await sale.investments(investor1)).to.be.bignumber.equal(value.mul(toBN(2)));
             });
 
             it("is not forwarded if goal wasn't reached", async () => {
-                let asset = await web3.eth.getBalance(companyWallet);
-                let amount = (await sale.tokenGoal()).minus(await sale.tokenSold());
-                let value = (await tokenValueOf(sale, amount)).minus(money.wei(1));
+                let asset = toBN(await web3.eth.getBalance(companyWallet));
+                let amount = (await sale.tokenGoal()).sub(await sale.tokenSold());
+                let value = (await tokenValueOf(sale, amount)).sub(toBN(1));
                 await sale.buyTokens({from: investor1, value});
-                expect(await web3.eth.getBalance(companyWallet)).to.be.bignumber.equal(asset);
+                expect(toBN(await web3.eth.getBalance(companyWallet))).to.be.bignumber.equal(asset);
             });
 
             it("may reach goal eventually", async () => {
-                let amount = (await sale.tokenGoal()).minus(await sale.tokenSold());
-                let value = (await tokenValueOf(sale, amount)).plus(await valueOf1(sale));
+                let amount = (await sale.tokenGoal()).sub(await sale.tokenSold());
+                let value = (await tokenValueOf(sale, amount)).add(await valueOf1(sale));
                 await sale.buyTokens({from: investor1, value});
                 expect(await sale.goalReached()).to.be.true;
             });
 
             it("is forwarded if goal was reached", async () => {
-                let amount = (await sale.tokenGoal()).minus(await sale.tokenSold());
-                let value = (await tokenValueOf(sale, amount)).plus(await valueOf1(sale));
+                let amount = (await sale.tokenGoal()).sub(await sale.tokenSold());
+                let value = (await tokenValueOf(sale, amount)).add(await valueOf1(sale));
                 await sale.buyTokens({from: investor1, value});
-                let asset = web3.eth.getBalance(companyWallet);
-                let investment = money.ether(2);
+                let asset = toBN(await web3.eth.getBalance(companyWallet));
+                let investment = ether(2);
                 await sale.buyTokens({from: investor1, value: investment});
-                expect(await web3.eth.getBalance(companyWallet))
-                    .to.be.bignumber.equal(asset.plus(investment));
+                expect(toBN(await web3.eth.getBalance(companyWallet)))
+                    .to.be.bignumber.equal(asset.add(investment));
             });
         });
 
         describe("investor refund", () => {
 
             it("claiming is forbidden", async () => {
-                let amount = (await sale.tokenGoal()).minus(await sale.tokenSold());
-                let value = (await tokenValueOf(sale, amount)).divToInt(3);
+                let amount = (await sale.tokenGoal()).sub(await sale.tokenSold());
+                let value = (await tokenValueOf(sale, amount)).div(toBN(3));
                 await sale.buyTokens({from: investor1, value});
                 let reason = await reject.call(sale.claimRefund({from: investor1}));
-                expect(reason).to.be.equal("sale has not been finalized");
+                expect(reason).to.equal("Sale has not been finalized");
 
             });
 
             it("distribution is forbidden", async () => {
-                let amount = (await sale.tokenGoal()).minus(await sale.tokenSold());
-                let value = (await tokenValueOf(sale, amount)).divToInt(3);
+                let amount = (await sale.tokenGoal()).sub(await sale.tokenSold());
+                let value = (await tokenValueOf(sale, amount)).div(toBN(3));
                 await sale.buyTokens({from: investor1, value});
                 let reason = await reject.call(sale.distributeRefunds([investor1], {from: owner}));
-                expect(reason).to.be.equal("sale has not been finalized");
+                expect(reason).to.equal("Sale has not been finalized");
             });
         });
 
@@ -834,7 +831,7 @@ contract("StokrCrowdsale", ([owner,
 
             it("is forbidden", async () => {
                 let reason = await reject.call(sale.finalize({from: owner}));
-                expect(reason).to.be.equal("sale has not closed");
+                expect(reason).to.equal("Sale has not closed");
             })
         });
     });
@@ -845,12 +842,12 @@ contract("StokrCrowdsale", ([owner,
 
         before("deploy", async () => {
             await initialState.restore();
-            sale = await deploySale(getDefaultParams());
+            sale = await deploySale(await getDeployParams());
             token = await StokrToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
             await token.setMinter(sale.address, {from: owner});
             await time.increaseTo(await sale.openingTime());
-            startState = await snapshot.new();
+            startState = await EVM.snapshot();
         });
 
         afterEach("restore start state", async () => {
@@ -866,17 +863,17 @@ contract("StokrCrowdsale", ([owner,
 
             it("beyond limit is forbidden", async () => {
                 let maxValue = await tokenValueOf(sale, await sale.tokenPurchaseLimit());
-                let value = maxValue.plus(await valueOf1(sale));
+                let value = maxValue.add(await valueOf1(sale));
                 let reason = await reject.call(sale.buyTokens({from: investor1, value}));
-                expect(reason).to.be.equal("purchase limit reached");
+                expect(reason).to.equal("Purchase limit reached");
             });
 
             it("increases investor's purchased amount", async () => {
                 let purchased = await sale.tokenPurchased(investor1);
-                let value = money.ether(2);
+                let value = ether(2);
                 let amount = await tokenAmountOf(sale, value);
                 await sale.buyTokens({from: investor1, value});
-                expect(await sale.tokenPurchased(investor1)).to.be.bignumber.equal(purchased.plus(amount));
+                expect(await sale.tokenPurchased(investor1)).to.be.bignumber.equal(purchased.add(amount));
             });
         });
     });
@@ -887,13 +884,13 @@ contract("StokrCrowdsale", ([owner,
 
         before("deploy", async () => {
             await initialState.restore();
-            let params = getDefaultParams({etherRate: 0});
+            let params = await getDeployParams({etherRate: 0});
             sale = await deploySale(params);
             token = await StokrToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
             await token.setMinter(sale.address, {from: owner});
             await time.increaseTo(await sale.openingTime());
-            startState = await snapshot.new();
+            startState = await EVM.snapshot();
         });
 
         afterEach("restore start state", async () => {
@@ -903,8 +900,8 @@ contract("StokrCrowdsale", ([owner,
         describe("token purchase", () => {
 
             it("is forbidden if rate source delivers zero rate", async () => {
-                let reason = await reject.call(sale.buyTokens({from: investor1, value: money.ether(1)}));
-                expect(reason).to.be.equal("ether rate is zero");
+                let reason = await reject.call(sale.buyTokens({from: investor1, value: ether(1)}));
+                expect(reason).to.equal("Ether rate is zero");
             });
         });
     });
@@ -915,16 +912,16 @@ contract("StokrCrowdsale", ([owner,
 
         before("deploy", async () => {
             await initialState.restore();
-            sale = await deploySale(getDefaultParams());
+            sale = await deploySale(await getDeployParams());
             token = await StokrToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
             await token.setMinter(sale.address, {from: owner});
             await time.increaseTo(await sale.limitEndTime());
-            let value = (await tokenValueOf(sale, await sale.tokenGoal())).divToInt(2);
+            let value = (await tokenValueOf(sale, await sale.tokenGoal())).div(toBN(2));
             await sale.buyTokens({from: investor1, value});
-            await sale.buyTokens({from: investor2, value: value.minus(await valueOf1(sale))});
+            await sale.buyTokens({from: investor2, value: value.sub(await valueOf1(sale))});
             await time.increaseTo(await sale.closingTime());
-            startState = await snapshot.new();
+            startState = await EVM.snapshot();
         });
 
         afterEach("restore start state", async () => {
@@ -963,7 +960,7 @@ contract("StokrCrowdsale", ([owner,
             it("is forbidden", async () => {
                 let closingTime = time.now() + time.mins(1);
                 let reason = await reject.call(sale.changeClosingTime(closingTime, {from: owner}));
-                expect(reason).to.be.equal("sale has already ended");
+                expect(reason).to.equal("Sale has already ended");
             });
         });
 
@@ -981,8 +978,8 @@ contract("StokrCrowdsale", ([owner,
         describe("token purchase", () => {
 
             it("is forbidden", async () => {
-                let reason = await reject.call(sale.buyTokens({from: investor1, value: money.ether(1)}));
-                expect(reason).to.be.equal("sale is not open");
+                let reason = await reject.call(sale.buyTokens({from: investor1, value: ether(1)}));
+                expect(reason).to.equal("Sale is not open");
             });
         });
 
@@ -990,12 +987,12 @@ contract("StokrCrowdsale", ([owner,
 
             it("claiming is forbidden", async () => {
                 let reason = await reject.call(sale.claimRefund({from: investor1}));
-                expect(reason).to.be.equal("sale has not been finalized");
+                expect(reason).to.equal("Sale has not been finalized");
             });
 
             it("distribution is forbidden", async () => {
                 let reason = await reject.call(sale.distributeRefunds([investor1], {from: owner}));
-                expect(reason).to.be.equal("sale has not been finalized");
+                expect(reason).to.equal("Sale has not been finalized");
             });
         });
 
@@ -1003,7 +1000,7 @@ contract("StokrCrowdsale", ([owner,
 
             it("by anyone but owner is forbidden", async () => {
                 let reason = await reject.call(sale.finalize({from: anyone}));
-                expect(reason).to.be.equal("restricted to owner");
+                expect(reason).to.equal("Restricted to owner");
             });
 
             it("is possible", async () => {
@@ -1025,16 +1022,16 @@ contract("StokrCrowdsale", ([owner,
 
         before("deploy", async () => {
             await initialState.restore();
-            sale = await deploySale(getDefaultParams());
+            sale = await deploySale(await getDeployParams());
             token = await StokrToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
             await token.setMinter(sale.address, {from: owner});
             await time.increaseTo(await sale.limitEndTime());
-            let value = (await tokenValueOf(sale, await sale.tokenGoal())).divToInt(2);
+            let value = (await tokenValueOf(sale, await sale.tokenGoal())).div(toBN(2));
             await sale.buyTokens({from: investor1, value});
-            await sale.buyTokens({from: investor2, value: value.plus(await valueOf1(sale))});
+            await sale.buyTokens({from: investor2, value: value.add(await valueOf1(sale))});
             await time.increaseTo(await sale.closingTime());
-            startState = await snapshot.new();
+            startState = await EVM.snapshot();
         });
 
         afterEach("restore start state", async () => {
@@ -1066,6 +1063,10 @@ contract("StokrCrowdsale", ([owner,
             it("has not been finalized", async () => {
                 expect(await sale.isFinalized()).to.be.false;
             });
+
+            it("has zero balance", async () => {
+                expect(await web3.eth.getBalance(sale.address)).to.be.zero;
+            });
         });
 
         describe("change of closing time", async () => {
@@ -1073,7 +1074,7 @@ contract("StokrCrowdsale", ([owner,
             it("is forbidden", async () => {
                 let closingTime = time.now() + time.mins(1);
                 let reason = await reject.call(sale.changeClosingTime(closingTime, {from: owner}));
-                expect(reason).to.be.equal("sale has already ended");
+                expect(reason).to.equal("Sale has already ended");
             });
         });
 
@@ -1091,8 +1092,8 @@ contract("StokrCrowdsale", ([owner,
         describe("token purchase", () => {
 
             it("is forbidden", async () => {
-                let reason = await reject.call(sale.buyTokens({from: investor1, value: money.ether(1)}));
-                expect(reason).to.be.equal("sale is not open");
+                let reason = await reject.call(sale.buyTokens({from: investor1, value: ether(1)}));
+                expect(reason).to.equal("Sale is not open");
             });
         });
 
@@ -1100,12 +1101,12 @@ contract("StokrCrowdsale", ([owner,
 
             it("claiming is forbidden", async () => {
                 let reason = await reject.call(sale.claimRefund({from: investor1}));
-                expect(reason).to.be.equal("sale has not been finalized");
+                expect(reason).to.equal("Sale has not been finalized");
             });
 
             it("distribution is forbidden", async () => {
                 let reason = await reject.call(sale.distributeRefunds([investor1], {from: owner}));
-                expect(reason).to.be.equal("sale has not been finalized");
+                expect(reason).to.equal("Sale has not been finalized");
             });
         });
 
@@ -1113,7 +1114,7 @@ contract("StokrCrowdsale", ([owner,
 
             it("by anyone but owner is forbidden", async () => {
                 let reason = await reject.call(sale.finalize({from: anyone}));
-                expect(reason).to.be.equal("restricted to owner");
+                expect(reason).to.equal("Restricted to owner");
             });
 
             it("is possible", async () => {
@@ -1134,7 +1135,7 @@ contract("StokrCrowdsale", ([owner,
                 let perMill = await sale.tokenReservePerMill();
                 await sale.finalize({from: owner});
                 expect(await token.balanceOf(account)).to.be.bignumber.equal(
-                    balance.plus(sold.times(perMill).divToInt(1000)));
+                    balance.add(sold.mul(perMill).div(toBN(1000))));
             });
         });
     });
@@ -1145,7 +1146,7 @@ contract("StokrCrowdsale", ([owner,
 
         before("deploy", async () => {
             await initialState.restore();
-            let params = getDefaultParams({tokenReservePerMill: 0});
+            let params = await getDeployParams({tokenReservePerMill: 0});
             sale = await deploySale(params);
             token = await StokrToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
@@ -1154,7 +1155,7 @@ contract("StokrCrowdsale", ([owner,
             let value = (await tokenValueOf(sale, await sale.tokenGoal()));
             await sale.buyTokens({from: investor1, value});
             await time.increaseTo(await sale.closingTime());
-            startState = await snapshot.new();
+            startState = await EVM.snapshot();
         });
 
         afterEach("restore start state", async () => {
@@ -1179,17 +1180,17 @@ contract("StokrCrowdsale", ([owner,
 
         before("deploy", async () => {
             await initialState.restore();
-            sale = await deploySale(getDefaultParams());
+            sale = await deploySale(await getDeployParams());
             token = await StokrToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
             await token.setMinter(sale.address, {from: owner});
             await time.increaseTo(await sale.limitEndTime());
-            let value = (await tokenValueOf(sale, await sale.tokenGoal())).divToInt(2);
+            let value = (await tokenValueOf(sale, await sale.tokenGoal())).div(toBN(2));
             await sale.buyTokens({from: investor1, value});
-            await sale.buyTokens({from: investor2, value: value.minus(await valueOf1(sale))});
+            await sale.buyTokens({from: investor2, value: value.sub(await valueOf1(sale))});
             await time.increaseTo(await sale.closingTime());
             await sale.finalize({from: owner});
-            startState = await snapshot.new();
+            startState = await EVM.snapshot();
         });
 
         afterEach("restore start state", async () => {
@@ -1235,7 +1236,7 @@ contract("StokrCrowdsale", ([owner,
             it("is forbidden", async () => {
                 let closingTime = time.now() + time.mins(1);
                 let reason = await reject.call(sale.changeClosingTime(closingTime, {from: owner}));
-                expect(reason).to.be.equal("sale has already ended");
+                expect(reason).to.equal("Sale has already ended");
             });
         });
 
@@ -1245,22 +1246,22 @@ contract("StokrCrowdsale", ([owner,
                 let reason = await reject.call(sale.distributeTokensViaPublicSale([investor1],
                                                                                   [1],
                                                                                   {from: owner}));
-                expect(reason).to.be.equal("sale has been finalized");
+                expect(reason).to.equal("Sale has been finalized");
             });
 
             it("via private sale is forbidden", async () => {
                 let reason = await reject.call(sale.distributeTokensViaPrivateSale([investor1],
                                                                                    [1],
                                                                                    {from: owner}));
-                expect(reason).to.be.equal("sale has been finalized");
+                expect(reason).to.equal("Sale has been finalized");
             });
         });
 
         describe("token purchase", () => {
 
             it("is forbidden", async () => {
-                let reason = await reject.call(sale.buyTokens({from: investor1, value: money.ether(1)}));
-                expect(reason).to.be.equal("sale is not open");
+                let reason = await reject.call(sale.buyTokens({from: investor1, value: ether(1)}));
+                expect(reason).to.equal("Sale is not open");
             });
         });
 
@@ -1277,7 +1278,7 @@ contract("StokrCrowdsale", ([owner,
                 let tx = await sale.claimRefund({from: investor1});
                 let entry = tx.logs.find(entry => entry.event === "InvestorRefund");
                 expect(entry).to.exist;
-                expect(entry.args.investor).to.be.bignumber.equal(investor1);
+                expect(entry.args.investor).to.equal(investor1);
                 expect(entry.args.value).to.be.bignumber.equal(investment);
             });
 
@@ -1287,12 +1288,12 @@ contract("StokrCrowdsale", ([owner,
             });
 
             it("claiming increases investor's balance", async () => {
-                let asset = await web3.eth.getBalance(investor1);
+                let asset = toBN(await web3.eth.getBalance(investor1));
                 let investment = await sale.investments(investor1);
-                let txCostEst = money.finney(10);
+                let txCostEst = toWei(toBN(10), "finney");
                 await sale.claimRefund({from: investor1});
-                expect(await web3.eth.getBalance(investor1))
-                    .to.be.bignumber.above(asset.plus(investment).minus(txCostEst));
+                expect(toBN(await web3.eth.getBalance(investor1)))
+                    .to.be.bignumber.above(asset.add(investment).sub(txCostEst));
             });
 
             it("distribution is possible", async () => {
@@ -1304,7 +1305,7 @@ contract("StokrCrowdsale", ([owner,
                 let tx = await sale.distributeRefunds([investor1], {from: anyone});
                 let entry = tx.logs.find(entry => entry.event === "InvestorRefund");
                 expect(entry).to.exist;
-                expect(entry.args.investor).to.be.bignumber.equal(investor1);
+                expect(entry.args.investor).to.equal(investor1);
                 expect(entry.args.value).to.be.bignumber.equal(investment);
             });
 
@@ -1314,11 +1315,11 @@ contract("StokrCrowdsale", ([owner,
             });
 
             it("distribution increases investor's balance", async () => {
-                let asset = await web3.eth.getBalance(investor1);
+                let asset = toBN(await web3.eth.getBalance(investor1));
                 let investment = await sale.investments(investor1);
                 await sale.distributeRefunds([investor1], {from: anyone});
-                expect(await web3.eth.getBalance(investor1))
-                    .to.be.bignumber.equal(asset.plus(investment));
+                expect(toBN(await web3.eth.getBalance(investor1)))
+                    .to.be.bignumber.equal(asset.add(investment));
             });
         });
 
@@ -1326,7 +1327,7 @@ contract("StokrCrowdsale", ([owner,
 
             it("is forbidden", async () => {
                 let reason = await reject.call(sale.finalize({from: owner}));
-                expect(reason).to.be.equal("sale has already been finalized");
+                expect(reason).to.equal("Sale has already been finalized");
             });
         });
     });
@@ -1337,17 +1338,17 @@ contract("StokrCrowdsale", ([owner,
 
         before("deploy", async () => {
             await initialState.restore();
-            sale = await deploySale(getDefaultParams());
+            sale = await deploySale(await getDeployParams());
             token = await StokrToken.at(await sale.token());
             whitelist = await Whitelist.at(await token.whitelist());
             await token.setMinter(sale.address, {from: owner});
             await time.increaseTo(await sale.limitEndTime());
-            let value = (await tokenValueOf(sale, await sale.tokenGoal())).divToInt(2);
+            let value = (await tokenValueOf(sale, await sale.tokenGoal())).div(toBN(2));
             await sale.buyTokens({from: investor1, value});
-            await sale.buyTokens({from: investor2, value: value.plus(await valueOf1(sale))});
+            await sale.buyTokens({from: investor2, value: value.add(await valueOf1(sale))});
             await time.increaseTo(await sale.closingTime());
             await sale.finalize({from: owner});
-            startState = await snapshot.new();
+            startState = await EVM.snapshot();
         });
 
         afterEach("restore start state", async () => {
@@ -1379,6 +1380,10 @@ contract("StokrCrowdsale", ([owner,
             it("has been finalized", async () => {
                 expect(await sale.isFinalized()).to.be.true;
             });
+
+            it("has zero balance", async () => {
+                expect(await web3.eth.getBalance(sale.address)).to.be.zero;
+            });
         });
 
         describe("token contract", () => {
@@ -1393,7 +1398,7 @@ contract("StokrCrowdsale", ([owner,
             it("is forbidden", async () => {
                 let closingTime = time.now() + time.mins(1);
                 let reason = await reject.call(sale.changeClosingTime(closingTime, {from: owner}));
-                expect(reason).to.be.equal("sale has already ended");
+                expect(reason).to.equal("Sale has already ended");
             });
         });
 
@@ -1403,22 +1408,22 @@ contract("StokrCrowdsale", ([owner,
                 let reason = await reject.call(sale.distributeTokensViaPublicSale([investor1],
                                                                                   [1],
                                                                                   {from: owner}));
-                expect(reason).to.be.equal("sale has been finalized");
+                expect(reason).to.equal("Sale has been finalized");
             });
 
             it("via private sale is forbidden", async () => {
                 let reason = await reject.call(sale.distributeTokensViaPrivateSale([investor1],
                                                                                    [1],
                                                                                    {from: owner}));
-                expect(reason).to.be.equal("sale has been finalized");
+                expect(reason).to.equal("Sale has been finalized");
             });
         });
 
         describe("token purchase", () => {
 
             it("is forbidden", async () => {
-                let reason = await reject.call(sale.buyTokens({from: investor1, value: money.ether(1)}));
-                expect(reason).to.be.equal("sale is not open");
+                let reason = await reject.call(sale.buyTokens({from: investor1, value: ether(1)}));
+                expect(reason).to.equal("Sale is not open");
             });
         });
 
@@ -1426,12 +1431,12 @@ contract("StokrCrowdsale", ([owner,
 
             it("claiming is forbidden", async () => {
                 let reason = await reject.call(sale.claimRefund({from: investor1}));
-                expect(reason).to.be.equal("goal was reached");
+                expect(reason).to.equal("Goal was reached");
             });
 
             it("distribution is forbidden", async () => {
                 let reason = await reject.call(sale.distributeRefunds([investor1], {from: owner}));
-                expect(reason).to.be.equal("goal was reached");
+                expect(reason).to.equal("Goal was reached");
             });
         });
 
@@ -1439,9 +1444,70 @@ contract("StokrCrowdsale", ([owner,
 
             it("is forbidden", async () => {
                 let reason = await reject.call(sale.finalize({from: owner}));
-                expect(reason).to.be.equal("sale has already been finalized");
+                expect(reason).to.equal("Sale has already been finalized");
             });
         });
     });
 
+    describe("transaction costs", () => {
+        const CL_CYAN = "\u001b[36m";
+        const CL_GRAY = "\u001b[90m";
+        const CL_DEFAULT = "\u001b[0m";
+
+        let startState;
+        let sale, token, whitelist;
+
+        before("deploy and save state", async () => {
+            await initialState.restore();
+            sale = await deploySale(await getDeployParams());
+            token = await StokrToken.at(await sale.token());
+            whitelist = await Whitelist.at(await token.whitelist());
+            await token.setMinter(sale.address, {from: owner});
+            startState = await EVM.snapshot();
+        });
+
+        afterEach("restore start state", async () => {
+            await startState.restore();
+        });
+
+        [
+            {
+                name: "public sale",
+                distributeTokens: "distributeTokensViaPublicSale",
+            }, {
+                name: "private sale",
+                distributeTokens: "distributeTokensViaPrivateSale",
+            }
+        ].forEach(fns => {
+            it(`of token distribution via ${fns.name} to many investors`, async () => {
+                let maximum;
+                let count = 0;
+                let next = bisection.new(count);
+                while (isFinite(count)) {
+                    let investors = [];
+                    let amounts = [];
+                    for (let i = 0; i < count; ++i) {
+                        let investor = randomAddress();
+                        investors.push(investor);
+                        amounts.push(i);
+                    }
+                    await whitelist.addToWhitelist(investors, {from: owner});
+                    let message = `of token distribution via ${fns.name} to ${count} investors: `;
+                    try {
+                        let tx = await sale[fns.distributeTokens](investors, amounts, {from: owner});
+                        maximum = count;
+                        message += `${tx.receipt.gasUsed} gas`;
+                        count = tx.receipt.gasUsed <= 8000000 ? next(true) : NaN;
+                    }
+                    catch (error) {
+                        message += "failed";
+                        count = next(false);
+                    }
+                    console.log(" ".repeat(6) + `${CL_CYAN}→ ${CL_GRAY}${message}${CL_DEFAULT}`);
+                }
+                expect(maximum).to.be.above(2);
+            });
+        });
+    });
 });
+

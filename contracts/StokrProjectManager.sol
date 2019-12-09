@@ -1,4 +1,4 @@
-pragma solidity 0.4.25;
+pragma solidity 0.5.12;
 
 import "./ownership/Ownable.sol";
 import "./whitelist/Whitelist.sol";
@@ -57,9 +57,9 @@ contract StokrProjectManager is Ownable, RateSource {
     /// @param index  Index of the project within projects list
     event ProjectCreation(
         uint indexed index,
-        address whitelist,
-        address indexed token,
-        address indexed crowdsale
+        Whitelist whitelist,
+        StokrToken indexed token,
+        StokrCrowdsale indexed crowdsale
     );
 
 
@@ -146,14 +146,15 @@ contract StokrProjectManager is Ownable, RateSource {
     /// @dev Create a new project,
     ///      i.e. deploy a new token and crowdsale and store their address into projects
     function createNewProject(
-        string name,
-        string symbol,
+        string calldata name,
+        string calldata symbol,
         uint tokenPrice,
-        address[3] roles,  // [profitDepositor, profitDistributor, tokenRecoverer]
-        uint[6] amounts,   // [tokenCapOfPublicSale, tokenCapOfPrivateSale, tokenGoal,
-                           //  tokenPurchaseMinimum, tokenPurchaseLimit, tokenReservePerMill]
-        uint[3] period,    // [openingTime, closingTime, limitEndTime]
-        address[2] wallets  // [companyWallet, reserveAccount]
+        address[3] calldata roles,   // [profitDepositor, profitDistributor, tokenRecoverer]
+        uint[6] calldata amounts,    // [tokenCapOfPublicSale, tokenCapOfPrivateSale, tokenGoal,
+                                     //  tokenPurchaseMinimum, tokenPurchaseLimit,
+                                     //  tokenReservePerMill]
+        uint[3] calldata period,     // [openingTime, closingTime, limitEndTime]
+        address[2] calldata wallets  // [companyWallet, reserveAccount]
     )
         external onlyOwner
     {
@@ -186,7 +187,7 @@ contract StokrProjectManager is Ownable, RateSource {
             period,
             wallets);
 
-        token.setMinter(crowdsale);  // The crowdsale should be the minter of the token
+        token.setMinter(address(crowdsale));  // The crowdsale should be the minter of the token
         token.transferOwnershipUnsafe(msg.sender);  // to tokenOwner
         crowdsale.transferOwnershipUnsafe(msg.sender);  // to crowdsaleOwner
 

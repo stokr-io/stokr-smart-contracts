@@ -1,4 +1,4 @@
-pragma solidity 0.4.25;
+pragma solidity 0.5.12;
 
 import "./MintingCrowdsale.sol";
 import "./RateSourceInterface.sol";
@@ -49,7 +49,7 @@ contract StokrCrowdsale is MintingCrowdsale {
         uint _openingTime,
         uint _closingTime,
         uint _limitEndTime,
-        address _companyWallet,
+        address payable _companyWallet,
         address _reserveAccount
     )
         public
@@ -69,7 +69,10 @@ contract StokrCrowdsale is MintingCrowdsale {
             _reserveAccount
         )
     {
-        require(_tokenGoal <= _tokenCapOfPublicSale + _tokenCapOfPrivateSale, "Goal is not attainable");
+        require(
+            _tokenGoal <= _tokenCapOfPublicSale + _tokenCapOfPrivateSale,
+            "Goal is not attainable"
+        );
 
         tokenGoal = _tokenGoal;
     }
@@ -81,7 +84,7 @@ contract StokrCrowdsale is MintingCrowdsale {
     }
 
     /// @dev Investors can claim refunds here if crowdsale was unsuccessful
-    function distributeRefunds(address[] _investors) external {
+    function distributeRefunds(address payable[] calldata _investors) external {
         for (uint i = 0; i < _investors.length; ++i) {
             refundInvestor(_investors[i]);
         }
@@ -97,8 +100,32 @@ contract StokrCrowdsale is MintingCrowdsale {
         super.finalize();
 
         if (!goalReached()) {
-            StokrToken(token).destruct();
+            StokrToken(address(token)).destruct();
         }
+    }
+
+    function distributeTokensViaPublicSale(
+        address[] memory beneficiaries,
+        uint[] memory amounts
+    )
+        public
+    {
+        super.distributeTokensViaPublicSale(beneficiaries, amounts);
+        // The goal may get reached due to token distribution,
+        // so forward any accumulated funds to the company wallet.
+        forwardFunds();
+    }
+
+    function distributeTokensViaPrivateSale(
+        address[] memory beneficiaries,
+        uint[] memory amounts
+    )
+        public
+    {
+        super.distributeTokensViaPrivateSale(beneficiaries, amounts);
+        // The goal may get reached due to token distribution,
+        // so forward any accumulated funds to the company wallet.
+        forwardFunds();
     }
 
     /// @dev Overwritten. Funds are held back until goal was reached
@@ -113,7 +140,7 @@ contract StokrCrowdsale is MintingCrowdsale {
 
     /// @dev Refund an investor if the sale was not successful
     /// @param _investor Ethereum address of investor
-    function refundInvestor(address _investor) internal {
+    function refundInvestor(address payable _investor) internal {
         require(isFinalized, "Sale has not been finalized");
         require(!goalReached(), "Goal was reached");
 
