@@ -12,7 +12,7 @@ contract MintingCrowdsale is Ownable {
     using SafeMath for uint;
 
     // Maximum Time of offering period after extension
-    uint constant MAXOFFERINGPERIOD = 80 days;
+    uint constant MAXOFFERINGPERIOD = 183 days;
 
     // Ether rate oracle contract providing the price of an Ether in EUR cents
     RateSource public rateSource;
@@ -198,7 +198,7 @@ contract MintingCrowdsale is Ownable {
     /// @dev Check whether the sale has closed
     /// @return True iff sale closing time has passed
     function hasClosed() public view returns (bool) {
-        return now >= closingTime;
+        return now >= closingTime || tokenRemainingForPublicSale == 0;
     }
 
     /// @dev Check wether the sale is open
