@@ -36,23 +36,9 @@ to the token holders.
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
-    
+
     STOKR S.A, at 9, rue du Laboratoire, L-1911 Luxembourg, hello@stokr.io
 
-
-## Development
-
-**Dependencies**
-
-* "chai": "^4.2.0",
-* "chai-as-promised": "^7.1.1",
-* "chai-bignumber": "^2.0.2",
-* "eth-gas-reporter": "^0.1.12",
-* "ganache-cli": "^6.4.1",
-* "solhint": "^1.4.0",
-* "solidity-coverage": "^0.5.11",
-* "truffle": "^4.1.14",
-* "truffle-flattener": "^1.2.10"
 
 ## Setting Up
 
@@ -60,23 +46,21 @@ to the token holders.
 
   * `git clone https://github.com/stokr-io/stokr-smart-contracts`
 
-* Install all [system dependencies](#development).
+* Install dependencies.
 
   * `npm install`
 
-* Compile contract code
+* Compile contract code.
 
   * `./node_modules/.bin/truffle compile`
 
 ## Running tests
 
   * You first have to start the Ganache client
+
     * `./node_modules/.bin/ganache-cli --gasLimit 8000000`
 
     * Then run `./node_modules/.bin/truffle test`
 
-  * For test coverage run `./node_modules/.bin/solidity-coverage`
+  * For test coverage run `./node_modules/.bin/truffle run coverage`
 
-    * Note: The coverage tool will show several test as failed. This is because the
-      tests rely on reading the return value of requires, which is not suported by the coverage tool.
-      The coverage will still be calculated acurately.

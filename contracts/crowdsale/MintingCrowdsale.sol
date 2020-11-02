@@ -1,4 +1,4 @@
-pragma solidity 0.5.12;
+pragma solidity 0.5.16;
 
 import "../math/SafeMath.sol";
 import "../ownership/Ownable.sol";
@@ -72,7 +72,12 @@ contract MintingCrowdsale is Ownable {
     /// @param amount Number of token units
     event TokenPurchase(address indexed buyer, uint value, uint amount);
 
-    /// @dev Log entry upon rate change event
+    /// @dev Log entry upon opening time change event
+    /// @param previous Previous opening time of sale
+    /// @param current Current opening time of sale
+    event OpeningTimeChange(uint previous, uint current);
+
+    /// @dev Log entry upon closing time change event
     /// @param previous Previous closing time of sale
     /// @param current Current closing time of sale
     event ClosingTimeChange(uint previous, uint current);
@@ -253,6 +258,21 @@ contract MintingCrowdsale is Ownable {
         forwardFunds();
 
         emit TokenPurchase(msg.sender, msg.value, amount);
+    }
+
+    /// @dev Change the start time of offering period without changing its duration.
+    /// @param _newOpeningTime new openingTime of the crowdsale
+    function changeOpeningTime(uint _newOpeningTime) public onlyOwner {
+        require(now < openingTime, "Sale has started already");
+        require(now < _newOpeningTime, "OpeningTime not in the future");
+
+        uint _newClosingTime = _newOpeningTime + (closingTime - openingTime);
+
+        emit OpeningTimeChange(openingTime, _newOpeningTime);
+        emit ClosingTimeChange(closingTime, _newClosingTime);
+
+        openingTime = _newOpeningTime;
+        closingTime = _newClosingTime;
     }
 
     /// @dev Extend the offering period of the crowd sale.

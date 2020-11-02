@@ -1,4 +1,4 @@
-pragma solidity 0.5.12;
+pragma solidity 0.5.16;
 
 /// @title Ownable
 /// @dev Provide a simple access control with a single authority: the owner
